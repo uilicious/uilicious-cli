@@ -2,7 +2,7 @@
   "name": "uilicious-cli",
   "version": "1.0.0",
   "description": "Uilicious CLI toolchain",
-  "main": "main.js",
+  "main": "uilicious-cli.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -14,5 +14,6 @@
   "license": "UNLICENSED",
   "dependencies": {
     "commander": "^2.9.0"
-  }
+  },
+  "devDependencies": {}
 }
