@@ -13,7 +13,8 @@
   "author": "Uilicious Private Limited",
   "license": "UNLICENSED",
   "dependencies": {
-    "commander": "^2.9.0"
+    "commander": "^2.9.0",
+    "request": "^2.79.0"
   },
   "devDependencies": {}
 }
