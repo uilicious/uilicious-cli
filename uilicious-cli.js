@@ -40,47 +40,92 @@ if (!String.prototype.startsWith) {
 
 //------------------------------------------------------------------------------------------
 //
-// utility for HTTP handling
+// utility for HTTP / API handling
 //
 //------------------------------------------------------------------------------------------
 
-/// Normalize callbacks, so that its not null
+/// Makes a POST request, with the given form object
+/// and return its JSON result in a promise
 ///
-/// @param  [Optional] The callback function to normalize
+/// @param  "POST" or "GET" method
+/// @param  FULL URL to make the request
+/// @param  [OPTIONAL] Query / Form parameter to pass as an object
+/// @param  [OPTIONAL] Callback parameter, to attach to promise
 ///
-/// @return  Normalized callback function to return
-function normalizeCallback(callback) {
-	return callback || function() {
-		var args = (arguments.length === 1 ? [arguments[0]] : Array.apply(null, arguments));
-		console.log.apply(console, args);
+/// @return The promise object, with the attached callback
+function jsonRequest(method, url, data, callback) {
+
+	// Option / parameter parsing
+	var option = {
+		url : url,
+		method : method
 	};
-}
+	if( method == "GET" ) {
+		option.qs = data;
+	} else {
+		option.form = data;
+	}
 
-/// @return Gets the base URL, with the requerid user / pass integrated
-function getFullBaseUrl() {
-	return "https://"+program.user+":"+program.pass+"@"+program.base+".uilicious.com";
-}
-
-///
-function uiliciousRequest(method, path, params, callback) {
-	// Options setup
-	let options = {
-		url: getFullBaseUrl()+path,
-		method: method || "GET"
-	};
-
-	// Promise object to return
+	// The actual API call, with promise object
 	return new Promise(function(good,bad) {
-		request(options, function(err, res, body) {
-			if( err ) {
-				throw new Error("Unexpected error for URI request : "+path+" -> "+err);
+		request(option, function( err, res, body ) {
+			if(err) {
+				throw new Error("Unexpected error for URL request : "+url+" -> "+err);
 			} else {
 				try {
 					good(JSON.parse(body));
 				} catch(e) {
-					throw new Error("Invalid JSON response for URI request : "+path+" -> "+body);
+					throw new Error("Invalid JSON format for URL request : "+url+" -> "+body);
 				}
 			}
+		});
+	}).then(callback);
+}
+
+/// Cached full host URL
+var _fullHostURL = null;
+
+/// Does a login check, and provides the actual server URL to call API
+/// silently terminates, with an error message if it fails
+///
+/// @return   Promise object, returning the full URL to make request to
+function getFullHostURL(callback) {
+	if( _fullHostURL != null ) {
+		return Promise.resolve(_fullHostURL).then(callback);
+	}
+
+	return new Promise(function(good,bad) {
+		jsonRequest(
+			"POST",
+			"https://beta-login.uilicious.com/api/fetchHostURL",
+			{
+				"user" : program.user,
+				"pass" : program.pass
+			},
+			function(res) {
+				if( res.protectedURL == null ) {
+					console.error("ERROR: Unable to login - Invalid user / pass?");
+					return;
+				} else {
+					_fullHostURL = res.protectedURL;
+					good(_fullHostURL);
+				}
+			}
+		);
+	}).then(callback);
+}
+
+/// Does a request to web-studio instance of the client
+///
+/// @param  "POST" or "GET" method
+/// @param  Webstudio path request
+/// @param  [OPTIONAL] Query / Form parameter to pass as an object
+/// @param  [OPTIONAL] Callback parameter, to attach to promise
+///
+function webstudioRequest(method, path, params, callback) {
+	return new Promise(function(good,bad) {
+		getFullHostURL(function(hostURL) {
+			jsonRequest(method, hostURL+path, params, good);
 		});
 	}).then(callback);
 }
@@ -97,33 +142,100 @@ function uiliciousRequest(method, path, params, callback) {
 ///
 /// @return  Promise object, for result
 function projectList(callback) {
-	return uiliciousRequest(
+	return webstudioRequest(
 		"GET",
-		"/api/projects",
+		"/api/studio/v1/projects",
 		{},
 		callback
 	);
 }
 
-/// Get a project ID, given the project name
+/// Fetch the project ID for a project,
+/// silently terminates, with an error message if it fails
 ///
-/// @param  Project name to lookup
-/// @param  [Optional] Callback to return result, defaults to console.log
+/// @param  Project Name to fetch ID
+/// @param  [Optional] Callback to return result
 ///
-/// @return  Promise object, for project ID result
-function projectID(projname, callback) {
+/// @return  Promise object, for result
+function projectID(projectName, callback) {
 	return new Promise(function(good,bad) {
-		projectList().then(function(list) {
+		projectList(function(list) {
 			for(let i=0; i<list.length; ++i) {
 				let item = list[i];
-				if(item.title == projname) {
-					good(item.id);
+				if(item.title == projectName) {
+					good(parseInt(item.id));
 					return;
 				}
 			}
-			console.error("ERROR: Project Name not found: "+projname);
+			console.error("ERROR: Project Name not found: "+projectName);
 			return;
 		});
+	}).then(callback);
+}
+
+/// Returns the test ID (if found), given the project ID AND test path
+///
+/// @param  Project ID
+/// @param  Test Path
+/// @param  [Optional] Callback to return result
+///
+/// @return  Promise object, for result
+function testID(projID, testPath, callback) {
+	return new Promise(function(good,bad) {
+		webstudioRequest(
+			"GET",
+			"/api/studio/v1/projects/"+projID+"/workspace/tests",
+			{ path : testPath },
+			function(res) {
+				if( res.length > 0 ) {
+					let id = res[0].id;
+					if( id != null ) {
+						good(parseInt(id));
+						return;
+					}
+				}
+				console.error("ERROR: Unable to find test script: "+testPath);
+				return;
+			}
+		);
+	}).then(callback);
+}
+
+/// Runs a test, and returns the run GUID
+///
+/// @param   Project ID to use
+/// @param   Test ID to use
+/// @param   [optional] callback to return run GUID
+///
+/// @return   Promise object for result run GUID
+function runTest(projID, testID, callback) {
+
+	// Get the browser config
+	let form = {};
+	if(program.browser != null) {
+		form.browser = program.browser;
+	}
+	if(program.height != null) {
+		form.height = program.height;
+	}
+	if(program.width != null) {
+		form.width = program.width;
+	}
+
+	// Return promise obj
+	return new Promise(function(good,bad) {
+		webstudioRequest(
+			"POST",
+			"/api/studio/v1/projects/"+projID+"/workspace/tests/"+testID+"/runAction",
+			form,
+			function(res) {
+				if( res.id != null ) {
+					good(id);
+					return;
+				}
+				throw new Error("Missing test run ID -> "+res);
+			}
+		);
 	}).then(callback);
 }
 
@@ -141,12 +253,15 @@ function main(projname, scriptpath, options) {
 	console.log("# Script Path : "+scriptpath);
 	console.log("#");
 
-	// // Sanatize and validate inputs
-	// console.log("Base: "+program.base);
-	// console.log("User: "+program.user);
-	// console.log("Pass: "+program.pass);
-
-	projectID(projname, function(id) { console.log(id); });
+	projectID(projname, function(projID) {
+		testID(projID, scriptpath, function(scriptID) {
+			console.log("Project ID: "+projID);
+			console.log("Test ID: "+scriptID);
+			// runTest(projID, scriptID, function(runGUID) {
+			//
+			// });
+		});
+	});
 }
 
 //-----------------------------------------------------------------------------------------
@@ -159,10 +274,12 @@ function main(projname, scriptpath, options) {
 program.version('1.0.0')
 	.usage('[commands] [options] <parameters> ...')
 	.description("Uilicious.com CLI runner. For CI")
-	.option('-b, --base <required>', 'Host name parameter (without .uilicious.com)')
 	.option('-u, --user <required>', 'Username to login as')
 	.option('-p, --pass <required>', 'Password to login as')
 	.option('-d, --directory <required>', 'Output directory path to use')
+	.option('-b, --browser <required>', 'The browser name [chrome/firefox]')
+	.option('-w, --width <required>', 'The browser width')
+	.option('-h, --height <required>', 'The browser height')
 	.command('run <projname> <scriptpath>')
 	.action(main);
 
