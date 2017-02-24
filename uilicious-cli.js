@@ -230,13 +230,40 @@ function runTest(projID, testID, callback) {
 			form,
 			function(res) {
 				if( res.id != null ) {
-					good(id);
+					good(res.id);
 					return;
 				}
-				throw new Error("Missing test run ID -> "+res);
+				throw new Error("Missing test run ID -> "+res.id);
 			}
 		);
 	}).then(callback);
+}
+
+function getResult(runTestID, callback) {
+	return new Promise(function(good,bad) {
+		webstudioRequest(
+			"GET",
+			"/api/v0/test/result",
+			{ id : runTestID },
+			function(res) {
+				console.log("Status: "+res.status);
+				if( res.status == 'success') {
+					good(res.status);
+					return;
+				} else {
+					pollForResult(runTestID, callback);
+				}
+				// throw new Error("Missing test run ID -> "+res);
+			}
+		);
+	}).then(callback);
+}
+
+let maxTimeout = 2500; // mins 30 * ......
+function pollForResult(runTestID, callback) {
+	setTimeout(function() {
+		getResult(runTestID, callback);
+	}, maxTimeout);
 }
 
 //------------------------------------------------------------------------------------------
@@ -254,12 +281,14 @@ function main(projname, scriptpath, options) {
 	console.log("#");
 
 	projectID(projname, function(projID) {
+		console.log("Project ID: "+projID);
 		testID(projID, scriptpath, function(scriptID) {
-			console.log("Project ID: "+projID);
 			console.log("Test ID: "+scriptID);
-			// runTest(projID, scriptID, function(runGUID) {
-			//
-			// });
+			runTest(projID, scriptID, function(postID) {
+				console.log(postID);
+				getResult(postID, function() {
+				});
+			});
 		});
 	});
 }
