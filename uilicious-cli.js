@@ -239,31 +239,64 @@ function runTest(projID, testID, callback) {
 	}).then(callback);
 }
 
+// Get result
 function getResult(runTestID, callback) {
-	return new Promise(function(good,bad) {
-		webstudioRequest(
-			"GET",
-			"/api/v0/test/result",
-			{ id : runTestID },
-			function(res) {
-				console.log("Status: "+res.status);
-				if( res.status == 'success') {
-					good(res.status);
-					return;
-				} else {
-					pollForResult(runTestID, callback);
-				}
-				// throw new Error("Missing test run ID -> "+res);
-			}
-		);
-	}).then(callback);
+	return webstudioRequest(
+		"GET",
+		"/api/v0/test/result",
+		{ id : runTestID },
+		callback
+	);
 }
 
-let maxTimeout = 2500; // mins 30 * ......
+function formatStepOutputMsg(step) {
+	return "[Step "+(step.idx+1)+" - "+step.status+"]: "+step.description+" - "+step.time+"s";
+}
+
+var outputStepCache = [];
+function outputStep(idx, step) {
+	if( outputStepCache[idx] == null ) {
+		outputStepCache[idx] = step;
+		if( step.status == 'success' ) {
+			console.log( formatStepOutputMsg(step) );
+		} else if( step.status == 'failure' ) {
+			console.error( formatStepOutputMsg(step) );
+		}
+	}
+}
+
+function processResultSteps(stepArr) {
+	if(stepArr == null) {
+		return;
+	}
+
+	for( let idx = 0; idx < stepArr.length; ++idx ) {
+		let step = stepArr[idx];
+		if( step.status == 'success' || step.status == 'failure' ) {
+			outputStep(idx, step);
+		}
+	}
+}
+
+let pollInterval = 2500;
+// Call api every 2500ms
 function pollForResult(runTestID, callback) {
-	setTimeout(function() {
-		getResult(runTestID, callback);
-	}, maxTimeout);
+	return new Promise(function(good,bad) {
+		function actualPoll() {
+			setTimeout(function() {
+				getResult(runTestID, function(res) {
+					processResultSteps(res.steps);
+					if( res.status == 'success' || res.status == 'failure') {
+						good(res);
+						return;
+					} else {
+						actualPoll();
+					}
+				})
+			}, pollInterval);
+		}
+		actualPoll();
+	}).then(callback);
 }
 
 //------------------------------------------------------------------------------------------
@@ -281,12 +314,21 @@ function main(projname, scriptpath, options) {
 	console.log("#");
 
 	projectID(projname, function(projID) {
-		console.log("Project ID: "+projID);
+		console.log("# Project ID : "+projID);
 		testID(projID, scriptpath, function(scriptID) {
-			console.log("Test ID: "+scriptID);
+			console.log("# Script ID  : "+scriptID);
 			runTest(projID, scriptID, function(postID) {
-				console.log(postID);
-				getResult(postID, function() {
+				console.log("# Test run ID: "+postID);
+				console.log("#");
+				console.log("");
+				pollForResult(postID, function(finalRes) {
+					console.log("");
+					let totalSteps = finalRes.steps.length;
+					if( finalRes.status == "success" ) {
+						console.log("Test successful: "+totalSteps+" steps");
+					} else {
+						console.error("Test "+finalRes.status+": "+totalSteps+" steps");
+					}
 				});
 			});
 		});
@@ -305,7 +347,7 @@ program.version('1.0.0')
 	.description("Uilicious.com CLI runner. For CI")
 	.option('-u, --user <required>', 'Username to login as')
 	.option('-p, --pass <required>', 'Password to login as')
-	.option('-d, --directory <required>', 'Output directory path to use')
+//	.option('-d, --directory <required>', 'Output directory path to use')
 	.option('-b, --browser <required>', 'The browser name [chrome/firefox]')
 	.option('-w, --width <required>', 'The browser width')
 	.option('-h, --height <required>', 'The browser height')
