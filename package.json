@@ -12,6 +12,9 @@
   ],
   "author": "Uilicious Private Limited",
   "license": "UNLICENSED",
+  "bin": {
+	 "uilicious-cli": "./uilicious-cli.js" 
+  },
   "dependencies": {
     "commander": "^2.9.0",
     "request": "^2.79.0"
