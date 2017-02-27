@@ -239,7 +239,7 @@ function runTest(projID, testID, callback) {
 	}).then(callback);
 }
 
-// Get result
+// Get result based on runTestID
 function getResult(runTestID, callback) {
 	return webstudioRequest(
 		"GET",
@@ -247,35 +247,6 @@ function getResult(runTestID, callback) {
 		{ id : runTestID },
 		callback
 	);
-}
-
-function formatStepOutputMsg(step) {
-	return "[Step "+(step.idx+1)+" - "+step.status+"]: "+step.description+" - "+step.time+"s";
-}
-
-var outputStepCache = [];
-function outputStep(idx, step) {
-	if( outputStepCache[idx] == null ) {
-		outputStepCache[idx] = step;
-		if( step.status == 'success' ) {
-			console.log( formatStepOutputMsg(step) );
-		} else if( step.status == 'failure' ) {
-			console.error( formatStepOutputMsg(step) );
-		}
-	}
-}
-
-function processResultSteps(stepArr) {
-	if(stepArr == null) {
-		return;
-	}
-
-	for( let idx = 0; idx < stepArr.length; ++idx ) {
-		let step = stepArr[idx];
-		if( step.status == 'success' || step.status == 'failure' ) {
-			outputStep(idx, step);
-		}
-	}
 }
 
 let pollInterval = 2500;
@@ -297,6 +268,37 @@ function pollForResult(runTestID, callback) {
 		}
 		actualPoll();
 	}).then(callback);
+}
+
+// Cycle through every step and output those steps with 'success/failure'
+function processResultSteps(stepArr) {
+	if(stepArr == null) {
+		return;
+	}
+	for( let idx = 0; idx < stepArr.length; ++idx ) {
+		let step = stepArr[idx];
+		if( step.status == 'success' || step.status == 'failure' ) {
+			outputStep(idx, step);
+		}
+	}
+}
+
+// Return the status of each step
+function formatStepOutputMsg(step) {
+	return "[Step "+(step.idx+1)+" - "+step.status+"]: "+step.description+" - "+step.time+"s";
+}
+
+// Output
+var outputStepCache = [];
+function outputStep(idx, step) {
+	if( outputStepCache[idx] == null ) {
+		outputStepCache[idx] = step;
+		if( step.status == 'success' ) {
+			console.log( formatStepOutputMsg(step) );
+		} else if( step.status == 'failure' ) {
+			console.error( formatStepOutputMsg(step) );
+		}
+	}
 }
 
 //------------------------------------------------------------------------------------------
