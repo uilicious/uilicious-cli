@@ -4,7 +4,7 @@ The Uilicious CLI is the primary tool used for continuous integration. This CLI 
 ## Installation
 This npm package can be installed by:
 ```
-$ npm install uilicious-cli
+$ npm install -g uilicious-cli
 ```
 
 ## Running
