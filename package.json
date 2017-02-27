@@ -1,6 +1,6 @@
 {
   "name": "uilicious-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Uilicious CLI toolchain",
   "main": "uilicious-cli.js",
   "scripts": {
@@ -13,7 +13,7 @@
   "author": "Uilicious Private Limited",
   "license": "UNLICENSED",
   "bin": {
-	 "uilicious-cli": "uilicious-cli.js" 
+	 "uilicious-cli": "uilicious-cli.js"
   },
   "dependencies": {
     "commander": "^2.9.0",
