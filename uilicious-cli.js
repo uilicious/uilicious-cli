@@ -345,12 +345,12 @@ function main(projname, scriptpath, options) {
 program.version('1.0.0')
 	.usage('[commands] [options] <parameters> ...')
 	.description("Uilicious.com CLI runner. For CI")
-	.option('-u, --user <required>', 'Username to login as')
-	.option('-p, --pass <required>', 'Password to login as')
+	.option('-u, --user <required>', 'Username')
+	.option('-p, --pass <required>', 'Password')
 //	.option('-d, --directory <required>', 'Output directory path to use')
-	.option('-b, --browser <required>', 'The browser name [chrome/firefox]')
-	.option('-w, --width <required>', 'The browser width')
-	.option('-h, --height <required>', 'The browser height')
+	.option('-b, --browser <optional>', 'Browser [chrome/firefox]')
+	.option('-w, --width <optional>', 'Width of browser')
+	.option('-h, --height <optional>', 'Height of browser')
 	.command('run <projname> <scriptpath>')
 	.action(main);
 
