@@ -104,7 +104,7 @@ function getFullHostURL(callback) {
 			},
 			function(res) {
 				if( res.protectedURL == null ) {
-					console.error("ERROR: Unable to login - Invalid user / pass?");
+					console.error("ERROR: Unable to login - Invalid username/password");
 					return;
 				} else {
 					_fullHostURL = res.protectedURL;
