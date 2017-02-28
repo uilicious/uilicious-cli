@@ -226,7 +226,7 @@ function runTest(projID, testID, callback) {
 	return new Promise(function(good,bad) {
 		webstudioRequest(
 			"POST",
-			"/api/studio/v1/projects/"+projID+"/workspace/tests/"+testID+"/runAction",
+			"/api/studio/v1/projects/"+projID+"/workspace/tests/"+testID+"/runAction?cli=true",
 			form,
 			function(res) {
 				if( res.id != null ) {
