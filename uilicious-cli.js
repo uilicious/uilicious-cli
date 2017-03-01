@@ -105,7 +105,7 @@ function getFullHostURL(callback) {
 			function(res) {
 				if( res.protectedURL == null ) {
 					console.error("ERROR: Unable to login - Invalid username/password");
-					return;
+					process.exit(1);
 				} else {
 					_fullHostURL = res.protectedURL;
 					good(_fullHostURL);
@@ -168,7 +168,7 @@ function projectID(projectName, callback) {
 				}
 			}
 			console.error("ERROR: Project Name not found: "+projectName);
-			return;
+			process.exit(1);
 		});
 	}).then(callback);
 }
@@ -195,7 +195,7 @@ function testID(projID, testPath, callback) {
 					}
 				}
 				console.error("ERROR: Unable to find test script: "+testPath);
-				return;
+				process.exit(1);
 			}
 		);
 	}).then(callback);
