@@ -328,8 +328,10 @@ function main(projname, scriptpath, options) {
 					let totalSteps = finalRes.steps.length;
 					if( finalRes.status == "success" ) {
 						console.log("Test successful: "+totalSteps+" steps");
+						process.exit(0);	// Exit with success code 0
 					} else {
 						console.error("Test "+finalRes.status+": "+totalSteps+" steps");
+						process.exit(1);	// Exit with failure code 1
 					}
 				});
 			});
@@ -345,7 +347,7 @@ function main(projname, scriptpath, options) {
 
 // Basic CLI parameters handling
 program.version('1.0.0')
-	.usage('[commands] [options] <parameters> ...')
+	.usage('[commands] [options] run <parameters> ...')
 	.description("Uilicious.com CLI runner. For CI")
 	.option('-u, --user <required>', 'Username')
 	.option('-p, --pass <required>', 'Password')
