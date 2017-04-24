@@ -67,7 +67,7 @@ function jsonRequest(method, url, data, callback) {
 	}
 
 	// The actual API call, with promise object
-	return new Promise(function(good,bad) {
+	return new Promise(function(good, bad) {
 		request(option, function( err, res, body ) {
 			if(err) {
 				throw new Error("Unexpected error for URL request : "+url+" -> "+err);
@@ -94,7 +94,7 @@ function getFullHostURL(callback) {
 		return Promise.resolve(_fullHostURL).then(callback);
 	}
 
-	return new Promise(function(good,bad) {
+	return new Promise(function(good, bad) {
 		jsonRequest(
 			"POST",
 			"https://beta-login.uilicious.com/api/fetchHostURL",
@@ -123,7 +123,7 @@ function getFullHostURL(callback) {
 /// @param  [OPTIONAL] Callback parameter, to attach to promise
 ///
 function webstudioRequest(method, path, params, callback) {
-	return new Promise(function(good,bad) {
+	return new Promise(function(good, bad) {
 		getFullHostURL(function(hostURL) {
 			jsonRequest(method, hostURL+path, params, good);
 		});
@@ -158,7 +158,7 @@ function projectList(callback) {
 ///
 /// @return  Promise object, for result
 function projectID(projectName, callback) {
-	return new Promise(function(good,bad) {
+	return new Promise(function(good, bad) {
 		projectList(function(list) {
 			for(let i=0; i<list.length; ++i) {
 				let item = list[i];
@@ -181,7 +181,7 @@ function projectID(projectName, callback) {
 ///
 /// @return  Promise object, for result
 function testID(projID, testPath, callback) {
-	return new Promise(function(good,bad) {
+	return new Promise(function(good, bad) {
 		webstudioRequest(
 			"GET",
 			"/api/studio/v1/projects/"+projID+"/workspace/tests",
@@ -223,7 +223,7 @@ function runTest(projID, testID, callback) {
 	}
 
 	// Return promise obj
-	return new Promise(function(good,bad) {
+	return new Promise(function(good, bad) {
 		webstudioRequest(
 			"POST",
 			"/api/studio/v1/projects/"+projID+"/workspace/tests/"+testID+"/runAction?cli=true",
@@ -252,7 +252,7 @@ function getResult(runTestID, callback) {
 let pollInterval = 2500;
 // Call api every 2500ms
 function pollForResult(runTestID, callback) {
-	return new Promise(function(good,bad) {
+	return new Promise(function(good, bad) {
 		function actualPoll() {
 			setTimeout(function() {
 				getResult(runTestID, function(res) {
