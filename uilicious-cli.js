@@ -150,6 +150,25 @@ function projectList(callback) {
 	);
 }
 
+/// List all projects,
+/// silently terminates, with an error message if no project present
+function projects(callback) {
+	return new Promise(function(good, bad) {
+		projectList(function(list) {
+			if (list != null) {
+				for(let i = 0; i < list.length; i++) {
+					let item = list[i];
+					console.log(" * " + item.title);
+				}
+				console.log("");
+			} else {
+				console.error("ERROR: No project present.");
+				process.exit(1);
+			}
+		});
+	}).then(callback);
+}
+
 /// Fetch the project ID for a project,
 /// silently terminates, with an error message if it fails
 ///
@@ -303,10 +322,23 @@ function outputStep(idx, step) {
 
 //------------------------------------------------------------------------------------------
 //
-// main command
+// Core Commands
 //
 //------------------------------------------------------------------------------------------
 
+// Get list of projects from account
+function getInfo(options) {
+	console.log("#------------#");
+	console.log("#  Projects  #");
+	console.log("#------------#");
+	console.log("");
+
+	projects(function(list) {
+		console.log("");
+	});
+}
+
+// Run test script from project
 function main(projname, scriptpath, options) {
 
 	console.log("#");
@@ -346,16 +378,23 @@ function main(projname, scriptpath, options) {
 //------------------------------------------------------------------------------------------
 
 // Basic CLI parameters handling
-program.version('1.0.0')
-	.usage('[commands] [options] run <parameters> ...')
-	.description("Uilicious.com CLI runner. For CI")
-	.option('-u, --user <required>', 'Username')
-	.option('-p, --pass <required>', 'Password')
+program
+	.version('1.0.0')
+	.option('-u, --user <required>', 'username')
+	.option('-p, --pass <required>', 'password')
 //	.option('-d, --directory <required>', 'Output directory path to use')
-	.option('-b, --browser <optional>', 'Browser [chrome/firefox]')
-	.option('-w, --width <optional>', 'Width of browser')
-	.option('-h, --height <optional>', 'Height of browser')
+	.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
+	.option('-w, --width <optional>', 'width of browser')
+	.option('-h, --height <optional>', 'height of browser')
+
+program
+	.command('list')
+	.description('List all projects.')
+	.action(getInfo);
+
+program
 	.command('run <projname> <scriptpath>')
+	.description('Uilicious.com CLI runner for CI')
 	.action(main);
 
 // end with parse to parse through the input

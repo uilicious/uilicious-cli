@@ -7,6 +7,12 @@ This npm package can be installed by:
 $ npm install -g uilicious-cli
 ```
 
+## Listing
+```
+$ uilicious-cli list
+```
+List all projects available.
+
 ## Running
 ```
 $ uilicious-cli run <project_name> <script_path>
