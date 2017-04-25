@@ -6,10 +6,19 @@
 // Dependencies
 //
 //------------------------------------------------------------------------------------------
+const fs = require('fs');
+const chalk = require('chalk');
 const program = require('commander');
 const request = require('request');
 const http = require('http');
 const url = require('url');
+
+// Chalk messages
+const error_warning = chalk.bold.red;
+const success_warning = chalk.bold.green;
+const error = chalk.red ;
+const success = chalk.green;
+const msg = chalk.gray;
 
 //------------------------------------------------------------------------------------------
 //
@@ -70,12 +79,12 @@ function jsonRequest(method, url, data, callback) {
 	return new Promise(function(good, bad) {
 		request(option, function( err, res, body ) {
 			if(err) {
-				throw new Error("Unexpected error for URL request : "+url+" -> "+err);
+				throw new Error(error_warning("Unexpected error for URL request : "+url+" -> "+err));
 			} else {
 				try {
 					good(JSON.parse(body));
 				} catch(e) {
-					throw new Error("Invalid JSON format for URL request : "+url+" -> "+body);
+					throw new Error(error_warning("Invalid JSON format for URL request : "+url+" -> "+body));
 				}
 			}
 		});
@@ -104,7 +113,7 @@ function getFullHostURL(callback) {
 			},
 			function(res) {
 				if( res.protectedURL == null ) {
-					console.error("ERROR: Unable to login - Invalid username/password");
+					console.error(error_warning("ERROR: Unable to login - Invalid username/password"));
 					process.exit(1);
 				} else {
 					_fullHostURL = res.protectedURL;
@@ -162,7 +171,7 @@ function projects(callback) {
 				}
 				console.log("");
 			} else {
-				console.error("ERROR: No project present.");
+				console.error(error_warning("ERROR: No project present."));
 				process.exit(1);
 			}
 		});
@@ -186,7 +195,7 @@ function projectID(projectName, callback) {
 					return;
 				}
 			}
-			console.error("ERROR: Project Name not found: "+projectName);
+			console.error(error_warning("ERROR: Project Name not found: "+projectName));
 			process.exit(1);
 		});
 	}).then(callback);
@@ -213,7 +222,7 @@ function testID(projID, testPath, callback) {
 						return;
 					}
 				}
-				console.error("ERROR: Unable to find test script: "+testPath);
+				console.error(error_warning("ERROR: Unable to find test script: "+testPath));
 				process.exit(1);
 			}
 		);
@@ -252,7 +261,7 @@ function runTest(projID, testID, callback) {
 					good(res.id);
 					return;
 				}
-				throw new Error("Missing test run ID -> "+res.id);
+				throw new Error(error_warning("Missing test run ID -> "+res.id));
 			}
 		);
 	}).then(callback);
@@ -304,18 +313,26 @@ function processResultSteps(stepArr) {
 
 // Return the status of each step
 function formatStepOutputMsg(step) {
-	return "[Step "+(step.idx+1)+" - "+step.status+"]: "+step.description+" - "+step.time+"s";
+	// return "[Step "+(step.idx+1)+" - "+step.status+"]: "+step.description+" - "+step.time+"s";
+	return "[Step "+(step.idx+1)+"]: "+step.description+" - "+step.time+"s";
 }
 
-// Output
+// Return the screenshot of each step
+function formatStepOutputScreen(step) {
+	return "[Img]: "+step.afterImg;
+}
+
+// Output each step
 var outputStepCache = [];
 function outputStep(idx, step) {
 	if( outputStepCache[idx] == null ) {
 		outputStepCache[idx] = step;
 		if( step.status == 'success' ) {
-			console.log( formatStepOutputMsg(step) );
+			console.log(success(formatStepOutputMsg(step)));
+			console.log(formatStepOutputScreen(step));
 		} else if( step.status == 'failure' ) {
-			console.error( formatStepOutputMsg(step) );
+			console.error(error(formatStepOutputMsg(step)));
+			console.log(formatStepOutputScreen(step));
 		}
 	}
 }
@@ -359,10 +376,10 @@ function main(projname, scriptpath, options) {
 					console.log("");
 					let totalSteps = finalRes.steps.length;
 					if( finalRes.status == "success" ) {
-						console.log("Test successful: "+totalSteps+" steps");
+						console.log(success_warning("Test successful: "+totalSteps+" steps"));
 						process.exit(0);	// Exit with success code 0
 					} else {
-						console.error("Test "+finalRes.status+": "+totalSteps+" steps");
+						console.error(error_warning("Test failed: "+totalSteps+" steps"));
 						process.exit(1);	// Exit with failure code 1
 					}
 				});
@@ -379,7 +396,7 @@ function main(projname, scriptpath, options) {
 
 // Basic CLI parameters handling
 program
-	.version('1.0.0')
+	.version('1.1.7')
 	.option('-u, --user <required>', 'username')
 	.option('-p, --pass <required>', 'password')
 //	.option('-d, --directory <required>', 'Output directory path to use')
