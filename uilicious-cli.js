@@ -313,8 +313,7 @@ function processResultSteps(stepArr) {
 
 // Return the status of each step
 function formatStepOutputMsg(step) {
-	// return "[Step "+(step.idx+1)+" - "+step.status+"]: "+step.description+" - "+step.time+"s";
-	return "[Step "+(step.idx+1)+"]: "+step.description+" - "+step.time+"s";
+	return "[Step "+(step.idx+1)+" - "+step.status+"]: "+step.description+" - "+step.time+"s";
 }
 
 // Return the screenshot of each step
