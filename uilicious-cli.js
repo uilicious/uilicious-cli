@@ -18,7 +18,6 @@ const error_warning = chalk.bold.red;
 const success_warning = chalk.bold.green;
 const error = chalk.red ;
 const success = chalk.green;
-const msg = chalk.gray;
 
 //------------------------------------------------------------------------------------------
 //
@@ -318,7 +317,7 @@ function formatStepOutputMsg(step) {
 
 // Return the screenshot of each step
 function formatStepOutputScreen(step) {
-	return "[Img]: "+step.afterImg;
+	return "[Img] "+step.afterImg;
 }
 
 // Output each step
@@ -328,12 +327,23 @@ function outputStep(idx, step) {
 		outputStepCache[idx] = step;
 		if( step.status == 'success' ) {
 			console.log(success(formatStepOutputMsg(step)));
-			console.log(formatStepOutputScreen(step));
+			// console.log(formatStepOutputScreen(step));
 		} else if( step.status == 'failure' ) {
 			console.error(error(formatStepOutputMsg(step)));
-			console.log(formatStepOutputScreen(step));
+			// console.log(formatStepOutputScreen(step));
 		}
 	}
+}
+
+// Save screenshots
+function saveScreen(callback) {
+	return new Promise(function(good, bad) {
+		fs.writeFile('test.txt', 'Hello World!', function (err) {
+			if(err) {
+				return console.error(err);
+			}
+		});
+	}).then(callback);
 }
 
 //------------------------------------------------------------------------------------------
@@ -375,10 +385,11 @@ function main(projname, scriptpath, options) {
 					console.log("");
 					let totalSteps = finalRes.steps.length;
 					if( finalRes.status == "success" ) {
-						console.log(success_warning("Test successful: "+totalSteps+" steps"));
+						console.log(success_warning("Test successful: No errors"));
+						saveScreen();
 						process.exit(0);	// Exit with success code 0
 					} else {
-						console.error(error_warning("Test failed: "+totalSteps+" steps"));
+						console.error(error_warning("Test failed"));
 						process.exit(1);	// Exit with failure code 1
 					}
 				});
@@ -398,7 +409,7 @@ program
 	.version('1.1.7')
 	.option('-u, --user <required>', 'username')
 	.option('-p, --pass <required>', 'password')
-//	.option('-d, --directory <required>', 'Output directory path to use')
+	// .option('-d, --directory <required>', 'Output directory path to use')
 	.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
 	.option('-w, --width <optional>', 'width of browser')
 	.option('-h, --height <optional>', 'height of browser')
