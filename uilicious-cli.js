@@ -315,11 +315,6 @@ function formatStepOutputMsg(step) {
 	return "[Step "+(step.idx+1)+" - "+step.status+"]: "+step.description+" - "+step.time+"s";
 }
 
-// Return the screenshot of each step
-function formatStepOutputScreen(step) {
-	return "[Img] "+step.afterImg;
-}
-
 // Output each step
 var outputStepCache = [];
 function outputStep(idx, step) {
@@ -327,22 +322,25 @@ function outputStep(idx, step) {
 		outputStepCache[idx] = step;
 		if( step.status == 'success' ) {
 			console.log(success(formatStepOutputMsg(step)));
-			// console.log(formatStepOutputScreen(step));
 		} else if( step.status == 'failure' ) {
 			console.error(error(formatStepOutputMsg(step)));
-			// console.log(formatStepOutputScreen(step));
 		}
 	}
 }
 
-// Save screenshots
+// Create directory
 function saveScreen(callback) {
 	return new Promise(function(good, bad) {
-		fs.writeFile('test.txt', 'Hello World!', function (err) {
+		fs.mkdir(program.directory, function (err) {
 			if(err) {
-				return console.error(err);
+				console.error(err);
 			}
 		});
+		// fs.writeFile('./'+program.directory+'/testing.txt', 'Hello World', function (err) {
+		// 	if(err) {
+		// 		console.error(err);
+		// 	}
+		// });
 	}).then(callback);
 }
 
@@ -387,6 +385,7 @@ function main(projname, scriptpath, options) {
 					if( finalRes.status == "success" ) {
 						console.log(success_warning("Test successful: No errors"));
 						saveScreen();
+						// saveFile();
 						process.exit(0);	// Exit with success code 0
 					} else {
 						console.error(error_warning("Test failed"));
@@ -409,7 +408,7 @@ program
 	.version('1.1.7')
 	.option('-u, --user <required>', 'username')
 	.option('-p, --pass <required>', 'password')
-	// .option('-d, --directory <required>', 'Output directory path to use')
+	.option('-d, --directory <required>', 'Output directory path to use')
 	.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
 	.option('-w, --width <optional>', 'width of browser')
 	.option('-h, --height <optional>', 'height of browser')
