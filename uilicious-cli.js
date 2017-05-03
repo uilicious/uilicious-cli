@@ -52,7 +52,7 @@ if (!String.prototype.startsWith) {
 //
 //------------------------------------------------------------------------------------------
 
-/// Makes a POST request, with the given form object
+/// Makes a POST or GET request, with the given form object
 /// and return its JSON result in a promise
 ///
 /// @param  "POST" or "GET" method
@@ -61,7 +61,7 @@ if (!String.prototype.startsWith) {
 /// @param  [OPTIONAL] Callback parameter, to attach to promise
 ///
 /// @return The promise object, with the attached callback
-function jsonRequest(method, url, data, callback) {
+function rawRequest(method, url, data, callback) {
 
 	// Option / parameter parsing
 	var option = {
@@ -81,12 +81,30 @@ function jsonRequest(method, url, data, callback) {
 				throw new Error(error_warning("Unexpected error for URL request : "+url+" -> "+err));
 			} else {
 				try {
-					good(JSON.parse(body));
+					good(body);
 				} catch(e) {
 					throw new Error(error_warning("Invalid JSON format for URL request : "+url+" -> "+body));
 				}
 			}
 		});
+	}).then(callback);
+}
+
+/// Makes a GET or POST request, with the given form object
+/// and return its JSON result in a promise
+///
+/// @param  "GET" or "POST" method
+/// @param  FULL URL to make the request
+/// @param  [OPTIONAL] Query / Form parameter to pass as an object
+/// @param  [OPTIONAL] Callback parameter, to attach to promise
+///
+/// @return The promise object, with the attached callback
+function jsonRequest(method, url, data, callback) {
+	// Calling rawRequest, and parsing the good result as JSON
+	return new Promise(function(good, bad) {
+		rawRequest(method, url, data).then(function(data) {
+			good(JSON.parse(data));
+		},bad);
 	}).then(callback);
 }
 
@@ -123,17 +141,33 @@ function getFullHostURL(callback) {
 	}).then(callback);
 }
 
-/// Does a request to web-studio instance of the client
+/// Does a JSON request to web-studio instance of the client
 ///
 /// @param  "POST" or "GET" method
 /// @param  Webstudio path request
 /// @param  [OPTIONAL] Query / Form parameter to pass as an object
 /// @param  [OPTIONAL] Callback parameter, to attach to promise
 ///
-function webstudioRequest(method, path, params, callback) {
+function webstudioJsonRequest(method, path, params, callback) {
 	return new Promise(function(good, bad) {
 		getFullHostURL(function(hostURL) {
-			jsonRequest(method, hostURL+path, params, good);
+			jsonRequest(method, hostURL+path, params).then(good, bad);
+		});
+	}).then(callback);
+}
+
+/// Does a RAW request to web-studio instance of the client
+///
+/// @param  "POST" or "GET" method
+/// @param  Webstudio path request
+/// @param  [OPTIONAL] Query / Form parameter to pass as an object
+/// @param  [OPTIONAL] Callback parameter, to attach to promise
+///
+function webstudioRawRequest(method, path, params, callback) {
+	return new Promise(function(good, bad) {
+		getFullHostURL(function(hostURL) {
+			// console.log(method, path, params);
+			rawRequest(method, hostURL+path, params).then(good, bad);
 		});
 	}).then(callback);
 }
@@ -150,7 +184,7 @@ function webstudioRequest(method, path, params, callback) {
 ///
 /// @return  Promise object, for result
 function projectList(callback) {
-	return webstudioRequest(
+	return webstudioJsonRequest(
 		"GET",
 		"/api/studio/v1/projects",
 		{},
@@ -209,7 +243,7 @@ function projectID(projectName, callback) {
 /// @return  Promise object, for result
 function testID(projID, testPath, callback) {
 	return new Promise(function(good, bad) {
-		webstudioRequest(
+		webstudioJsonRequest(
 			"GET",
 			"/api/studio/v1/projects/"+projID+"/workspace/tests",
 			{ path : testPath },
@@ -251,7 +285,7 @@ function runTest(projID, testID, callback) {
 
 	// Return promise obj
 	return new Promise(function(good, bad) {
-		webstudioRequest(
+		webstudioJsonRequest(
 			"POST",
 			"/api/studio/v1/projects/"+projID+"/workspace/tests/"+testID+"/runAction?cli=true",
 			form,
@@ -268,7 +302,7 @@ function runTest(projID, testID, callback) {
 
 // Get result based on runTestID
 function getResult(runTestID, callback) {
-	return webstudioRequest(
+	return webstudioJsonRequest(
 		"GET",
 		"/api/v0/test/result",
 		{ id : runTestID },
@@ -283,7 +317,7 @@ function pollForResult(runTestID, callback) {
 		function actualPoll() {
 			setTimeout(function() {
 				getResult(runTestID, function(res) {
-					processResultSteps(res.steps);
+					processResultSteps(res.outputPath, res.steps);
 					if( res.status == 'success' || res.status == 'failure') {
 						good(res);
 						return;
@@ -298,14 +332,14 @@ function pollForResult(runTestID, callback) {
 }
 
 // Cycle through every step and output those steps with 'success/failure'
-function processResultSteps(stepArr) {
+function processResultSteps(outputPath, stepArr) {
 	if(stepArr == null) {
 		return;
 	}
-	for( let idx = 0; idx < stepArr.length; ++idx ) {
+	for( let idx = 0; idx < stepArr.length; idx++ ) {
 		let step = stepArr[idx];
 		if( step.status == 'success' || step.status == 'failure' ) {
-			outputStep(idx, step);
+			outputStep(outputPath, idx, step);
 		}
 	}
 }
@@ -315,32 +349,57 @@ function formatStepOutputMsg(step) {
 	return "[Step "+(step.idx+1)+" - "+step.status+"]: "+step.description+" - "+step.time+"s";
 }
 
+// Return image name of each step
+function formatStepOutputImg(step) {
+	return step.afterImg;
+}
+
 // Output each step
 var outputStepCache = [];
-function outputStep(idx, step) {
+function outputStep(outputPath, idx, step) {
 	if( outputStepCache[idx] == null ) {
 		outputStepCache[idx] = step;
+		let stepMsg = formatStepOutputMsg(step);
+		let stepImg = formatStepOutputImg(step);
 		if( step.status == 'success' ) {
-			console.log(success(formatStepOutputMsg(step)));
+			console.log(success(stepMsg));
+			getImg(outputPath, step.afterImg);
 		} else if( step.status == 'failure' ) {
-			console.error(error(formatStepOutputMsg(step)));
+			console.error(error(stepMsg));
+			getImg(outputPath, step.afterImg);
 		}
 	}
 }
 
+// Get Output URL
+function getOutputURL(outputPath, lastImg, callback) {
+	return webstudioRawRequest(
+		"GET",
+		outputPath+lastImg,
+		{},
+		callback
+	);
+}
+
+// function getImg(outputPath, lastImg, callback) {
+// 	return new Promise(function(good, bad) {
+// 		let options = {
+//
+// 		}
+// 		let OutputURL = getOutputURL(outputPath, lastImg);
+// 		request
+// 	}).then(callback);
+// }
+
 // Create directory
-function saveScreen(callback) {
+function createDir(callback) {
 	return new Promise(function(good, bad) {
-		fs.mkdir(program.directory, function (err) {
-			if(err) {
-				console.error(err);
+		fs.mkdir(program.directory, function(err) {
+			if(err === 'EEXIST') {
+				console.error(error_warning("ERROR: '"+program.directory+"' exists.\nPlease use another directory.\n"));
+				process.exit(1);
 			}
 		});
-		// fs.writeFile('./'+program.directory+'/testing.txt', 'Hello World', function (err) {
-		// 	if(err) {
-		// 		console.error(err);
-		// 	}
-		// });
 	}).then(callback);
 }
 
@@ -383,12 +442,10 @@ function main(projname, scriptpath, options) {
 					console.log("");
 					let totalSteps = finalRes.steps.length;
 					if( finalRes.status == "success" ) {
-						console.log(success_warning("Test successful: No errors"));
-						saveScreen();
-						// saveFile();
+						console.log(success_warning("Test successful: No errors\n"));
 						process.exit(0);	// Exit with success code 0
 					} else {
-						console.error(error_warning("Test failed"));
+						console.error(error_warning("Test failed\n"));
 						process.exit(1);	// Exit with failure code 1
 					}
 				});
@@ -405,10 +462,10 @@ function main(projname, scriptpath, options) {
 
 // Basic CLI parameters handling
 program
-	.version('1.1.7')
+	.version('1.1.8')
 	.option('-u, --user <required>', 'username')
 	.option('-p, --pass <required>', 'password')
-	.option('-d, --directory <required>', 'Output directory path to use')
+	// .option('-d, --directory <required>', 'Output directory path to use')
 	.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
 	.option('-w, --width <optional>', 'width of browser')
 	.option('-h, --height <optional>', 'height of browser')
@@ -428,5 +485,5 @@ program.parse(process.argv);
 
 // if program was called with no arguments, show help.
 if (program.args.length === 0) {
-	program.help(); //Terminates as well
+	program.help(); // Terminates as well
 }
