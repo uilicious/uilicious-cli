@@ -2,6 +2,11 @@
 The Uilicious CLI is the primary tool used for continuous integration. This CLI contains many options.
 
 ## Installation
+Before installing this package, please run this to ensure that npm is updated to the latest version:
+```
+$ npm install npm@latest -g
+```
+
 This npm package can be installed by:
 ```
 $ npm install -g uilicious-cli
