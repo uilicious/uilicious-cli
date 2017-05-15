@@ -29,8 +29,8 @@ $ uilicious-cli
 ## Options
 Name   | Command | Parameters
 ------ | ------- | ------------------
---user | -u `<parameter>` | Username
---pass | -p `<parameter>` | Password
+--user | -u `<parameter>` | Username (required)
+--pass | -p `<parameter>` | Password (required)
 --browser | -b `<parameter>` | Browser (optional) [Chrome/Firefox]
 --width | -w `<parameter>` | Width of browser (optional)
 --height | -h `<parameter>` | Height of browser (optional)

@@ -52,6 +52,12 @@ if (!String.prototype.startsWith) {
 //
 //------------------------------------------------------------------------------------------
 
+function requestErrorHandler(err) {
+	console.log("FATAL ERROR >> ");
+	console.log(err);
+	process.exit(1);
+}
+
 /// Makes a POST or GET request, with the given form object
 /// and return its JSON result in a promise
 ///
@@ -103,7 +109,14 @@ function jsonRequest(method, url, data, callback) {
 	// Calling rawRequest, and parsing the good result as JSON
 	return new Promise(function(good, bad) {
 		rawRequest(method, url, data).then(function(data) {
-			good(JSON.parse(data));
+			try {
+				good(JSON.parse(data));
+			} catch(err) {
+				console.log(err);
+				// console.log("for data : ");
+				// console.log(data);
+				process.exit(1);
+			}
 		},bad);
 	}).then(callback);
 }
@@ -248,12 +261,14 @@ function testID(projID, testPath, callback) {
 			"/api/studio/v1/projects/"+projID+"/workspace/tests",
 			{ path : testPath },
 			function(res) {
-				if( res.length > 0 ) {
+				// Prevent
+				if (res.length > 1) {
+					console.error(error_warning("ERROR: Multiple scripts named \""+testPath+"\" found.\nPlease give the correct path!\n"));
+					process.exit(1);
+				} else {
 					let id = res[0].id;
-					if( id != null ) {
-						good(parseInt(id));
-						return;
-					}
+					good(parseInt(id));
+					return;
 				}
 				console.error(error_warning("ERROR: Unable to find test script: "+testPath));
 				process.exit(1);
@@ -346,7 +361,7 @@ function processResultSteps(outputPath, stepArr) {
 
 // Return the status of each step
 function formatStepOutputMsg(step) {
-	return "[Step "+(step.idx+1)+" - "+step.status+"]: "+step.description+" - "+step.time+"s";
+	return "[Step "+(step.idx+1)+" - "+step.status+"]: "+step.description+" - "+step.time.toFixed(2)+"s";
 }
 
 // Return image name of each step
@@ -356,6 +371,7 @@ function formatStepOutputImg(step) {
 
 // Output each step
 var outputStepCache = [];
+var errorCount = 0;
 function outputStep(outputPath, idx, step) {
 	if( outputStepCache[idx] == null ) {
 		outputStepCache[idx] = step;
@@ -363,10 +379,13 @@ function outputStep(outputPath, idx, step) {
 		let stepImg = formatStepOutputImg(step);
 		if( step.status == 'success' ) {
 			console.log(success(stepMsg));
-			getImg(outputPath, step.afterImg);
+			console.log("[Img Name]: "+stepImg);
+			// getImg(outputPath, stepImg);
 		} else if( step.status == 'failure' ) {
+			errorCount++;
 			console.error(error(stepMsg));
-			getImg(outputPath, step.afterImg);
+			console.log("[Img Name]: "+stepImg);
+			// getImg(outputPath, stepImg);
 		}
 	}
 }
@@ -381,15 +400,17 @@ function getOutputURL(outputPath, lastImg, callback) {
 	);
 }
 
-// function getImg(outputPath, lastImg, callback) {
-// 	return new Promise(function(good, bad) {
-// 		let options = {
-//
-// 		}
-// 		let OutputURL = getOutputURL(outputPath, lastImg);
-// 		request
-// 	}).then(callback);
-// }
+function getImg(outputPath, lastImg, callback) {
+	return new Promise(function(good, bad) {
+		let OutputURL = getOutputURL(outputPath, lastImg);
+		request(OutputURL)
+			.on('error', function(err) {
+				console.error(err);
+			})
+			.pipe(fs.createWriteStream(lastImg, options));
+		return;
+	}).then(callback);
+}
 
 // Create directory
 function createDir(callback) {
@@ -442,10 +463,14 @@ function main(projname, scriptpath, options) {
 					console.log("");
 					let totalSteps = finalRes.steps.length;
 					if( finalRes.status == "success" ) {
-						console.log(success_warning("Test successful: No errors\n"));
+						console.log(success_warning("Test successful: No errors.\n"));
 						process.exit(0);	// Exit with success code 0
 					} else {
-						console.error(error_warning("Test failed\n"));
+						if (errorCount == 1) {
+							console.error(error_warning("Test failed with "+errorCount+" error.\n"));
+						} else {
+							console.error(error_warning("Test failed with "+errorCount+" errors.\n"));
+						}
 						process.exit(1);	// Exit with failure code 1
 					}
 				});
