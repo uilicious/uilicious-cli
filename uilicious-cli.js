@@ -487,7 +487,7 @@ function main(projname, scriptpath, options) {
 
 // Basic CLI parameters handling
 program
-	.version('1.1.8')
+	.version('1.1.9')
 	.option('-u, --user <required>', 'username')
 	.option('-p, --pass <required>', 'password')
 	// .option('-d, --directory <required>', 'Output directory path to use')
