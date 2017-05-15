@@ -6,7 +6,7 @@
 // Dependencies
 //
 //------------------------------------------------------------------------------------------
-const fs = require('fs');
+// const fs = require('fs');
 const chalk = require('chalk');
 const program = require('commander');
 const request = require('request');
