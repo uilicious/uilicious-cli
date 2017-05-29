@@ -379,12 +379,12 @@ function outputStep(outputPath, idx, step) {
 		let stepImg = formatStepOutputImg(step);
 		if( step.status == 'success' ) {
 			console.log(success(stepMsg));
-			console.log("[Img Name]: "+stepImg);
+			// console.log("[Img Name]: "+stepImg);
 			// getImg(outputPath, stepImg);
 		} else if( step.status == 'failure' ) {
 			errorCount++;
 			console.error(error(stepMsg));
-			console.log("[Img Name]: "+stepImg);
+			// console.log("[Img Name]: "+stepImg);
 			// getImg(outputPath, stepImg);
 		}
 	}
