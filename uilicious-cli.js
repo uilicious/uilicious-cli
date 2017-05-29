@@ -461,16 +461,17 @@ function main(projname, scriptpath, options) {
 				console.log("");
 				pollForResult(postID, function(finalRes) {
 					console.log("");
-					let totalSteps = finalRes.steps.length;
-					if( finalRes.status == "success" ) {
+					// Display log if there are no errors
+					if (errorCount == 0) {
 						console.log(success_warning("Test successful: No errors.\n"));
 						process.exit(0);	// Exit with success code 0
+					}
+					// Display error log if there are errors
+					if (errorCount == 1) {
+						console.error(error_warning("Test failed with "+errorCount+" error.\n"));
+						process.exit(1);	// Exit with failure code 1
 					} else {
-						if (errorCount == 1) {
-							console.error(error_warning("Test failed with "+errorCount+" error.\n"));
-						} else {
-							console.error(error_warning("Test failed with "+errorCount+" errors.\n"));
-						}
+						console.error(error_warning("Test failed with "+errorCount+" errors.\n"));
 						process.exit(1);	// Exit with failure code 1
 					}
 				});
@@ -487,7 +488,7 @@ function main(projname, scriptpath, options) {
 
 // Basic CLI parameters handling
 program
-	.version('1.1.11')
+	.version('1.1.12')
 	.option('-u, --user <required>', 'username')
 	.option('-p, --pass <required>', 'password')
 	// .option('-d, --directory <required>', 'Output directory path to use')
