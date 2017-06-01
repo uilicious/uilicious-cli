@@ -346,6 +346,25 @@ function pollForResult(runTestID, callback) {
 	}).then(callback);
 }
 
+function pollForError(runTestID, callback) {
+	return new Promise(function(good, bad) {
+		function actualPoll() {
+			setTimeout(function() {
+				getResult(runTestID, function(res) {
+					processErrors(res.outputPath, res.steps);
+					if( res.status == 'success' || res.status == 'failure') {
+						good(res);
+						return;
+					} else {
+						actualPoll();
+					}
+				})
+			}, pollInterval);
+		}
+		actualPoll();
+	}).then(callback);
+}
+
 // Cycle through every step and output those steps with 'success/failure'
 function processResultSteps(outputPath, stepArr) {
 	if(stepArr == null) {
@@ -359,9 +378,24 @@ function processResultSteps(outputPath, stepArr) {
 	}
 }
 
+// Cycle through every step and output errors
+function processErrors(outputPath, stepArr) {
+	for( let idx = 0; idx < stepArr.length; idx++ ) {
+		let step = stepArr[idx];
+		if( step.status == 'failure' ) {
+			outputError(outputPath, idx, step);
+		}
+	}
+}
+
 // Return the status of each step
 function formatStepOutputMsg(step) {
 	return "[Step "+(step.idx+1)+" - "+step.status+"]: "+step.description+" - "+step.time.toFixed(2)+"s";
+}
+
+// Return each error
+function formatErrorOutput(step) {
+	return "[Step "+(step.idx+1)+" - "+step.status+"]: "+step.error.message;
 }
 
 // Return image name of each step
@@ -387,6 +421,31 @@ function outputStep(outputPath, idx, step) {
 			// console.log("[Img Name]: "+stepImg);
 			// getImg(outputPath, stepImg);
 		}
+	}
+}
+
+// Output each error
+var outputErrorCache = [];
+function outputError(outputPath, idx, step) {
+	outputErrorCache[idx] = step;
+	let stepError = formatErrorOutput(step);
+	if ( step.status == 'failure' ) {
+		console.error(error(stepError));
+	}
+}
+
+// Output log for test status and errors after completion
+function outputLog(errorCount) {
+	// Display this log if no errors
+	if (errorCount == 0) {
+		console.log(success_warning("Test successful: No errors.\n"));
+		process.exit(0);
+	}
+	// Display this log if there are errors
+	if (errorCount == 1) {
+		console.log(error_warning("Test failed with "+errorCount+" error."));
+	} else if (errorCount > 1) {
+		console.log(error_warning("Test failed with "+errorCount+" errors."));
 	}
 }
 
@@ -461,19 +520,8 @@ function main(projname, scriptpath, options) {
 				console.log("");
 				pollForResult(postID, function(finalRes) {
 					console.log("");
-					// Display log if there are no errors
-					if (errorCount == 0) {
-						console.log(success_warning("Test successful: No errors.\n"));
-						process.exit(0);	// Exit with success code 0
-					}
-					// Display error log if there are errors
-					if (errorCount == 1) {
-						console.error(error_warning("Test failed with "+errorCount+" error.\n"));
-						process.exit(1);	// Exit with failure code 1
-					} else {
-						console.error(error_warning("Test failed with "+errorCount+" errors.\n"));
-						process.exit(1);	// Exit with failure code 1
-					}
+					outputLog(errorCount);
+					pollForError(postID);
 				});
 			});
 		});
@@ -488,7 +536,7 @@ function main(projname, scriptpath, options) {
 
 // Basic CLI parameters handling
 program
-	.version('1.1.12')
+	.version('1.2.12')
 	.option('-u, --user <required>', 'username')
 	.option('-p, --pass <required>', 'password')
 	// .option('-d, --directory <required>', 'Output directory path to use')
