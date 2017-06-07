@@ -365,6 +365,25 @@ function pollForError(runTestID, callback) {
 	}).then(callback);
 }
 
+function pollForImg(runTestID, callback) {
+	return new Promise(function(good, bad) {
+		function actualPoll() {
+			setTimeout(function() {
+				getResult(runTestID, function(res) {
+					processImages(res.outputPath, res.steps);
+					if( res.status == 'success' || res.status == 'failure') {
+						good(res);
+						return;
+					} else {
+						actualPoll();
+					}
+				})
+			}, pollInterval);
+		}
+		actualPoll();
+	}).then(callback);
+}
+
 // Cycle through every step and output those steps with 'success/failure'
 function processResultSteps(outputPath, stepArr) {
 	if(stepArr == null) {
@@ -388,6 +407,16 @@ function processErrors(outputPath, stepArr) {
 	}
 }
 
+// Cycle through every step and output images
+function processImages(outputPath, stepArr) {
+	for( let idx = 0; idx < stepArr.length; idx++ ) {
+		let step = stepArr[idx];
+		if ( step.status == 'success' || step.status == 'failure' ) {
+			outputImg(outputPath, idx, step);
+		}
+	}
+}
+
 // Return the status of each step
 function formatStepOutputMsg(step) {
 	return "[Step "+(step.idx+1)+" - "+step.status+"]: "+step.description+" - "+step.time.toFixed(2)+"s";
@@ -399,7 +428,7 @@ function formatErrorOutput(step) {
 }
 
 // Return image name of each step
-function formatStepOutputImg(step) {
+function formatImgOutput(step) {
 	return step.afterImg;
 }
 
@@ -410,16 +439,11 @@ function outputStep(outputPath, idx, step) {
 	if( outputStepCache[idx] == null ) {
 		outputStepCache[idx] = step;
 		let stepMsg = formatStepOutputMsg(step);
-		let stepImg = formatStepOutputImg(step);
 		if( step.status == 'success' ) {
 			console.log(success(stepMsg));
-			// console.log("[Img Name]: "+stepImg);
-			// getImg(outputPath, stepImg);
 		} else if( step.status == 'failure' ) {
 			errorCount++;
 			console.error(error(stepMsg));
-			// console.log("[Img Name]: "+stepImg);
-			// getImg(outputPath, stepImg);
 		}
 	}
 }
@@ -434,12 +458,21 @@ function outputError(outputPath, idx, step) {
 	}
 }
 
+// Output each image
+var outputImgCache = [];
+function outputImg(outputPath, idx, step) {
+	outputImgCache[idx] = step;
+	let stepImg = formatImgOutput(step);
+	if ( step.status == 'failure' || step.status == 'success' ) {
+		console.log(stepImg);
+	}
+}
+
 // Output log for test status and errors after completion
 function outputLog(errorCount) {
 	// Display this log if no errors
 	if (errorCount == 0) {
-		console.log(success_warning("Test successful: No errors.\n"));
-		process.exit(0);
+		console.log(success_warning("Test successful: No errors."));
 	}
 	// Display this log if there are errors
 	if (errorCount == 1) {
@@ -450,38 +483,38 @@ function outputLog(errorCount) {
 }
 
 // Get Output URL
-function getOutputURL(outputPath, lastImg, callback) {
-	return webstudioRawRequest(
-		"GET",
-		outputPath+lastImg,
-		{},
-		callback
-	);
-}
+// function getOutputURL(outputPath, latestImg, callback) {
+// 	return webstudioRawRequest(
+// 		"GET",
+// 		outputPath+latestImg,
+// 		{},
+// 		callback
+// 	);
+// }
 
-function getImg(outputPath, lastImg, callback) {
-	return new Promise(function(good, bad) {
-		let OutputURL = getOutputURL(outputPath, lastImg);
-		request(OutputURL)
-			.on('error', function(err) {
-				console.error(err);
-			})
-			.pipe(fs.createWriteStream(lastImg, options));
-		return;
-	}).then(callback);
-}
+// function getImg(outputPath, lastImg, callback) {
+// 	return new Promise(function(good, bad) {
+// 		let OutputURL = getOutputURL(outputPath, lastImg);
+// 		request(OutputURL)
+// 			.on('error', function(err) {
+// 				console.error(err);
+// 			})
+// 			.pipe(fs.createWriteStream(lastImg, options));
+// 		return;
+// 	}).then(callback);
+// }
 
 // Create directory
-function createDir(callback) {
-	return new Promise(function(good, bad) {
-		fs.mkdir(program.directory, function(err) {
-			if(err === 'EEXIST') {
-				console.error(error_warning("ERROR: '"+program.directory+"' exists.\nPlease use another directory.\n"));
-				process.exit(1);
-			}
-		});
-	}).then(callback);
-}
+// function createDir(callback) {
+// 	return new Promise(function(good, bad) {
+// 		fs.mkdir(program.directory, function(err) {
+// 			if(err === 'EEXIST') {
+// 				console.error(error_warning("ERROR: '"+program.directory+"' exists.\nPlease use another directory.\n"));
+// 				process.exit(1);
+// 			}
+// 		});
+// 	}).then(callback);
+// }
 
 //------------------------------------------------------------------------------------------
 //
@@ -522,6 +555,7 @@ function main(projname, scriptpath, options) {
 					console.log("");
 					outputLog(errorCount);
 					pollForError(postID);
+					// pollForImg(postID);
 				});
 			});
 		});
