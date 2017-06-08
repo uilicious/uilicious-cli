@@ -393,6 +393,7 @@ function processResultSteps(outputPath, stepArr) {
 		let step = stepArr[idx];
 		if( step.status == 'success' || step.status == 'failure' ) {
 			outputStep(outputPath, idx, step);
+			outputImg(outputPath, latestImg, idx, step);
 		}
 	}
 }
@@ -451,20 +452,24 @@ function outputStep(outputPath, idx, step) {
 // Output each error
 var outputErrorCache = [];
 function outputError(outputPath, idx, step) {
-	outputErrorCache[idx] = step;
-	let stepError = formatErrorOutput(step);
-	if ( step.status == 'failure' ) {
-		console.error(error(stepError));
+	if ( outputErrorCache[idx] == null ) {
+		outputErrorCache[idx] = step;
+		let stepError = formatErrorOutput(step);
+		if ( step.status == 'failure' ) {
+			console.error(error(stepError));
+		}
 	}
 }
 
 // Output each image
 var outputImgCache = [];
-function outputImg(outputPath, idx, step) {
-	outputImgCache[idx] = step;
-	let stepImg = formatImgOutput(step);
-	if ( step.status == 'failure' || step.status == 'success' ) {
-		console.log(stepImg);
+function outputImg(outputPath, latestImg, idx, step) {
+	if (outputImgCache[idx] == null) {
+		outputImgCache[idx] = step;
+		let stepImg = formatImgOutput(step);
+		if ( step.status == 'failure' || step.status == 'success' ) {
+			console.log(outputPath+stepImg);
+		}
 	}
 }
 
@@ -483,23 +488,23 @@ function outputLog(errorCount) {
 }
 
 // Get Output URL
-// function getOutputURL(outputPath, latestImg, callback) {
+// function getOutputURL(outputPath, afterImg, callback) {
 // 	return webstudioRawRequest(
 // 		"GET",
-// 		outputPath+latestImg,
+// 		outputPath+afterImg,
 // 		{},
 // 		callback
 // 	);
 // }
 
-// function getImg(outputPath, lastImg, callback) {
+// function getImg(outputPath, afterImg, callback) {
 // 	return new Promise(function(good, bad) {
-// 		let OutputURL = getOutputURL(outputPath, lastImg);
+// 		let OutputURL = getOutputURL(outputPath, afterImg);
 // 		request(OutputURL)
 // 			.on('error', function(err) {
 // 				console.error(err);
 // 			})
-// 			.pipe(fs.createWriteStream(lastImg, options));
+// 			.pipe(fs.createWriteStream(afterImg, options));
 // 		return;
 // 	}).then(callback);
 // }
