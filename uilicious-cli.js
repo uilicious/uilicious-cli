@@ -393,7 +393,6 @@ function processResultSteps(outputPath, stepArr) {
 		let step = stepArr[idx];
 		if( step.status == 'success' || step.status == 'failure' ) {
 			outputStep(outputPath, idx, step);
-			outputImg(outputPath, latestImg, idx, step);
 		}
 	}
 }
@@ -463,7 +462,7 @@ function outputError(outputPath, idx, step) {
 
 // Output each image
 var outputImgCache = [];
-function outputImg(outputPath, latestImg, idx, step) {
+function outputImg(outputPath, idx, step) {
 	if (outputImgCache[idx] == null) {
 		outputImgCache[idx] = step;
 		let stepImg = formatImgOutput(step);
@@ -560,7 +559,7 @@ function main(projname, scriptpath, options) {
 					console.log("");
 					outputLog(errorCount);
 					pollForError(postID);
-					// pollForImg(postID);
+					pollForImg(postID);
 				});
 			});
 		});
