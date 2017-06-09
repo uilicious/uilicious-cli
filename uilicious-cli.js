@@ -6,12 +6,13 @@
 // Dependencies
 //
 //------------------------------------------------------------------------------------------
-// const fs = require('fs');
+const fs = require('fs');
 const chalk = require('chalk');
 const program = require('commander');
 const request = require('request');
 const http = require('http');
 const url = require('url');
+const path = require('path');
 
 // Chalk messages
 const error_warning = chalk.bold.red;
@@ -48,6 +49,28 @@ if (!String.prototype.startsWith) {
 
 //------------------------------------------------------------------------------------------
 //
+// Utility for outputing logs to both screen and file
+//
+//------------------------------------------------------------------------------------------
+
+// function outputLog(msg) {
+// 	if(hasDirectory) {
+// 		writeToOutputFile(msg);
+// 	}
+// 	console.log(msg);
+//
+// }
+//
+// function outputError(msg) {
+// 	if(hasDirectory) {
+// 		writeToOutputFile(msg);
+// 	}
+// 	console.error(error(msg));
+//
+// }
+
+//------------------------------------------------------------------------------------------
+//
 // Utility for HTTP / API handling
 //
 //------------------------------------------------------------------------------------------
@@ -67,7 +90,7 @@ function requestErrorHandler(err) {
 /// @param  [OPTIONAL] Callback parameter, to attach to promise
 ///
 /// @return The promise object, with the attached callback
-function rawRequest(method, url, data, callback) {
+function rawRequestData(method, url, data, callback) {
 
 	// Option / parameter parsing
 	var option = {
@@ -89,9 +112,44 @@ function rawRequest(method, url, data, callback) {
 				try {
 					good(body);
 				} catch(e) {
-					throw new Error(error_warning("Invalid JSON format for URL request : "+url+" -> "+body));
+					throw new Error(error_warning("Invalid data (maybe json?) format for URL request : "+url+" -> "+body));
 				}
 			}
+		});
+	}).then(callback);
+}
+
+/// Makes a POST or GET request, with the given form object
+/// and return its JSON result in a promise
+///
+/// @param  Write stream to output data into
+/// @param  "POST" or "GET" method
+/// @param  FULL URL to make the request
+/// @param  [OPTIONAL] Query / Form parameter to pass as an object
+/// @param  [OPTIONAL] Callback parameter, to attach to promise
+///
+/// @return The promise object, returns the request object
+function streamRequest(writeStream, method, url, data, callback) {
+	// Option / parameter parsing
+	var option = {
+		url : url,
+		method : method
+	};
+	if( method == "GET" ) {
+		option.qs = data;
+	} else {
+		option.form = data;
+	}
+
+	// The actual API call, with promise object
+	return new Promise(function(good, bad) {
+		let req = request(option);
+		req.pipe(writeStream)
+		.on('error', function(err){
+			throw new Error(error_warning("Unexpected error for URL request : "+url+" -> "+err));
+		})
+		.on('close', function(misc) {
+			good(req, misc);
 		});
 	}).then(callback);
 }
@@ -104,11 +162,11 @@ function rawRequest(method, url, data, callback) {
 /// @param  [OPTIONAL] Query / Form parameter to pass as an object
 /// @param  [OPTIONAL] Callback parameter, to attach to promise
 ///
-/// @return The promise object, with the attached callback
+/// @return The promise object, with the attached callback, returns the JSON output
 function jsonRequest(method, url, data, callback) {
 	// Calling rawRequest, and parsing the good result as JSON
 	return new Promise(function(good, bad) {
-		rawRequest(method, url, data).then(function(data) {
+		rawRequestData(method, url, data).then(function(data) {
 			try {
 				good(JSON.parse(data));
 			} catch(err) {
@@ -157,14 +215,14 @@ function getFullHostURL(callback) {
 /// Does a JSON request to web-studio instance of the client
 ///
 /// @param  "POST" or "GET" method
-/// @param  Webstudio path request
+/// @param  Webstudio webPath request
 /// @param  [OPTIONAL] Query / Form parameter to pass as an object
 /// @param  [OPTIONAL] Callback parameter, to attach to promise
 ///
-function webstudioJsonRequest(method, path, params, callback) {
+function webstudioJsonRequest(method, webPath, params, callback) {
 	return new Promise(function(good, bad) {
 		getFullHostURL(function(hostURL) {
-			jsonRequest(method, hostURL+path, params).then(good, bad);
+			jsonRequest(method, hostURL+webPath, params).then(good, bad);
 		});
 	}).then(callback);
 }
@@ -172,15 +230,34 @@ function webstudioJsonRequest(method, path, params, callback) {
 /// Does a RAW request to web-studio instance of the client
 ///
 /// @param  "POST" or "GET" method
-/// @param  Webstudio path request
+/// @param  Webstudio webPath request
 /// @param  [OPTIONAL] Query / Form parameter to pass as an object
 /// @param  [OPTIONAL] Callback parameter, to attach to promise
 ///
-function webstudioRawRequest(method, path, params, callback) {
+function webstudioRawRequest(method, webPath, params, callback) {
 	return new Promise(function(good, bad) {
 		getFullHostURL(function(hostURL) {
-			// console.log(method, path, params);
-			rawRequest(method, hostURL+path, params).then(good, bad);
+			//console.log(method, webPath, params);
+			rawRequestData(method, hostURL+webPath, params).then(good, bad);
+		});
+	}).then(callback);
+}
+
+/// Makes a POST or GET request, with the given form object
+/// and return its JSON result in a promise
+///
+/// @param  Write stream to output data into
+/// @param  "POST" or "GET" method
+/// @param  FULL URL to make the request
+/// @param  [OPTIONAL] Query / Form parameter to pass as an object
+/// @param  [OPTIONAL] Callback parameter, to attach to promise
+///
+/// @return The promise object, returns the request object
+function webstudioStreamRequest(writeStream, method, webPath, params, callback) {
+	return new Promise(function(good, bad) {
+		getFullHostURL(function(hostURL) {
+			//console.log(method, webPath, params);
+			streamRequest(writeStream, method, hostURL+webPath, params).then(good, bad);
 		});
 	}).then(callback);
 }
@@ -247,7 +324,7 @@ function projectID(projectName, callback) {
 	}).then(callback);
 }
 
-/// Returns the test ID (if found), given the project ID AND test path
+/// Returns the test ID (if found), given the project ID AND test webPath
 ///
 /// @param  Project ID
 /// @param  Test Path
@@ -385,34 +462,43 @@ function pollForImg(runTestID, callback) {
 }
 
 // Cycle through every step and output those steps with 'success/failure'
-function processResultSteps(outputPath, stepArr) {
+function processResultSteps(remoteOutputPath, stepArr) {
 	if(stepArr == null) {
 		return;
 	}
 	for( let idx = 0; idx < stepArr.length; idx++ ) {
 		let step = stepArr[idx];
 		if( step.status == 'success' || step.status == 'failure' ) {
-			outputStep(outputPath, idx, step);
+			outputStep(remoteOutputPath, idx, step);
 		}
 	}
 }
 
 // Cycle through every step and output errors
-function processErrors(outputPath, stepArr) {
+function processErrors(remoteOutputPath, stepArr) {
 	for( let idx = 0; idx < stepArr.length; idx++ ) {
 		let step = stepArr[idx];
 		if( step.status == 'failure' ) {
-			outputError(outputPath, idx, step);
+			outputError(remoteOutputPath, idx, step);
 		}
 	}
 }
 
 // Cycle through every step and output images
-function processImages(outputPath, stepArr) {
+function processImages(remoteOutputPath, stepArr) {
 	for( let idx = 0; idx < stepArr.length; idx++ ) {
 		let step = stepArr[idx];
 		if ( step.status == 'success' || step.status == 'failure' ) {
-			outputImg(outputPath, idx, step);
+			outputImgPathInfo(remoteOutputPath, idx, step);
+
+			// @TODO : Support actual file path parameter,
+			// @TODO : This function should be skipped if not directory
+			//         Perhaps comment on this in the output
+			//         "To download the images with the CLI call, use the -d parameter"
+			// @TODO : (low priority), download the image after a step completes, instead of the very end
+			//         Due to the async nature of the image from the test run, this will prevent very large tests
+			//         from going through a very large download phase
+			downloadImg(remoteOutputPath, step.afterImg, "./tmp/");
 		}
 	}
 }
@@ -435,7 +521,7 @@ function formatImgOutput(step) {
 // Output each step
 var outputStepCache = [];
 var errorCount = 0;
-function outputStep(outputPath, idx, step) {
+function outputStep(remoteOutputPath, idx, step) {
 	if( outputStepCache[idx] == null ) {
 		outputStepCache[idx] = step;
 		let stepMsg = formatStepOutputMsg(step);
@@ -450,7 +536,7 @@ function outputStep(outputPath, idx, step) {
 
 // Output each error
 var outputErrorCache = [];
-function outputError(outputPath, idx, step) {
+function outputError(remoteOutputPath, idx, step) {
 	if ( outputErrorCache[idx] == null ) {
 		outputErrorCache[idx] = step;
 		let stepError = formatErrorOutput(step);
@@ -462,12 +548,12 @@ function outputError(outputPath, idx, step) {
 
 // Output each image
 var outputImgCache = [];
-function outputImg(outputPath, idx, step) {
+function outputImgPathInfo(remoteOutputPath, idx, step) {
 	if (outputImgCache[idx] == null) {
 		outputImgCache[idx] = step;
 		let stepImg = formatImgOutput(step);
 		if ( step.status == 'failure' || step.status == 'success' ) {
-			console.log(outputPath+stepImg);
+			console.log(remoteOutputPath+stepImg);
 		}
 	}
 }
@@ -486,27 +572,23 @@ function outputLog(errorCount) {
 	}
 }
 
-// Get Output URL
-// function getOutputURL(outputPath, afterImg, callback) {
-// 	return webstudioRawRequest(
-// 		"GET",
-// 		outputPath+afterImg,
-// 		{},
-// 		callback
-// 	);
-// }
-
-// function getImg(outputPath, afterImg, callback) {
-// 	return new Promise(function(good, bad) {
-// 		let OutputURL = getOutputURL(outputPath, afterImg);
-// 		request(OutputURL)
-// 			.on('error', function(err) {
-// 				console.error(err);
-// 			})
-// 			.pipe(fs.createWriteStream(afterImg, options));
-// 		return;
-// 	}).then(callback);
-// }
+/// Calls and perform the download image (if needed)
+///
+/// @param   Represent the server test workspace URI, with the output folder. Eg: "/workspace/:testid/output/""
+/// @param   image ID and name to download. Eg: "0-goTo-endin-:img-guid.png"
+/// @param   folder path to write the images into
+/// @param   callback to pass the result image data to
+///
+/// @return  promise object to return the output data
+function downloadImg(remoteOutputPath, afterImg, localremoteOutputPath, callback) {
+	return webstudioStreamRequest(
+		fs.createWriteStream( path.join(localremoteOutputPath, afterImg) ),
+		"GET",
+		remoteOutputPath+afterImg,
+		{},
+		callback
+	);
+}
 
 // Create directory
 // function createDir(callback) {
@@ -577,7 +659,7 @@ program
 	.version('1.2.12')
 	.option('-u, --user <required>', 'username')
 	.option('-p, --pass <required>', 'password')
-	// .option('-d, --directory <required>', 'Output directory path to use')
+	.option('-d, --directory <required>', 'Output directory path to use')
 	.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
 	.option('-w, --width <optional>', 'width of browser')
 	.option('-h, --height <optional>', 'height of browser')
