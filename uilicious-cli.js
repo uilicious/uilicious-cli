@@ -171,8 +171,6 @@ function jsonRequest(method, url, data, callback) {
 				good(JSON.parse(data));
 			} catch(err) {
 				console.log(err);
-				// console.log("for data : ");
-				// console.log(data);
 				process.exit(1);
 			}
 		},bad);
@@ -491,8 +489,7 @@ function processImages(remoteOutputPath, stepArr) {
 	for( let idx = 0; idx < stepArr.length; idx++ ) {
 		let step = stepArr[idx];
 		if ( step.status == 'success' || step.status == 'failure' ) {
-			outputImgPathInfo(remoteOutputPath, idx, step);
-
+			// outputImgPathInfo(remoteOutputPath, idx, step);
 			// @TODO : Support actual file path parameter,
 			// @TODO : This function should be skipped if not directory
 			//         Perhaps comment on this in the output
@@ -592,7 +589,7 @@ function downloadImg(remoteOutputPath, afterImg, localremoteOutputPath, callback
 	);
 }
 
-// Create directory
+// Make directory
 function makeDir(callback) {
 	return new Promise(function(good, bad) {
 		fs.mkdir(program.directory, function(err) {
@@ -645,6 +642,7 @@ function main(projname, scriptpath, options) {
 					pollForError(postID);
 					makeDir();
 					pollForImg(postID);
+					console.log(success("All images saved in "+program.directory));
 				});
 			});
 		});
@@ -659,7 +657,7 @@ function main(projname, scriptpath, options) {
 
 // Basic CLI parameters handling
 program
-	.version('1.2.12')
+	.version('1.3.12')
 	.option('-u, --user <required>', 'username')
 	.option('-p, --pass <required>', 'password')
 	.option('-d, --directory <required>', 'Output directory path to use')

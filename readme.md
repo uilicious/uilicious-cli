@@ -1,5 +1,6 @@
 ## Intro
 The Uilicious CLI is the primary tool used for continuous integration. This CLI contains many options.
+The CLI is exclusive to our paying customers.
 
 ## Installation
 Before installing this package, please run this to ensure that npm is updated to the latest version:
@@ -11,19 +12,6 @@ This npm package can be installed by:
 ```
 $ npm install -g uilicious-cli
 ```
-
-## Listing
-```
-$ uilicious-cli list
-```
-List all projects available.
-
-## Running
-```
-$ uilicious-cli run <project_name> <script_path>
-```
-* `<project_name>` - Name for the project being tested.
-* `<script_path>` - Name of the test script being executed.
 
 ## Commands
 The list of commands can be retrieved by:
@@ -40,5 +28,18 @@ Name   | Command | Parameters
 --browser | -b `<parameter>` | Browser (optional) [Chrome/Firefox]
 --width | -w `<parameter>` | Width of browser (optional)
 --height | -h `<parameter>` | Height of browser (optional)
+
+## Listing
+```
+$ uilicious-cli list
+```
+List all projects available.
+
+## Running
+```
+$ uilicious-cli run <project_name> <script_path>
+```
+* `<project_name>` - Name for the project being tested.
+* `<script_path>` - Name of the test script being executed.
 
 Copyright &copy; 2017 Uilicious Private Limited
