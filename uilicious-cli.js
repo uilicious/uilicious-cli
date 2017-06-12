@@ -237,7 +237,6 @@ function webstudioJsonRequest(method, webPath, params, callback) {
 function webstudioRawRequest(method, webPath, params, callback) {
 	return new Promise(function(good, bad) {
 		getFullHostURL(function(hostURL) {
-			//console.log(method, webPath, params);
 			rawRequestData(method, hostURL+webPath, params).then(good, bad);
 		});
 	}).then(callback);
@@ -256,7 +255,6 @@ function webstudioRawRequest(method, webPath, params, callback) {
 function webstudioStreamRequest(writeStream, method, webPath, params, callback) {
 	return new Promise(function(good, bad) {
 		getFullHostURL(function(hostURL) {
-			//console.log(method, webPath, params);
 			streamRequest(writeStream, method, hostURL+webPath, params).then(good, bad);
 		});
 	}).then(callback);
@@ -402,8 +400,10 @@ function getResult(runTestID, callback) {
 	);
 }
 
+// Call API every 2500ms
 let pollInterval = 2500;
-// Call api every 2500ms
+
+// Get result from API and return results
 function pollForResult(runTestID, callback) {
 	return new Promise(function(good, bad) {
 		function actualPoll() {
@@ -423,6 +423,7 @@ function pollForResult(runTestID, callback) {
 	}).then(callback);
 }
 
+// Get result from API and return errors
 function pollForError(runTestID, callback) {
 	return new Promise(function(good, bad) {
 		function actualPoll() {
@@ -442,6 +443,7 @@ function pollForError(runTestID, callback) {
 	}).then(callback);
 }
 
+// Get result from API and return images
 function pollForImg(runTestID, callback) {
 	return new Promise(function(good, bad) {
 		function actualPoll() {
@@ -498,7 +500,7 @@ function processImages(remoteOutputPath, stepArr) {
 			// @TODO : (low priority), download the image after a step completes, instead of the very end
 			//         Due to the async nature of the image from the test run, this will prevent very large tests
 			//         from going through a very large download phase
-			downloadImg(remoteOutputPath, step.afterImg, "./tmp/");
+			downloadImg(remoteOutputPath, step.afterImg, program.directory);
 		}
 	}
 }
@@ -591,16 +593,16 @@ function downloadImg(remoteOutputPath, afterImg, localremoteOutputPath, callback
 }
 
 // Create directory
-// function createDir(callback) {
-// 	return new Promise(function(good, bad) {
-// 		fs.mkdir(program.directory, function(err) {
-// 			if(err === 'EEXIST') {
-// 				console.error(error_warning("ERROR: '"+program.directory+"' exists.\nPlease use another directory.\n"));
-// 				process.exit(1);
-// 			}
-// 		});
-// 	}).then(callback);
-// }
+function makeDir(callback) {
+	return new Promise(function(good, bad) {
+		fs.mkdir(program.directory, function(err) {
+			if(err === 'EEXIST') {
+				console.error(error_warning("ERROR: '"+program.directory+"' exists.\nPlease use another directory.\n"));
+				process.exit(1);
+			}
+		});
+	}).then(callback);
+}
 
 //------------------------------------------------------------------------------------------
 //
@@ -641,6 +643,7 @@ function main(projname, scriptpath, options) {
 					console.log("");
 					outputLog(errorCount);
 					pollForError(postID);
+					makeDir();
 					pollForImg(postID);
 				});
 			});
