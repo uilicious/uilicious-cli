@@ -298,13 +298,16 @@ function projects(callback) {
 }
 
 /// Create a new project
-// function createProject(projectName, callback) {
-// 	return webstudioJsonRequest(
-// 		"GET",
-// 		"/api/studio/v1/projects",
-// 		{},
-// 		callback
-// 	);
+// function createProj(projectName, callback) {
+// 	let form = {};
+// 	return new Promise(function(good, bad) {
+// 		webstudioJsonRequest(
+// 			"",
+// 			"/api/studio/v1/projects/",
+// 			form,
+//
+// 		);
+// 	}).then(callback);
 // }
 
 /// Read a project and display its directory
@@ -314,12 +317,15 @@ function projects(callback) {
 
 /// Update a project
 // function changeProj(projectID, callback) {
-// 	return webstudioRawRequest(
-// 		"POST",
-// 		"/api/studio/v1/projects/"+projectID,
-// 		{},
-// 		callback
-// 	);
+// 	let form = {};
+// 	return new Promise(function(good, bad) {
+// 		webstudioJsonRequest(
+// 			"",
+// 			"/api/studio/v1/projects/"+projectID,
+// 			form,
+//
+// 		);
+// 	}).then(callback);
 // }
 
 /// Delete a project
