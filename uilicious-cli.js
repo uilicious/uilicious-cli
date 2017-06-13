@@ -297,6 +297,44 @@ function projects(callback) {
 	}).then(callback);
 }
 
+/// Create a new project
+// function createProject(projectName, callback) {
+// 	return webstudioJsonRequest(
+// 		"GET",
+// 		"/api/studio/v1/projects",
+// 		{},
+// 		callback
+// 	);
+// }
+
+/// Read a project and display its directory
+// function getProj(projectID, callback) {
+// 	return
+// }
+
+/// Update a project
+// function changeProj(projectID, callback) {
+// 	return webstudioRawRequest(
+// 		"POST",
+// 		"/api/studio/v1/projects/"+projectID,
+// 		{},
+// 		callback
+// 	);
+// }
+
+/// Delete a project
+///
+/// @param	Project ID from projectID()
+/// @param  [Optional] Callback to return result
+function deleteProj(projectID, callback) {
+	return webstudioRawRequest(
+		"DELETE",
+		"/api/studio/v1/projects/"+projectID,
+		{},
+		callback
+	);
+}
+
 /// Fetch the project ID for a project,
 /// silently terminates, with an error message if it fails
 ///
@@ -608,7 +646,7 @@ function makeDir(callback) {
 //------------------------------------------------------------------------------------------
 
 // Get list of projects from account
-function getInfo(options) {
+function getAllProjects(options) {
 	console.log("#------------#");
 	console.log("#  Projects  #");
 	console.log("#------------#");
@@ -616,6 +654,37 @@ function getInfo(options) {
 
 	projects(function(list) {
 		console.log("");
+	});
+}
+
+// Create new project
+// function createProject(projname, options) {
+//
+// }
+
+// Read project and display directory of project
+// function readProject(projname, options) {
+//
+// }
+
+// Update project
+// @param Project Name
+// @param New Project Name
+// function updateProject(projname, new_projname, options) {
+// 	projectID(projname, function(projID) {
+// 		changeProj(projID, function(res) {
+// 			console.log(success("Project '"+projname+" renamed to '"+new_projname+"'.\n"));
+// 		});
+// 	});
+// }
+
+// Delete project using project name
+// @param Project Name
+function deleteProject(projname, options) {
+	projectID(projname, function(projID) {
+		deleteProj(projID, function(res) {
+			console.log(success("Project '"+projname+"' deleted.\n"));
+		});
 	});
 }
 
@@ -668,7 +737,22 @@ program
 program
 	.command('list')
 	.description('List all projects.')
-	.action(getInfo);
+	.action(getAllProjects);
+
+// program
+// 	.command('create <projname>')
+// 	.description('Create new project.')
+// 	.action(createProject);
+
+// program
+// 	.command('rename <projname> <new_projname>')
+// 	.description('Rename project.')
+// 	.action(updateProject);
+
+program
+	.command('delete <projname>')
+	.description('Delete project.')
+	.action(deleteProject);
 
 program
 	.command('run <projname> <scriptpath>')
