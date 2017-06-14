@@ -297,18 +297,16 @@ function projects(callback) {
 	}).then(callback);
 }
 
-/// Create a new project
-// function createProj(projectName, callback) {
-// 	let form = {};
-// 	return new Promise(function(good, bad) {
-// 		webstudioJsonRequest(
-// 			"",
-// 			"/api/studio/v1/projects/",
-// 			form,
-//
-// 		);
-// 	}).then(callback);
-// }
+/// Create a new project using projectName
+/// @param	Project Name
+function createProj(projectName, callback) {
+	return webstudioRawRequest(
+		"POST",
+		"/api/studio/v1/projects/",
+		{ title: projectName },
+		callback
+	);
+}
 
 /// Read a project and display its directory
 // function getProj(projectID, callback) {
@@ -664,18 +662,23 @@ function getAllProjects(options) {
 }
 
 // Create new project
-// function createProject(projname, options) {
-//
-// }
+// @param		Project Name
+function createProject(projname, options) {
+	createProj(projname, function(res) {
+		console.log(success("Project '"+projname+"' created"));
+	});
+}
 
 // Read project and display directory of project
 // function readProject(projname, options) {
+// 	projectID(projname, function(projID) {
 //
+// 	});
 // }
 
 // Update project
-// @param Project Name
-// @param New Project Name
+// @param		Project Name
+// @param		New Project Name
 // function updateProject(projname, new_projname, options) {
 // 	projectID(projname, function(projID) {
 // 		changeProj(projID, function(res) {
@@ -685,7 +688,7 @@ function getAllProjects(options) {
 // }
 
 // Delete project using project name
-// @param Project Name
+// @param		Project Name
 function deleteProject(projname, options) {
 	projectID(projname, function(projID) {
 		deleteProj(projID, function(res) {
@@ -745,10 +748,10 @@ program
 	.description('List all projects.')
 	.action(getAllProjects);
 
-// program
-// 	.command('create <projname>')
-// 	.description('Create new project.')
-// 	.action(createProject);
+program
+	.command('create <projname>')
+	.description('Create new project.')
+	.action(createProject);
 
 // program
 // 	.command('rename <projname> <new_projname>')
