@@ -314,7 +314,7 @@ function createProj(projectName, callback) {
 // }
 
 /// Update a project
-function changeProj(projectID, newProjectName, callback) {
+function updateProj(projectID, newProjectName, callback) {
 	return webstudioJsonRequest(
 		"POST",
 		"/api/studio/v1/projects/"+projectID,
@@ -324,7 +324,6 @@ function changeProj(projectID, newProjectName, callback) {
 }
 
 /// Delete a project
-///
 /// @param	Project ID from projectID()
 /// @param  [Optional] Callback to return result
 function deleteProj(projectID, callback) {
@@ -358,6 +357,44 @@ function projectID(projectName, callback) {
 		});
 	}).then(callback);
 }
+
+/// Create a new test using projectName
+/// @param	Project ID from projectID()
+// function addTest(projectID, testName, callback) {
+// 	return webstudioRawRequest(
+// 		"POST",
+// 		"/api/studio/v1/projects/"+projectID+"/workspace/tests/addAction",
+// 		{ name: testName },
+// 		callback
+// 	);
+// }
+
+/// Read a test and display its directory
+// function getProj(projectID, callback) {
+// 	return
+// }
+
+/// Update a test
+// function changeTest(projectID, testName, callback) {
+// 	return webstudioJsonRequest(
+// 		"POST",
+// 		"/api/studio/v1/projects/"+projectID,
+// 		{ title: testName },
+// 		callback
+// 	);
+// }
+
+/// Delete a test
+/// @param	Project ID from projectID()
+/// @param  [Optional] Callback to return result
+// function deleteTest(projectID, callback) {
+// 	return webstudioRawRequest(
+// 		"DELETE",
+// 		"/api/studio/v1/projects/"+projectID,
+// 		{},
+// 		callback
+// 	);
+// }
 
 /// Returns the test ID (if found), given the project ID AND test webPath
 ///
@@ -662,7 +699,7 @@ function getAllProjects(options) {
 // @param		Project Name
 function createProject(projname, options) {
 	createProj(projname, function(res) {
-		console.log(success("Project '"+projname+"' created"));
+		console.log(success("New project '"+projname+"' created\n"));
 	});
 }
 
@@ -678,8 +715,8 @@ function createProject(projname, options) {
 // @param		New Project Name
 function updateProject(projname, new_projname, options) {
 	projectID(projname, function(projID) {
-		changeProj(projID, new_projname, function(res) {
-			console.log(success("Project '"+projname+" renamed to '"+new_projname+"'.\n"));
+		updateProj(projID, new_projname, function(res) {
+			console.log(success("Project '"+projname+"' renamed to '"+new_projname+"'\n"));
 		});
 	});
 }
@@ -689,10 +726,21 @@ function updateProject(projname, new_projname, options) {
 function deleteProject(projname, options) {
 	projectID(projname, function(projID) {
 		deleteProj(projID, function(res) {
-			console.log(success("Project '"+projname+"' deleted.\n"));
+			console.log(success("Project '"+projname+"' deleted\n"));
 		});
 	});
 }
+
+// Create test script
+// @param		Project Name
+// @param
+// function createTest(projname, testname, options) {
+// 	projectID(projname, function(projID) {
+// 		addTest(projID, testname, function(res) {
+// 			console.log("New test '"+testname+"' created in Project '"+projname+"'");
+// 		});
+// 	});
+// }
 
 // Run test script from project
 function main(projname, scriptpath, options) {
@@ -717,7 +765,7 @@ function main(projname, scriptpath, options) {
 					pollForError(postID);
 					makeDir();
 					pollForImg(postID);
-					console.log(success("All images saved in "+program.directory));
+					console.log(success("All images saved in "+program.directory+"\n"));
 				});
 			});
 		});
@@ -742,27 +790,59 @@ program
 
 program
 	.command('list')
-	.description('List all projects.')
+	.description('List all projects')
 	.action(getAllProjects);
 
+// -----------------------------
+// 	Commands for Project CRUD
+// -----------------------------
+
+// Create Project
 program
 	.command('create <projname>')
-	.description('Create new project.')
+	.description('Create a new project')
 	.action(createProject);
 
+// Update Project
 program
 	.command('rename <projname> <new_projname>')
-	.description('Rename project.')
+	.description('Rename a project')
 	.action(updateProject);
 
+// Delete Project
 program
 	.command('delete <projname>')
-	.description('Delete project.')
+	.description('Delete a project')
 	.action(deleteProject);
 
+// -----------------------------
+// 	Commands for Test CRUD
+// -----------------------------
+
+// Create Test
+// program
+// 	.command('create <projname> <testname>')
+// 	.description('Create a test')
+// 	.action(createTest);
+
+// Update Test
+// program
+// 	.command()
+// 	.description('Update a test')
+// 	.action(updateTest);
+
+// Delete Test
+// program
+// 	.command('delete <projname> ')
+// 	.description('Delete a test')
+// 	.action(deleteTest);
+
+// -----------------------------
+// 	Commands for running tests
+// -----------------------------
 program
 	.command('run <projname> <scriptpath>')
-	.description('Uilicious.com CLI runner for CI')
+	.description('Run a test from a project')
 	.action(main);
 
 // end with parse to parse through the input
