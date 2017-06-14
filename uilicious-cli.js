@@ -302,7 +302,7 @@ function projects(callback) {
 function createProj(projectName, callback) {
 	return webstudioRawRequest(
 		"POST",
-		"/api/studio/v1/projects/",
+		"/api/studio/v1/projects",
 		{ title: projectName },
 		callback
 	);
@@ -314,17 +314,14 @@ function createProj(projectName, callback) {
 // }
 
 /// Update a project
-// function changeProj(projectID, callback) {
-// 	let form = {};
-// 	return new Promise(function(good, bad) {
-// 		webstudioJsonRequest(
-// 			"",
-// 			"/api/studio/v1/projects/"+projectID,
-// 			form,
-//
-// 		);
-// 	}).then(callback);
-// }
+function changeProj(projectID, newProjectName, callback) {
+	return webstudioJsonRequest(
+		"POST",
+		"/api/studio/v1/projects/"+projectID,
+		{ title: newProjectName },
+		callback
+	);
+}
 
 /// Delete a project
 ///
@@ -676,16 +673,16 @@ function createProject(projname, options) {
 // 	});
 // }
 
-// Update project
+// Update project using projname to get projID
 // @param		Project Name
 // @param		New Project Name
-// function updateProject(projname, new_projname, options) {
-// 	projectID(projname, function(projID) {
-// 		changeProj(projID, function(res) {
-// 			console.log(success("Project '"+projname+" renamed to '"+new_projname+"'.\n"));
-// 		});
-// 	});
-// }
+function updateProject(projname, new_projname, options) {
+	projectID(projname, function(projID) {
+		changeProj(projID, new_projname, function(res) {
+			console.log(success("Project '"+projname+" renamed to '"+new_projname+"'.\n"));
+		});
+	});
+}
 
 // Delete project using project name
 // @param		Project Name
@@ -753,10 +750,10 @@ program
 	.description('Create new project.')
 	.action(createProject);
 
-// program
-// 	.command('rename <projname> <new_projname>')
-// 	.description('Rename project.')
-// 	.action(updateProject);
+program
+	.command('rename <projname> <new_projname>')
+	.description('Rename project.')
+	.action(updateProject);
 
 program
 	.command('delete <projname>')
