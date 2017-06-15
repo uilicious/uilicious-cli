@@ -111,8 +111,8 @@ function rawRequestData(method, url, data, callback) {
 			} else {
 				try {
 					good(body);
-				} catch(e) {
-					throw new Error(error_warning("Invalid data (maybe json?) format for URL request : "+url+" -> "+body));
+				} catch(err) {
+					throw new Error(error_warning("Invalid data (JSON) format for URL request : "+url+" -> "+body));
 				}
 			}
 		});
@@ -315,7 +315,7 @@ function createProj(projectName, callback) {
 
 /// Update a project
 function updateProj(projectID, newProjectName, callback) {
-	return webstudioJsonRequest(
+	return webstudioRawRequest(
 		"POST",
 		"/api/studio/v1/projects/"+projectID,
 		{ title: newProjectName },
@@ -733,7 +733,7 @@ function deleteProject(projname, options) {
 
 // Create test script
 // @param		Project Name
-// @param
+// @param		Test Name
 // function createTest(projname, testname, options) {
 // 	projectID(projname, function(projID) {
 // 		addTest(projID, testname, function(res) {
@@ -801,18 +801,21 @@ program
 program
 	.command('create <projname>')
 	.description('Create a new project')
+	.option('-P, --project', 'Project Options')
 	.action(createProject);
 
 // Update Project
 program
 	.command('rename <projname> <new_projname>')
 	.description('Rename a project')
+	.option('-P, --project', 'Project Options')
 	.action(updateProject);
 
 // Delete Project
 program
 	.command('delete <projname>')
 	.description('Delete a project')
+	.option('-P, --project', 'Project Options')
 	.action(deleteProject);
 
 // -----------------------------
@@ -823,18 +826,21 @@ program
 // program
 // 	.command('create <projname> <testname>')
 // 	.description('Create a test')
+// 	.option('-T, --test', 'Test')
 // 	.action(createTest);
 
 // Update Test
 // program
-// 	.command()
+// 	.command('rename')
 // 	.description('Update a test')
+// 	.option('-T, --test', 'Test')
 // 	.action(updateTest);
 
 // Delete Test
 // program
 // 	.command('delete <projname> ')
 // 	.description('Delete a test')
+// 	.option('-T, --test', 'Test')
 // 	.action(deleteTest);
 
 // -----------------------------
