@@ -97,7 +97,7 @@ function rawRequestData(method, url, data, callback) {
 		url : url,
 		method : method
 	};
-	if( method == "GET" ) {
+	if ( method == "GET" ) {
 		option.qs = data;
 	} else {
 		option.form = data;
@@ -106,7 +106,7 @@ function rawRequestData(method, url, data, callback) {
 	// The actual API call, with promise object
 	return new Promise(function(good, bad) {
 		request(option, function( err, res, body ) {
-			if(err) {
+			if (err) {
 				throw new Error(error_warning("Unexpected error for URL request : "+url+" -> "+err));
 			} else {
 				try {
@@ -185,7 +185,7 @@ var _fullHostURL = null;
 ///
 /// @return   Promise object, returning the full URL to make request to
 function getFullHostURL(callback) {
-	if( _fullHostURL != null ) {
+	if ( _fullHostURL != null ) {
 		return Promise.resolve(_fullHostURL).then(callback);
 	}
 
@@ -198,7 +198,7 @@ function getFullHostURL(callback) {
 				"pass" : program.pass
 			},
 			function(res) {
-				if( res.protectedURL == null ) {
+				if ( res.protectedURL == null ) {
 					console.error(error_warning("ERROR: Unable to login - Invalid username/password"));
 					process.exit(1);
 				} else {
@@ -284,7 +284,7 @@ function projects(callback) {
 	return new Promise(function(good, bad) {
 		projectList(function(list) {
 			if (list != null) {
-				for(let i = 0; i < list.length; i++) {
+				for (let i = 0; i < list.length; i++) {
 					let item = list[i];
 					console.log(" * " + item.title);
 				}
@@ -299,7 +299,7 @@ function projects(callback) {
 
 /// Create a new project using projectName
 /// @param	Project Name
-function createProj(projectName, callback) {
+function cProject(projectName, callback) {
 	return webstudioRawRequest(
 		"POST",
 		"/api/studio/v1/projects",
@@ -314,7 +314,7 @@ function createProj(projectName, callback) {
 // }
 
 /// Update a project
-function updateProj(projectID, newProjectName, callback) {
+function uProject(projectID, newProjectName, callback) {
 	return webstudioRawRequest(
 		"POST",
 		"/api/studio/v1/projects/"+projectID,
@@ -326,7 +326,7 @@ function updateProj(projectID, newProjectName, callback) {
 /// Delete a project
 /// @param	Project ID from projectID()
 /// @param  [Optional] Callback to return result
-function deleteProj(projectID, callback) {
+function dProject(projectID, callback) {
 	return webstudioRawRequest(
 		"DELETE",
 		"/api/studio/v1/projects/"+projectID,
@@ -345,9 +345,9 @@ function deleteProj(projectID, callback) {
 function projectID(projectName, callback) {
 	return new Promise(function(good, bad) {
 		projectList(function(list) {
-			for(let i=0; i<list.length; ++i) {
+			for (let i=0; i<list.length; ++i) {
 				let item = list[i];
-				if(item.title == projectName) {
+				if (item.title == projectName) {
 					good(parseInt(item.id));
 					return;
 				}
@@ -360,14 +360,14 @@ function projectID(projectName, callback) {
 
 /// Create a new test using projectName
 /// @param	Project ID from projectID()
-// function addTest(projectID, testName, callback) {
-// 	return webstudioRawRequest(
-// 		"POST",
-// 		"/api/studio/v1/projects/"+projectID+"/workspace/tests/addAction",
-// 		{ name: testName },
-// 		callback
-// 	);
-// }
+function cTest(projectID, testName, callback) {
+	return webstudioRawRequest(
+		"POST",
+		"/api/studio/v1/projects/"+projectID+"/workspace/tests/addAction",
+		{ name: testName },
+		callback
+	);
+}
 
 /// Read a test and display its directory
 // function getProj(projectID, callback) {
@@ -375,7 +375,7 @@ function projectID(projectName, callback) {
 // }
 
 /// Update a test
-// function changeTest(projectID, testName, callback) {
+// function uTest(projectID, testName, callback) {
 // 	return webstudioJsonRequest(
 // 		"POST",
 // 		"/api/studio/v1/projects/"+projectID,
@@ -387,10 +387,10 @@ function projectID(projectName, callback) {
 /// Delete a test
 /// @param	Project ID from projectID()
 /// @param  [Optional] Callback to return result
-// function deleteTest(projectID, callback) {
+// function dTest(projectID, testName, callback) {
 // 	return webstudioRawRequest(
 // 		"DELETE",
-// 		"/api/studio/v1/projects/"+projectID,
+// 		"/api/studio/v1/projects/"+projectID+"/workspace/nodes/"+node_id+"/deleteAction",
 // 		{},
 // 		callback
 // 	);
@@ -437,13 +437,13 @@ function runTest(projID, testID, callback) {
 
 	// Get the browser config
 	let form = {};
-	if(program.browser != null) {
+	if (program.browser != null) {
 		form.browser = program.browser;
 	}
-	if(program.height != null) {
+	if (program.height != null) {
 		form.height = program.height;
 	}
-	if(program.width != null) {
+	if (program.width != null) {
 		form.width = program.width;
 	}
 
@@ -454,7 +454,7 @@ function runTest(projID, testID, callback) {
 			"/api/studio/v1/projects/"+projID+"/workspace/tests/"+testID+"/runAction?cli=true",
 			form,
 			function(res) {
-				if( res.id != null ) {
+				if ( res.id != null ) {
 					good(res.id);
 					return;
 				}
@@ -484,7 +484,7 @@ function pollForResult(runTestID, callback) {
 			setTimeout(function() {
 				getResult(runTestID, function(res) {
 					processResultSteps(res.outputPath, res.steps);
-					if( res.status == 'success' || res.status == 'failure') {
+					if ( res.status == 'success' || res.status == 'failure') {
 						good(res);
 						return;
 					} else {
@@ -504,7 +504,7 @@ function pollForError(runTestID, callback) {
 			setTimeout(function() {
 				getResult(runTestID, function(res) {
 					processErrors(res.outputPath, res.steps);
-					if( res.status == 'success' || res.status == 'failure') {
+					if ( res.status == 'success' || res.status == 'failure') {
 						good(res);
 						return;
 					} else {
@@ -524,7 +524,7 @@ function pollForImg(runTestID, callback) {
 			setTimeout(function() {
 				getResult(runTestID, function(res) {
 					processImages(res.outputPath, res.steps);
-					if( res.status == 'success' || res.status == 'failure') {
+					if ( res.status == 'success' || res.status == 'failure') {
 						good(res);
 						return;
 					} else {
@@ -539,12 +539,12 @@ function pollForImg(runTestID, callback) {
 
 // Cycle through every step and output those steps with 'success/failure'
 function processResultSteps(remoteOutputPath, stepArr) {
-	if(stepArr == null) {
+	if (stepArr == null) {
 		return;
 	}
-	for( let idx = 0; idx < stepArr.length; idx++ ) {
+	for ( let idx = 0; idx < stepArr.length; idx++ ) {
 		let step = stepArr[idx];
-		if( step.status == 'success' || step.status == 'failure' ) {
+		if ( step.status == 'success' || step.status == 'failure' ) {
 			outputStep(remoteOutputPath, idx, step);
 		}
 	}
@@ -552,9 +552,9 @@ function processResultSteps(remoteOutputPath, stepArr) {
 
 // Cycle through every step and output errors
 function processErrors(remoteOutputPath, stepArr) {
-	for( let idx = 0; idx < stepArr.length; idx++ ) {
+	for ( let idx = 0; idx < stepArr.length; idx++ ) {
 		let step = stepArr[idx];
-		if( step.status == 'failure' ) {
+		if ( step.status == 'failure' ) {
 			outputError(remoteOutputPath, idx, step);
 		}
 	}
@@ -562,7 +562,7 @@ function processErrors(remoteOutputPath, stepArr) {
 
 // Cycle through every step and output images
 function processImages(remoteOutputPath, stepArr) {
-	for( let idx = 0; idx < stepArr.length; idx++ ) {
+	for ( let idx = 0; idx < stepArr.length; idx++ ) {
 		let step = stepArr[idx];
 		if ( step.status == 'success' || step.status == 'failure' ) {
 			// outputImgPathInfo(remoteOutputPath, idx, step);
@@ -597,12 +597,12 @@ function formatImgOutput(step) {
 var outputStepCache = [];
 var errorCount = 0;
 function outputStep(remoteOutputPath, idx, step) {
-	if( outputStepCache[idx] == null ) {
+	if ( outputStepCache[idx] == null ) {
 		outputStepCache[idx] = step;
 		let stepMsg = formatStepOutputMsg(step);
-		if( step.status == 'success' ) {
+		if ( step.status == 'success' ) {
 			console.log(success(stepMsg));
-		} else if( step.status == 'failure' ) {
+		} else if ( step.status == 'failure' ) {
 			errorCount++;
 			console.error(error(stepMsg));
 		}
@@ -669,7 +669,7 @@ function downloadImg(remoteOutputPath, afterImg, localremoteOutputPath, callback
 function makeDir(callback) {
 	return new Promise(function(good, bad) {
 		fs.mkdir(program.directory, function(err) {
-			if(err === 'EEXIST') {
+			if (err === 'EEXIST') {
 				console.error(error_warning("ERROR: '"+program.directory+"' exists.\nPlease use another directory.\n"));
 				process.exit(1);
 			}
@@ -698,7 +698,7 @@ function getAllProjects(options) {
 // Create new project
 // @param		Project Name
 function createProject(projname, options) {
-	createProj(projname, function(res) {
+	cProject(projname, function(res) {
 		console.log(success("New project '"+projname+"' created\n"));
 	});
 }
@@ -715,7 +715,7 @@ function createProject(projname, options) {
 // @param		New Project Name
 function updateProject(projname, new_projname, options) {
 	projectID(projname, function(projID) {
-		updateProj(projID, new_projname, function(res) {
+		uProject(projID, new_projname, function(res) {
 			console.log(success("Project '"+projname+"' renamed to '"+new_projname+"'\n"));
 		});
 	});
@@ -725,7 +725,7 @@ function updateProject(projname, new_projname, options) {
 // @param		Project Name
 function deleteProject(projname, options) {
 	projectID(projname, function(projID) {
-		deleteProj(projID, function(res) {
+		dProject(projID, function(res) {
 			console.log(success("Project '"+projname+"' deleted\n"));
 		});
 	});
@@ -734,11 +734,20 @@ function deleteProject(projname, options) {
 // Create test script
 // @param		Project Name
 // @param		Test Name
-// function createTest(projname, testname, options) {
+function createTest(projname, testname, options) {
+	projectID(projname, function(projID) {
+		cTest(projID, testname, function(res) {
+			console.log("New test '"+testname+"' created in Project '"+projname+"'");
+		});
+	});
+}
+
+// Delete test script
+// @param		Project Name
+// @param		Test Name
+// function deleteTest(projname, testname, options) {
 // 	projectID(projname, function(projID) {
-// 		addTest(projID, testname, function(res) {
-// 			console.log("New test '"+testname+"' created in Project '"+projname+"'");
-// 		});
+// 		dTest()
 // 	});
 // }
 
@@ -789,7 +798,8 @@ program
 	.option('-h, --height <optional>', 'height of browser')
 
 program
-	.command('list')
+	.command('list-projects')
+	.alias('list')
 	.description('List all projects')
 	.action(getAllProjects);
 
@@ -799,23 +809,23 @@ program
 
 // Create Project
 program
-	.command('create <projname>')
+	.command('create-project <projname>')
+	.alias('cp')
 	.description('Create a new project')
-	.option('-P, --project', 'Project Options')
 	.action(createProject);
 
 // Update Project
 program
-	.command('rename <projname> <new_projname>')
+	.command('rename-project <projname> <new_projname>')
+	.alias('rp')
 	.description('Rename a project')
-	.option('-P, --project', 'Project Options')
 	.action(updateProject);
 
 // Delete Project
 program
-	.command('delete <projname>')
+	.command('delete-project <projname>')
+	.alias('dp')
 	.description('Delete a project')
-	.option('-P, --project', 'Project Options')
 	.action(deleteProject);
 
 // -----------------------------
@@ -823,24 +833,24 @@ program
 // -----------------------------
 
 // Create Test
-// program
-// 	.command('create <projname> <testname>')
-// 	.description('Create a test')
-// 	.option('-T, --test', 'Test')
-// 	.action(createTest);
+program
+	.command('create-test <projname> <testname>')
+	.alias('ct')
+	.description('Create a test')
+	.action(createTest);
 
 // Update Test
 // program
-// 	.command('rename')
+// 	.command('rename-test <projname> <testname> <new_testname>')
+// 	.alias('rt')
 // 	.description('Update a test')
-// 	.option('-T, --test', 'Test')
 // 	.action(updateTest);
 
 // Delete Test
 // program
-// 	.command('delete <projname> ')
+// 	.command('delete-test <projname> <testname>')
+// 	.alias('dt')
 // 	.description('Delete a test')
-// 	.option('-T, --test', 'Test')
 // 	.action(deleteTest);
 
 // -----------------------------
