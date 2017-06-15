@@ -387,13 +387,43 @@ function cTest(projectID, testName, callback) {
 /// Delete a test
 /// @param	Project ID from projectID()
 /// @param  [Optional] Callback to return result
-// function dTest(projectID, testName, callback) {
+// function dTest(projectID, nodeID, callback) {
 // 	return webstudioRawRequest(
 // 		"DELETE",
-// 		"/api/studio/v1/projects/"+projectID+"/workspace/nodes/"+node_id+"/deleteAction",
+// 		"/api/studio/v1/projects/"+projectID+"/workspace/nodes/"+nodeID+"/deleteAction",
 // 		{},
 // 		callback
 // 	);
+// }
+
+/// Returns the node ID (if found), given the project ID AND test webPath
+///
+/// @param  Project ID
+/// @param  Test Path
+/// @param  [Optional] Callback to return result
+///
+/// @return  Promise object, for result
+// function nodeID(projID, testPath, callback) {
+// 	return new Promise(function(good, bad) {
+// 		webstudioJsonRequest(
+// 			"GET",
+// 			"/api/studio/v1/projects/"+projID+"/workspace/nodes",
+// 			{ path : testPath },
+// 			function(res) {
+// 				// Prevent
+// 				if (res.length > 1) {
+// 					console.error(error_warning("ERROR: Multiple scripts named \""+testPath+"\" found.\nPlease give the correct path!\n"));
+// 					process.exit(1);
+// 				} else {
+// 					let id = res[0].id;
+// 					good(parseInt(id));
+// 					return;
+// 				}
+// 				console.error(error_warning("ERROR: Unable to find test script: "+testPath));
+// 				process.exit(1);
+// 			}
+// 		);
+// 	}).then(callback);
 // }
 
 /// Returns the test ID (if found), given the project ID AND test webPath
@@ -737,7 +767,7 @@ function deleteProject(projname, options) {
 function createTest(projname, testname, options) {
 	projectID(projname, function(projID) {
 		cTest(projID, testname, function(res) {
-			console.log("New test '"+testname+"' created in Project '"+projname+"'");
+			console.log("New test '"+testname+"' created in Project '"+projname+"'\n");
 		});
 	});
 }
@@ -747,7 +777,11 @@ function createTest(projname, testname, options) {
 // @param		Test Name
 // function deleteTest(projname, testname, options) {
 // 	projectID(projname, function(projID) {
-// 		dTest()
+// 		nodeID(projID, testname, function(nodeID) {
+// 			dTest(projID, nodeID, function(res) {
+// 				console.log("Test '"+testname+"' in Project '"+projname+"' deleted\n");
+// 			});
+// 		});
 // 	});
 // }
 
