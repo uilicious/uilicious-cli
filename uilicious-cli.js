@@ -370,9 +370,14 @@ function cTest(projectID, testName, callback) {
 }
 
 /// Read a test and display its directory
-// function getProj(projectID, callback) {
-// 	return
-// }
+function rTest(projectID, testID, callback) {
+	webstudioRawRequest(
+		"GET",
+		"/api/studio/v1/projects/"+projectID+"/workspace/tests/"+testID+"/script",
+		{},
+		callback
+	);
+}
 
 /// Update a test
 /// @param	Project ID from projectID()
@@ -731,7 +736,7 @@ function updateProject(projname, new_projname, options) {
 function deleteProject(projname, options) {
 	projectID(projname, function(projID) {
 		dProject(projID, function(res) {
-			console.log(success("Project '"+projname+"' deleted\n"));
+			console.log(error_warning("Project '"+projname+"' deleted\n"));
 		});
 	});
 }
@@ -742,7 +747,20 @@ function deleteProject(projname, options) {
 function createTest(projname, testname, options) {
 	projectID(projname, function(projID) {
 		cTest(projID, testname, function(res) {
-			console.log("New test '"+testname+"' created in Project '"+projname+"'\n");
+			console.log(success("New test '"+testname+"' created in Project '"+projname+"'\n"));
+		});
+	});
+}
+
+// Read test script
+// @param		Project Name
+// @param		Test Name
+function readTest(projname, testname, options) {
+	projectID(projname, function(projID) {
+		testID(projID, testname, function(testID) {
+			rTest(projID, testID, function(res) {
+				console.log(res);
+			});
 		});
 	});
 }
@@ -755,7 +773,7 @@ function updateTest(projname, testname, new_testname, options) {
 	projectID(projname, function(projID) {
 		testID(projID, testname, function(nodeID) {
 			uTest(projID, nodeID, new_testname, function(res) {
-				console.log("Test '"+testname+"' from Project '"+projname+"' renamed to '"+new_testname+"'\n");
+				console.log(success("Test '"+testname+"' from Project '"+projname+"' renamed to '"+new_testname+"'\n"));
 			});
 		});
 	});
@@ -768,7 +786,7 @@ function deleteTest(projname, testname, options) {
 	projectID(projname, function(projID) {
 		testID(projID, testname, function(nodeID) {
 			dTest(projID, nodeID, function(res) {
-				console.log("Test '"+testname+"' deleted from Project '"+projname+"'\n");
+				console.log(error_warning("Test '"+testname+"' deleted from Project '"+projname+"'\n"));
 			});
 		});
 	});
@@ -862,10 +880,17 @@ program
 	.description('Create a test')
 	.action(createTest);
 
+// Read Test
+program
+	.command('read-test <projname> <testname>')
+	.alias('rt')
+	.description('Read a test')
+	.action(readTest);
+
 // Update Test
 program
 	.command('rename-test <projname> <testname> <new_testname>')
-	.alias('rt')
+	.alias('ut')
 	.description('Update a test')
 	.action(updateTest);
 
