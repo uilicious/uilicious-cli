@@ -375,17 +375,21 @@ function cTest(projectID, testName, callback) {
 // }
 
 /// Update a test
-// function uTest(projectID, testName, callback) {
-// 	return webstudioJsonRequest(
-// 		"POST",
-// 		"/api/studio/v1/projects/"+projectID,
-// 		{ title: testName },
-// 		callback
-// 	);
-// }
+/// @param	Project ID from projectID()
+/// @param	Node ID from testID()
+/// @param  [Optional] Callback to return result
+function uTest(projectID, nodeID, newTestName, callback) {
+	return webstudioRawRequest(
+		"POST",
+		"/api/studio/v1/projects/"+projectID+"/workspace/nodes/"+nodeID+"/renameAction",
+		{ name: newTestName },
+		callback
+	);
+}
 
 /// Delete a test
 /// @param	Project ID from projectID()
+/// @param	Node ID from testID()
 /// @param  [Optional] Callback to return result
 function dTest(projectID, nodeID, callback) {
 	return webstudioRawRequest(
@@ -743,6 +747,20 @@ function createTest(projname, testname, options) {
 	});
 }
 
+// Update test script
+// @param		Project Name
+// @param		Test Name
+// @param		New Test Name
+function updateTest(projname, testname, new_testname, options) {
+	projectID(projname, function(projID) {
+		testID(projID, testname, function(nodeID) {
+			uTest(projID, nodeID, new_testname, function(res) {
+				console.log("Test '"+testname+"' from Project '"+projname+"' renamed to '"+new_testname+"'\n");
+			});
+		});
+	});
+}
+
 // Delete test script
 // @param		Project Name
 // @param		Test Name
@@ -845,11 +863,11 @@ program
 	.action(createTest);
 
 // Update Test
-// program
-// 	.command('rename-test <projname> <testname> <new_testname>')
-// 	.alias('rt')
-// 	.description('Update a test')
-// 	.action(updateTest);
+program
+	.command('rename-test <projname> <testname> <new_testname>')
+	.alias('rt')
+	.description('Update a test')
+	.action(updateTest);
 
 // Delete Test
 program
