@@ -297,9 +297,13 @@ function projects(callback) {
 	}).then(callback);
 }
 
+//------------------------------------------------------------------------------
+//	Project Functions
+//------------------------------------------------------------------------------
+
 /// Create a new project using projectName
 /// @param	Project Name
-function cProject(projectName, callback) {
+function createProject(projectName, callback) {
 	return webstudioRawRequest(
 		"POST",
 		"/api/studio/v1/projects",
@@ -314,7 +318,7 @@ function cProject(projectName, callback) {
 // }
 
 /// Update a project
-function uProject(projectID, newProjectName, callback) {
+function updateProject(projectID, newProjectName, callback) {
 	return webstudioRawRequest(
 		"POST",
 		"/api/studio/v1/projects/"+projectID,
@@ -326,7 +330,7 @@ function uProject(projectID, newProjectName, callback) {
 /// Delete a project
 /// @param	Project ID from projectID()
 /// @param  [Optional] Callback to return result
-function dProject(projectID, callback) {
+function deleteProject(projectID, callback) {
 	return webstudioRawRequest(
 		"DELETE",
 		"/api/studio/v1/projects/"+projectID,
@@ -334,6 +338,72 @@ function dProject(projectID, callback) {
 		callback
 	);
 }
+
+//------------------------------------------------------------------------------
+//	Folder & Test Functions
+//------------------------------------------------------------------------------
+
+/// Create a new test using projectName
+/// @param	Project ID from projectID()
+function createTest(projectID, testName, callback) {
+	return webstudioRawRequest(
+		"POST",
+		"/api/studio/v1/projects/"+projectID+"/workspace/tests/addAction",
+		{ name: testName },
+		callback
+	);
+}
+
+/// Read a test and display its directory
+function readTest(projectID, testID, callback) {
+	webstudioRawRequest(
+		"GET",
+		"/api/studio/v1/projects/"+projectID+"/workspace/tests/"+testID+"/script",
+		{},
+		callback
+	);
+}
+
+/// Update a test
+/// @param	Project ID from projectID()
+/// @param	Node ID from testID()
+/// @param  [Optional] Callback to return result
+function updateTest(projectID, nodeID, newTestName, callback) {
+	return webstudioRawRequest(
+		"POST",
+		"/api/studio/v1/projects/"+projectID+"/workspace/nodes/"+nodeID+"/renameAction",
+		{ name: newTestName },
+		callback
+	);
+}
+
+/// Create a new folder using projectName
+/// @param	Project ID from projectID()
+function createFolder(projectID, folderName, callback) {
+	return webstudioRawRequest(
+		"POST",
+		"/api/studio/v1/projects/"+projectID+"/workspace/folders/addAction",
+		{ name: folderName },
+		callback
+	);
+}
+
+/// Delete a test/folder
+/// @param	Project ID from projectID()
+/// @param	Node ID from testID()
+/// @param  [Optional] Callback to return result
+function deleteTestFolder(projectID, nodeID, callback) {
+	return webstudioRawRequest(
+		"POST",
+		"/api/studio/v1/projects/"+projectID+"/workspace/nodes/"+nodeID+"/deleteAction",
+		{},
+		callback
+	);
+}
+
+//------------------------------------------------------------------------------
+//	Main Functions
+//------------------------------------------------------------------------------
 
 /// Fetch the project ID for a project,
 /// silently terminates, with an error message if it fails
@@ -356,53 +426,6 @@ function projectID(projectName, callback) {
 			process.exit(1);
 		});
 	}).then(callback);
-}
-
-/// Create a new test using projectName
-/// @param	Project ID from projectID()
-function cTest(projectID, testName, callback) {
-	return webstudioRawRequest(
-		"POST",
-		"/api/studio/v1/projects/"+projectID+"/workspace/tests/addAction",
-		{ name: testName },
-		callback
-	);
-}
-
-/// Read a test and display its directory
-function rTest(projectID, testID, callback) {
-	webstudioRawRequest(
-		"GET",
-		"/api/studio/v1/projects/"+projectID+"/workspace/tests/"+testID+"/script",
-		{},
-		callback
-	);
-}
-
-/// Update a test
-/// @param	Project ID from projectID()
-/// @param	Node ID from testID()
-/// @param  [Optional] Callback to return result
-function uTest(projectID, nodeID, newTestName, callback) {
-	return webstudioRawRequest(
-		"POST",
-		"/api/studio/v1/projects/"+projectID+"/workspace/nodes/"+nodeID+"/renameAction",
-		{ name: newTestName },
-		callback
-	);
-}
-
-/// Delete a test
-/// @param	Project ID from projectID()
-/// @param	Node ID from testID()
-/// @param  [Optional] Callback to return result
-function dTest(projectID, nodeID, callback) {
-	return webstudioRawRequest(
-		"POST",
-		"/api/studio/v1/projects/"+projectID+"/workspace/nodes/"+nodeID+"/deleteAction",
-		{},
-		callback
-	);
 }
 
 /// Returns the test ID (if found), given the project ID AND test webPath
@@ -705,10 +728,14 @@ function getAllProjects(options) {
 	});
 }
 
+//------------------------------------------------------------------------------
+//	Project Helper Functions
+//------------------------------------------------------------------------------
+
 // Create new project
 // @param		Project Name
-function createProject(projname, options) {
-	cProject(projname, function(res) {
+function createProjectHelper(projname, options) {
+	createProject(projname, function(res) {
 		console.log(success("New project '"+projname+"' created\n"));
 	});
 }
@@ -723,9 +750,9 @@ function createProject(projname, options) {
 // Update project using projname to get projID
 // @param		Project Name
 // @param		New Project Name
-function updateProject(projname, new_projname, options) {
+function updateProjectHelper(projname, new_projname, options) {
 	projectID(projname, function(projID) {
-		uProject(projID, new_projname, function(res) {
+		updateProject(projID, new_projname, function(res) {
 			console.log(success("Project '"+projname+"' renamed to '"+new_projname+"'\n"));
 		});
 	});
@@ -733,20 +760,24 @@ function updateProject(projname, new_projname, options) {
 
 // Delete project using project name
 // @param		Project Name
-function deleteProject(projname, options) {
+function deleteProjectHelper(projname, options) {
 	projectID(projname, function(projID) {
-		dProject(projID, function(res) {
+		deleteProject(projID, function(res) {
 			console.log(error_warning("Project '"+projname+"' deleted\n"));
 		});
 	});
 }
 
+//------------------------------------------------------------------------------
+//	Test Helper Functions
+//------------------------------------------------------------------------------
+
 // Create test script
 // @param		Project Name
 // @param		Test Name
-function createTest(projname, testname, options) {
+function createTestHelper(projname, testname, options) {
 	projectID(projname, function(projID) {
-		cTest(projID, testname, function(res) {
+		createTest(projID, testname, function(res) {
 			console.log(success("New test '"+testname+"' created in Project '"+projname+"'\n"));
 		});
 	});
@@ -755,10 +786,10 @@ function createTest(projname, testname, options) {
 // Read test script
 // @param		Project Name
 // @param		Test Name
-function readTest(projname, testname, options) {
+function readTestHelper(projname, testname, options) {
 	projectID(projname, function(projID) {
 		testID(projID, testname, function(testID) {
-			rTest(projID, testID, function(res) {
+			readTest(projID, testID, function(res) {
 				console.log(res);
 			});
 		});
@@ -769,10 +800,10 @@ function readTest(projname, testname, options) {
 // @param		Project Name
 // @param		Test Name
 // @param		New Test Name
-function updateTest(projname, testname, new_testname, options) {
+function updateTestHelper(projname, testname, new_testname, options) {
 	projectID(projname, function(projID) {
 		testID(projID, testname, function(nodeID) {
-			uTest(projID, nodeID, new_testname, function(res) {
+			updateTest(projID, nodeID, new_testname, function(res) {
 				console.log(success("Test '"+testname+"' from Project '"+projname+"' renamed to '"+new_testname+"'\n"));
 			});
 		});
@@ -782,15 +813,47 @@ function updateTest(projname, testname, new_testname, options) {
 // Delete test script
 // @param		Project Name
 // @param		Test Name
-function deleteTest(projname, testname, options) {
+function deleteTestHelper(projname, testname, options) {
 	projectID(projname, function(projID) {
 		testID(projID, testname, function(nodeID) {
-			dTest(projID, nodeID, function(res) {
+			deleteTestFolder(projID, nodeID, function(res) {
 				console.log(error_warning("Test '"+testname+"' deleted from Project '"+projname+"'\n"));
 			});
 		});
 	});
 }
+
+//------------------------------------------------------------------------------
+//	Folder Helper Functions
+//------------------------------------------------------------------------------
+
+// Create folder
+// @param		Project Name
+// @param		Folder Name
+function createFolderHelper(projName, folderName, options) {
+	projectID(projName, function(projID) {
+		createFolder(projID, folderName, function(res) {
+			console.log(success("New folder '"+folderName+"' created in Project '"+projName+"'\n"));
+		});
+	});
+}
+
+// Delete folder
+// @param		Project Name
+// @param		Folder Name
+// function deleteFolderHelper(projName, folderName, options) {
+// 	projectID(projName, function(projID) {
+// 		testID(projID, folderName, function(nodeID) {
+// 			deleteTestFolder(projID, nodeID, function(res) {
+// 				console.log(error_warning("Folder '"+folderName+"' deleted from Project '"+projName+"'\n"));
+// 			});
+// 		});
+// 	});
+// }
+
+//------------------------------------------------------------------------------
+//	Main Function to run test script
+//------------------------------------------------------------------------------
 
 // Run test script from project
 function main(projname, scriptpath, options) {
@@ -853,21 +916,21 @@ program
 	.command('create-project <projname>')
 	.alias('cp')
 	.description('Create a new project')
-	.action(createProject);
+	.action(createProjectHelper);
 
 // Update Project
 program
 	.command('rename-project <projname> <new_projname>')
 	.alias('rp')
 	.description('Rename a project')
-	.action(updateProject);
+	.action(updateProjectHelper);
 
 // Delete Project
 program
 	.command('delete-project <projname>')
 	.alias('dp')
 	.description('Delete a project')
-	.action(deleteProject);
+	.action(deleteProjectHelper);
 
 // -----------------------------
 // 	Commands for Test CRUD
@@ -875,31 +938,63 @@ program
 
 // Create Test
 program
-	.command('create-test <projname> <testname>')
+	.command('create-test <projname> <test_name>')
 	.alias('ct')
 	.description('Create a test')
-	.action(createTest);
+	.action(createTestHelper);
 
 // Read Test
 program
-	.command('read-test <projname> <testname>')
-	.alias('rt')
+	.command('get-test <projname> <test_name>')
+	.alias('gt')
 	.description('Read a test')
-	.action(readTest);
+	.action(readTestHelper);
 
 // Update Test
 program
-	.command('rename-test <projname> <testname> <new_testname>')
-	.alias('ut')
-	.description('Update a test')
-	.action(updateTest);
+	.command('rename-test <projname> <test_name> <new_testname>')
+	.alias('rt')
+	.description('Rename a test')
+	.action(updateTestHelper);
 
 // Delete Test
 program
-	.command('delete-test <projname> <testname>')
+	.command('delete-test <projname> <test_name>')
 	.alias('dt')
 	.description('Delete a test')
-	.action(deleteTest);
+	.action(deleteTestHelper);
+
+// -----------------------------
+// 	Commands for Folder CRUD
+// -----------------------------
+
+// Create Folder
+program
+	.command('create-folder <projname> <folder_name>')
+	.alias('cf')
+	.description('Create a folder')
+	.action(createFolderHelper);
+
+// Read Folder
+// program
+// 	.command('get-folder <projname> <testname>')
+// 	.alias('gf')
+// 	.description('Read a folder')
+// 	.action(readFolderHelper);
+
+// Update Folder
+// program
+// 	.command('rename-folder <projname> <testname> <new_testname>')
+// 	.alias('rf')
+// 	.description('Rename a folder')
+// 	.action(updateFolderHelper);
+
+// Delete Folder
+program
+	.command('delete-folder <projname> <folder_name>')
+	.alias('df')
+	.description('Delete a folder')
+	.action(deleteFolderHelper);
 
 // -----------------------------
 // 	Commands for running tests
