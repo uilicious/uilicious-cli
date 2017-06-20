@@ -364,19 +364,6 @@ function readTest(projectID, testID, callback) {
 	);
 }
 
-/// Update a test
-/// @param	Project ID from projectID()
-/// @param	Node ID from testID()
-/// @param  [Optional] Callback to return result
-function updateTest(projectID, nodeID, newTestName, callback) {
-	return webstudioRawRequest(
-		"POST",
-		"/api/studio/v1/projects/"+projectID+"/workspace/nodes/"+nodeID+"/renameAction",
-		{ name: newTestName },
-		callback
-	);
-}
-
 /// Create a new folder using projectName
 /// @param	Project ID from projectID()
 function createFolder(projectID, folderName, callback) {
@@ -388,9 +375,22 @@ function createFolder(projectID, folderName, callback) {
 	);
 }
 
+/// Update a test/folder
+/// @param	Project ID from projectID()
+/// @param	Node ID from testID() or folderID()
+/// @param  [Optional] Callback to return result
+function updateTestFolder(projectID, nodeID, newTestName, callback) {
+	return webstudioRawRequest(
+		"POST",
+		"/api/studio/v1/projects/"+projectID+"/workspace/nodes/"+nodeID+"/renameAction",
+		{ name: newFolderName },
+		callback
+	);
+}
+
 /// Delete a test/folder
 /// @param	Project ID from projectID()
-/// @param	Node ID from testID()
+/// @param	Node ID from testID() of folderID()
 /// @param  [Optional] Callback to return result
 function deleteTestFolder(projectID, nodeID, callback) {
 	return webstudioRawRequest(
@@ -428,8 +428,45 @@ function projectID(projectName, callback) {
 	}).then(callback);
 }
 
+/// Returns the folder ID (if found), given the project ID AND test webPath
+/// Also can be used to return node ID for folder
+///
+/// @param  Project ID
+/// @param  Folder Name
+/// @param  [Optional] Callback to return result
+///
+/// @return  Promise object, for result
+function folderID(projID, folderName, callback) {
+	return new Promise(function(good, bad) {
+		webstudioJsonRequest(
+			"GET",
+			"/api/studio/v1/projects/"+projID+"/workspace/directory",
+			{ name : folderName },
+			function(res) {
+				let directory = res.children;
+				for (let i = 0; i < directory.length; i++) {
+					let folder = directory[i];
+					// Check whether it is a folder
+					if (folder.typeName == 'FOLDER' && folder.name == folderName) {
+						good(folder.id);
+						return;
+					}
+					// Check whether it is a test
+					if (folder.typeName == 'TEST' && folder.name == folderName) {
+						console.error(error_warning("This is a test, not a folder!\nPlease give the correct path!\n"));
+						process.exit(1);
+					}
+				}
+				// Return error if there is no such path
+				console.error(error_warning("ERROR: Unable to find folder named '"+folderName+"'\n"));
+				process.exit(1);
+			}
+		);
+	}).then(callback);
+}
+
 /// Returns the test ID (if found), given the project ID AND test webPath
-/// Also can be used to return node ID
+/// Also can be used to return node ID for test
 ///
 /// @param  Project ID
 /// @param  Test Path
@@ -838,18 +875,32 @@ function createFolderHelper(projName, folderName, options) {
 	});
 }
 
+// Update test script
+// @param		Project Name
+// @param		Test Name
+// @param		New Test Name
+function updateFolderHelper(projname, testname, new_testname, options) {
+	projectID(projname, function(projID) {
+		folderID(projID, testname, function(nodeID) {
+			updateTest(projID, nodeID, new_testname, function(res) {
+				console.log(success("Test '"+testname+"' from Project '"+projname+"' renamed to '"+new_testname+"'\n"));
+			});
+		});
+	});
+}
+
 // Delete folder
 // @param		Project Name
 // @param		Folder Name
-// function deleteFolderHelper(projName, folderName, options) {
-// 	projectID(projName, function(projID) {
-// 		testID(projID, folderName, function(nodeID) {
-// 			deleteTestFolder(projID, nodeID, function(res) {
-// 				console.log(error_warning("Folder '"+folderName+"' deleted from Project '"+projName+"'\n"));
-// 			});
-// 		});
-// 	});
-// }
+function deleteFolderHelper(projName, folderName, options) {
+	projectID(projName, function(projID) {
+		folderID(projID, folderName, function(nodeID) {
+			deleteTestFolder(projID, nodeID, function(res) {
+				console.log(error_warning("Folder '"+folderName+"' deleted from Project '"+projName+"'\n"));
+			});
+		});
+	});
+}
 
 //------------------------------------------------------------------------------
 //	Main Function to run test script
@@ -876,9 +927,9 @@ function main(projname, scriptpath, options) {
 					console.log("");
 					outputLog(errorCount);
 					pollForError(postID);
-					makeDir();
-					pollForImg(postID);
-					console.log(success("All images saved in "+program.directory+"\n"));
+					// makeDir();
+					// pollForImg(postID);
+					// console.log(success("All images saved in "+program.directory+"\n"));
 				});
 			});
 		});
@@ -896,7 +947,7 @@ program
 	.version('1.3.12')
 	.option('-u, --user <required>', 'username')
 	.option('-p, --pass <required>', 'password')
-	.option('-d, --directory <required>', 'Output directory path to use')
+	// .option('-d, --directory <required>', 'Output directory path to use')
 	.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
 	.option('-w, --width <optional>', 'width of browser')
 	.option('-h, --height <optional>', 'height of browser')
@@ -983,11 +1034,11 @@ program
 // 	.action(readFolderHelper);
 
 // Update Folder
-// program
-// 	.command('rename-folder <projname> <testname> <new_testname>')
-// 	.alias('rf')
-// 	.description('Rename a folder')
-// 	.action(updateFolderHelper);
+program
+	.command('rename-folder <projname> <testname> <new_testname>')
+	.alias('rf')
+	.description('Rename a folder')
+	.action(updateFolderHelper);
 
 // Delete Folder
 program
