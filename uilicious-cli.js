@@ -379,11 +379,11 @@ function createFolder(projectID, folderName, callback) {
 /// @param	Project ID from projectID()
 /// @param	Node ID from testID() or folderID()
 /// @param  [Optional] Callback to return result
-function updateTestFolder(projectID, nodeID, newTestName, callback) {
+function updateTestFolder(projectID, nodeID, new_Name, callback) {
 	return webstudioRawRequest(
 		"POST",
 		"/api/studio/v1/projects/"+projectID+"/workspace/nodes/"+nodeID+"/renameAction",
-		{ name: newFolderName },
+		{ name: new_Name },
 		callback
 	);
 }
@@ -879,11 +879,11 @@ function createFolderHelper(projName, folderName, options) {
 // @param		Project Name
 // @param		Test Name
 // @param		New Test Name
-function updateFolderHelper(projname, testname, new_testname, options) {
-	projectID(projname, function(projID) {
-		folderID(projID, testname, function(nodeID) {
-			updateTest(projID, nodeID, new_testname, function(res) {
-				console.log(success("Test '"+testname+"' from Project '"+projname+"' renamed to '"+new_testname+"'\n"));
+function updateFolderHelper(projName, folderName, new_folderName, options) {
+	projectID(projName, function(projID) {
+		folderID(projID, folderName, function(nodeID) {
+			updateTestFolder(projID, nodeID, new_folderName, function(res) {
+				console.log(success("Folder '"+folderName+"' from Project '"+projName+"' renamed to '"+new_folderName+"'\n"));
 			});
 		});
 	});
