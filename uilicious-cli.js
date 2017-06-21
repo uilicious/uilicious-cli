@@ -950,10 +950,10 @@ program
 	// .option('-d, --directory <required>', 'Output directory path to use')
 	.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
 	.option('-w, --width <optional>', 'width of browser')
-	.option('-h, --height <optional>', 'height of browser')
+	.option('-hg, --height <optional>', 'height of browser')
 
 program
-	.command('list-projects')
+	.command('list-project')
 	.alias('list')
 	.description('List all projects')
 	.action(getAllProjects);
@@ -1035,7 +1035,7 @@ program
 
 // Update Folder
 program
-	.command('rename-folder <projname> <testname> <new_testname>')
+	.command('rename-folder <projname> <folder_name> <new_folder_name>')
 	.alias('rf')
 	.description('Rename a folder')
 	.action(updateFolderHelper);
@@ -1058,7 +1058,21 @@ program
 // end with parse to parse through the input
 program.parse(process.argv);
 
-// if program was called with no arguments, show help.
-if (program.args.length === 0) {
-	program.help(); // Terminates as well
+// If program was called with no arguments or invalid arguments, show help.
+if (!program.args.length) {
+	// Show help by default
+	program.parse([process.argv[0], process.argv[1], '-h']);
+	process.exit(0);
+} else {
+	// Warn about invalid commands
+	let validCommands = program.commands.map(function(cmd){
+		return cmd.name;
+	});
+	let invalidCommands = program.args.filter(function(cmd){
+		// If command is executed, it will be an object and not a string
+		return (typeof cmd === 'string' && validCommands.indexOf(cmd) === -1);
+	});
+	if (invalidCommands.length) {
+		console.log('\n [ERROR] - Invalid command: "%s".\n See "--help" for a list of available commands.\n', invalidCommands.join(', '));
+	}
 }

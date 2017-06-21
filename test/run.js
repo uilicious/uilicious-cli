@@ -35,6 +35,32 @@ function getDirectories(srcpath) {
 			.filter(file => fs.lstatSync(path.join(srcpath, file)).isDirectory());
 }
 
+/// Generates a random alpha numeric string, for various uses
+///
+/// @param   length of string required
+/// @param   character key set, as a string (not array), defaults to alphanumeric if not given.
+///
+/// @return   The randomly generated string
+function randomString(length, chars) {
+	if( chars == null || chars.length == 0 ) {
+		chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	}
+	var result = '';
+	for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
+	return result;
+}
+
+/// Extend chai asserting, to support an array of values
+///
+/// @param { Mixed } object
+/// @param { Array. } keys
+/// @param { String } message
+assert.containsAllValues = function(obj, keyArr, msg) {
+	for(var i in keyArr) {
+		assert.include(obj, keyArr[i], msg);
+	}
+}
+
 
 //---------------------------------------------------------------------------------------------
 //
