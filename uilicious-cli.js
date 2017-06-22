@@ -428,37 +428,31 @@ function projectID(projectName, callback) {
 	}).then(callback);
 }
 
-/// Returns the folder ID (if found), given the project ID AND test webPath
+/// Returns the folder ID (if found), given the project ID AND folder webPath
 /// Also can be used to return node ID for folder
 ///
 /// @param  Project ID
-/// @param  Folder Name
+/// @param  Folder Path
 /// @param  [Optional] Callback to return result
 ///
 /// @return  Promise object, for result
-function folderID(projID, folderName, callback) {
+function folderID(projID, folderPath, callback) {
 	return new Promise(function(good, bad) {
 		webstudioJsonRequest(
 			"GET",
-			"/api/studio/v1/projects/"+projID+"/workspace/directory",
-			{ name : folderName },
+			"/api/studio/v1/projects/"+projID+"/workspace/folders",
+			{ path : folderPath },
 			function(res) {
-				let directory = res.children;
-				for (let i = 0; i < directory.length; i++) {
-					let folder = directory[i];
-					// Check whether it is a folder
-					if (folder.typeName == 'FOLDER' && folder.name == folderName) {
-						good(folder.id);
-						return;
-					}
-					// Check whether it is a test
-					if (folder.typeName == 'TEST' && folder.name == folderName) {
-						console.error(error_warning("This is a test, not a folder!\nPlease give the correct path!\n"));
-						process.exit(1);
-					}
+				// Prevent
+				if (res.length > 1) {
+					console.error(error_warning("ERROR: Multiple folders named '"+folderPath+"' found.\nPlease give the correct path!\n"));
+					process.exit(1);
+				} else {
+					let id = res[0].id;
+					good(parseInt(id));
+					return;
 				}
-				// Return error if there is no such path
-				console.error(error_warning("ERROR: Unable to find folder named '"+folderName+"'\n"));
+				console.error(error_warning("ERROR: Unable to find folder: '"+folderPath+"'\n"));
 				process.exit(1);
 			}
 		);
@@ -482,14 +476,14 @@ function testID(projID, testPath, callback) {
 			function(res) {
 				// Prevent
 				if (res.length > 1) {
-					console.error(error_warning("ERROR: Multiple scripts named \""+testPath+"\" found.\nPlease give the correct path!\n"));
+					console.error(error_warning("ERROR: Multiple scripts named '"+testPath+"' found.\nPlease give the correct path!\n"));
 					process.exit(1);
 				} else {
 					let id = res[0].id;
 					good(parseInt(id));
 					return;
 				}
-				console.error(error_warning("ERROR: Unable to find test script: "+testPath));
+				console.error(error_warning("ERROR: Unable to find test script: '"+testPath+"'\n"));
 				process.exit(1);
 			}
 		);
@@ -892,11 +886,11 @@ function updateFolderHelper(projName, folderName, new_folderName, options) {
 // Delete folder
 // @param		Project Name
 // @param		Folder Name
-function deleteFolderHelper(projName, folderName, options) {
+function deleteFolderHelper(projName, folderPath, options) {
 	projectID(projName, function(projID) {
-		folderID(projID, folderName, function(nodeID) {
+		folderID(projID, folderPath, function(nodeID) {
 			deleteTestFolder(projID, nodeID, function(res) {
-				console.log(error_warning("Folder '"+folderName+"' deleted from Project '"+projName+"'\n"));
+				console.log(error_warning("Folder '"+folderPath+"' deleted from Project '"+projName+"'\n"));
 			});
 		});
 	});
