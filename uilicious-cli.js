@@ -729,6 +729,15 @@ function downloadImg(remoteOutputPath, afterImg, localremoteOutputPath, callback
 	);
 }
 
+// Read file contents
+function readFileContents(file_pathname, callback) {
+	return new Promise(function(good, bad) {
+		let fileLocation = path.resolve(file_pathname);
+		let fileContent = fs.readFileSync(fileLocation, 'utf-8');
+		console.log(fileContent);
+	}).then(callback);
+}
+
 // Make directory
 function makeDir(callback) {
 	return new Promise(function(good, bad) {
@@ -770,13 +779,6 @@ function createProjectHelper(projname, options) {
 		console.log(success("New project '"+projname+"' created\n"));
 	});
 }
-
-// Read project and display directory of project
-// function readProject(projname, options) {
-// 	projectID(projname, function(projID) {
-//
-// 	});
-// }
 
 // Update project using projname to get projID
 // @param		Project Name
@@ -851,6 +853,16 @@ function deleteTestHelper(projname, testname, options) {
 				console.log(error_warning("Test '"+testname+"' deleted from Project '"+projname+"'\n"));
 			});
 		});
+	});
+}
+
+// Import test script
+// @param		Project Name
+// @param		Test Name
+// @param		File Path Name
+function importTestHelper(file_pathname) {
+	readFileContents(file_pathname, function() {
+		console.log("");
 	});
 }
 
@@ -978,7 +990,7 @@ program
 	.action(deleteProjectHelper);
 
 // -----------------------------
-// 	Commands for Test CRUD
+// 	Commands for Test
 // -----------------------------
 
 // Create Test
@@ -1009,8 +1021,15 @@ program
 	.description('Delete a test')
 	.action(deleteTestHelper);
 
+// Import Test
+program
+	.command('import-test <file_pathname>')
+	.alias('it')
+	.description('Import a test')
+	.action(importTestHelper);
+
 // -----------------------------
-// 	Commands for Folder CRUD
+// 	Commands for Folder
 // -----------------------------
 
 // Create Folder
@@ -1019,13 +1038,6 @@ program
 	.alias('cf')
 	.description('Create a folder')
 	.action(createFolderHelper);
-
-// Read Folder
-// program
-// 	.command('get-folder <projname> <testname>')
-// 	.alias('gf')
-// 	.description('Read a folder')
-// 	.action(readFolderHelper);
 
 // Update Folder
 program
