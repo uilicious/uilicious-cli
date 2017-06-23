@@ -364,6 +364,20 @@ function readTest(projectID, testID, callback) {
 	);
 }
 
+/// Create a new test using projectName
+/// @param	Project ID from projectID()
+function importTest(projectID, testName, testContent, callback) {
+	return webstudioRawRequest(
+		"POST",
+		"/api/studio/v1/projects/"+projectID+"/workspace/tests/addAction",
+		{
+			name: testName,
+			script: testContent
+		},
+		callback
+	);
+}
+
 /// Create a new folder using projectName
 /// @param	Project ID from projectID()
 function createFolder(projectID, folderName, callback) {
@@ -734,7 +748,12 @@ function readFileContents(file_pathname, callback) {
 	return new Promise(function(good, bad) {
 		let fileLocation = path.resolve(file_pathname);
 		let fileContent = fs.readFileSync(fileLocation, 'utf-8');
-		console.log(fileContent);
+		if (fileContent != null) {
+			good(fileContent);
+		} else {
+			console.error(error_warning("ERROR: There is nothing in this file!\n"));
+			process.exit(1);
+		}
 	}).then(callback);
 }
 
@@ -860,9 +879,13 @@ function deleteTestHelper(projname, testname, options) {
 // @param		Project Name
 // @param		Test Name
 // @param		File Path Name
-function importTestHelper(file_pathname) {
-	readFileContents(file_pathname, function() {
-		console.log("");
+function importTestHelper(projname, testname, file_pathname, options) {
+	readFileContents(file_pathname, function(file_content) {
+		projectID(projname, function(projID) {
+			importTest(projID, testname, file_content, function(res) {
+				console.log(success("New test '"+testname+"' created in Project '"+projname+"'\n"));
+			});
+		});
 	});
 }
 
@@ -1023,7 +1046,7 @@ program
 
 // Import Test
 program
-	.command('import-test <file_pathname>')
+	.command('import-test <projname> <test_name> <file_pathname>')
 	.alias('it')
 	.description('Import a test')
 	.action(importTestHelper);
@@ -1069,16 +1092,17 @@ if (!program.args.length) {
 	// Show help by default
 	program.parse([process.argv[0], process.argv[1], '-h']);
 	process.exit(0);
-} else {
-	// Warn about invalid commands
-	let validCommands = program.commands.map(function(cmd){
-		return cmd.name;
-	});
-	let invalidCommands = program.args.filter(function(cmd){
-		// If command is executed, it will be an object and not a string
-		return (typeof cmd === 'string' && validCommands.indexOf(cmd) === -1);
-	});
-	if (invalidCommands.length) {
-		console.log('\n [ERROR] - Invalid command: "%s".\n See "--help" for a list of available commands.\n', invalidCommands.join(', '));
-	}
 }
+//  else {
+// 	// Warn about invalid commands
+// 	let validCommands = program.commands.map(function(cmd){
+// 		return cmd.name;
+// 	});
+// 	let invalidCommands = program.args.filter(function(cmd){
+// 		// If command is executed, it will be an object and not a string
+// 		return (typeof cmd === 'string' && validCommands.indexOf(cmd) === -1);
+// 	});
+// 	if (invalidCommands.length) {
+// 		console.log('\n [ERROR] - Invalid command: "%s".\n See "--help" for a list of available commands.\n', invalidCommands.join(', '));
+// 	}
+// }
