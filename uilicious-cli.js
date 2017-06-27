@@ -364,6 +364,20 @@ function readTest(projectID, testID, callback) {
 	);
 }
 
+/// Create a new test using projectName
+/// @param	Project ID from projectID()
+function importTest(projectID, testName, testContent, callback) {
+	return webstudioRawRequest(
+		"POST",
+		"/api/studio/v1/projects/"+projectID+"/workspace/tests/addAction",
+		{
+			name: testName,
+			script: testContent
+		},
+		callback
+	);
+}
+
 /// Create a new folder using projectName
 /// @param	Project ID from projectID()
 function createFolder(projectID, folderName, callback) {
@@ -428,37 +442,31 @@ function projectID(projectName, callback) {
 	}).then(callback);
 }
 
-/// Returns the folder ID (if found), given the project ID AND test webPath
+/// Returns the folder ID (if found), given the project ID AND folder webPath
 /// Also can be used to return node ID for folder
 ///
 /// @param  Project ID
-/// @param  Folder Name
+/// @param  Folder Path
 /// @param  [Optional] Callback to return result
 ///
 /// @return  Promise object, for result
-function folderID(projID, folderName, callback) {
+function folderID(projID, folderPath, callback) {
 	return new Promise(function(good, bad) {
 		webstudioJsonRequest(
 			"GET",
-			"/api/studio/v1/projects/"+projID+"/workspace/directory",
-			{ name : folderName },
+			"/api/studio/v1/projects/"+projID+"/workspace/folders",
+			{ path : folderPath },
 			function(res) {
-				let directory = res.children;
-				for (let i = 0; i < directory.length; i++) {
-					let folder = directory[i];
-					// Check whether it is a folder
-					if (folder.typeName == 'FOLDER' && folder.name == folderName) {
-						good(folder.id);
-						return;
-					}
-					// Check whether it is a test
-					if (folder.typeName == 'TEST' && folder.name == folderName) {
-						console.error(error_warning("This is a test, not a folder!\nPlease give the correct path!\n"));
-						process.exit(1);
-					}
+				// Prevent
+				if (res.length > 1) {
+					console.error(error_warning("ERROR: Multiple folders named '"+folderPath+"' found.\nPlease give the correct path!\n"));
+					process.exit(1);
+				} else {
+					let id = res[0].id;
+					good(parseInt(id));
+					return;
 				}
-				// Return error if there is no such path
-				console.error(error_warning("ERROR: Unable to find folder named '"+folderName+"'\n"));
+				console.error(error_warning("ERROR: Unable to find folder: '"+folderPath+"'\n"));
 				process.exit(1);
 			}
 		);
@@ -482,14 +490,14 @@ function testID(projID, testPath, callback) {
 			function(res) {
 				// Prevent
 				if (res.length > 1) {
-					console.error(error_warning("ERROR: Multiple scripts named \""+testPath+"\" found.\nPlease give the correct path!\n"));
+					console.error(error_warning("ERROR: Multiple scripts named '"+testPath+"' found.\nPlease give the correct path!\n"));
 					process.exit(1);
 				} else {
 					let id = res[0].id;
 					good(parseInt(id));
 					return;
 				}
-				console.error(error_warning("ERROR: Unable to find test script: "+testPath));
+				console.error(error_warning("ERROR: Unable to find test script: '"+testPath+"'\n"));
 				process.exit(1);
 			}
 		);
@@ -735,6 +743,20 @@ function downloadImg(remoteOutputPath, afterImg, localremoteOutputPath, callback
 	);
 }
 
+// Read file contents
+function readFileContents(file_pathname, callback) {
+	return new Promise(function(good, bad) {
+		let fileLocation = path.resolve(file_pathname);
+		let fileContent = fs.readFileSync(fileLocation, 'utf-8');
+		if (fileContent != null) {
+			good(fileContent);
+		} else {
+			console.error(error_warning("ERROR: There is nothing in this file!\n"));
+			process.exit(1);
+		}
+	}).then(callback);
+}
+
 // Make directory
 function makeDir(callback) {
 	return new Promise(function(good, bad) {
@@ -776,13 +798,6 @@ function createProjectHelper(projname, options) {
 		console.log(success("New project '"+projname+"' created\n"));
 	});
 }
-
-// Read project and display directory of project
-// function readProject(projname, options) {
-// 	projectID(projname, function(projID) {
-//
-// 	});
-// }
 
 // Update project using projname to get projID
 // @param		Project Name
@@ -860,6 +875,20 @@ function deleteTestHelper(projname, testname, options) {
 	});
 }
 
+// Import test script
+// @param		Project Name
+// @param		Test Name
+// @param		File Path Name
+function importTestHelper(projname, testname, file_pathname, options) {
+	readFileContents(file_pathname, function(file_content) {
+		projectID(projname, function(projID) {
+			importTest(projID, testname, file_content, function(res) {
+				console.log(success("New test '"+testname+"' created in Project '"+projname+"'\n"));
+			});
+		});
+	});
+}
+
 //------------------------------------------------------------------------------
 //	Folder Helper Functions
 //------------------------------------------------------------------------------
@@ -892,11 +921,11 @@ function updateFolderHelper(projName, folderName, new_folderName, options) {
 // Delete folder
 // @param		Project Name
 // @param		Folder Name
-function deleteFolderHelper(projName, folderName, options) {
+function deleteFolderHelper(projName, folderPath, options) {
 	projectID(projName, function(projID) {
-		folderID(projID, folderName, function(nodeID) {
+		folderID(projID, folderPath, function(nodeID) {
 			deleteTestFolder(projID, nodeID, function(res) {
-				console.log(error_warning("Folder '"+folderName+"' deleted from Project '"+projName+"'\n"));
+				console.log(error_warning("Folder '"+folderPath+"' deleted from Project '"+projName+"'\n"));
 			});
 		});
 	});
@@ -984,7 +1013,7 @@ program
 	.action(deleteProjectHelper);
 
 // -----------------------------
-// 	Commands for Test CRUD
+// 	Commands for Test
 // -----------------------------
 
 // Create Test
@@ -1015,8 +1044,15 @@ program
 	.description('Delete a test')
 	.action(deleteTestHelper);
 
+// Import Test
+program
+	.command('import-test <projname> <test_name> <file_pathname>')
+	.alias('it')
+	.description('Import a test')
+	.action(importTestHelper);
+
 // -----------------------------
-// 	Commands for Folder CRUD
+// 	Commands for Folder
 // -----------------------------
 
 // Create Folder
@@ -1025,13 +1061,6 @@ program
 	.alias('cf')
 	.description('Create a folder')
 	.action(createFolderHelper);
-
-// Read Folder
-// program
-// 	.command('get-folder <projname> <testname>')
-// 	.alias('gf')
-// 	.description('Read a folder')
-// 	.action(readFolderHelper);
 
 // Update Folder
 program
@@ -1063,16 +1092,17 @@ if (!program.args.length) {
 	// Show help by default
 	program.parse([process.argv[0], process.argv[1], '-h']);
 	process.exit(0);
-} else {
-	// Warn about invalid commands
-	let validCommands = program.commands.map(function(cmd){
-		return cmd.name;
-	});
-	let invalidCommands = program.args.filter(function(cmd){
-		// If command is executed, it will be an object and not a string
-		return (typeof cmd === 'string' && validCommands.indexOf(cmd) === -1);
-	});
-	if (invalidCommands.length) {
-		console.log('\n [ERROR] - Invalid command: "%s".\n See "--help" for a list of available commands.\n', invalidCommands.join(', '));
-	}
 }
+//  else {
+// 	// Warn about invalid commands
+// 	let validCommands = program.commands.map(function(cmd){
+// 		return cmd.name;
+// 	});
+// 	let invalidCommands = program.args.filter(function(cmd){
+// 		// If command is executed, it will be an object and not a string
+// 		return (typeof cmd === 'string' && validCommands.indexOf(cmd) === -1);
+// 	});
+// 	if (invalidCommands.length) {
+// 		console.log('\n [ERROR] - Invalid command: "%s".\n See "--help" for a list of available commands.\n', invalidCommands.join(', '));
+// 	}
+// }
