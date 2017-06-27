@@ -4,6 +4,7 @@
 
 var projName = "uilicious-cli-test-"+randomString(5);
 var testName = "uilicious-cli-test-"+randomString(4);
+var testName1 = testName;
 var newTestName = "uilicious-cli-test-"+randomString(4);
 
 //CREATE a project
@@ -11,7 +12,6 @@ assert.containsAllValues(
 	runUiliciousCli("create-project" , projName),
 	[
 		projName,
-		"created"
 	],
 	"CREATE a new project with expected results"
 );
@@ -22,9 +22,21 @@ assert.containsAllValues(
 	[
 		projName,
 		testName,
-		"created"
 	],
 	"CREATE a new test under a project"
+);
+
+//return true as the test name already exists in the list of tests
+assert.exists(runUiliciousCli("existing-test-name",projName, testName));
+
+// CREATE  a file with the same name as a already existing file, under the same project
+assert.containsAllValues(
+	runUiliciousCli("create-duplicate-test-under-same-project",projName, testName1),
+	[
+		projName,
+		testName1,
+	],
+	"CREATE a new test with the same name as the existing test under the same project"
 );
 
 // GET the test (list) under the project
@@ -64,7 +76,6 @@ assert.containsAllValues(
 	runUiliciousCli("delete-project", projName),
 	[
 		projName,
-		"deleted"
 	],
 	"DELETED the project from the list"
 );
