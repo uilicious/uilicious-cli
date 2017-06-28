@@ -297,6 +297,72 @@ function projects(callback) {
 	}).then(callback);
 }
 
+/// Check for duplicate Project
+/// @param	Project Name
+function checkProject(projname, callback) {
+	return new Promise(function(good, bad) {
+		projectList(function(list) {
+			for (let i = 0; i < list.length; i++) {
+				let item = list[i];
+				if (item.title == projname) {
+					console.error(error_warning("ERROR: This project '"+projname+"' exists.\nPlease use another name!\n"));
+					process.exit(1);
+				}
+			}
+			good();
+			return;
+		});
+	}).then(callback);
+}
+
+/// Check for duplicate Test
+/// @param	Project ID
+/// @param	Test Name
+function checkTest(projID, testName, callback) {
+	return new Promise(function(good, bad) {
+		webstudioJsonRequest(
+			"GET",
+			"/api/studio/v1/projects/"+projID+"/workspace/tests",
+			{ name: testName },
+			function (list) {
+				for (let i = 0; i < list.length; i++) {
+					let item = list[i];
+					if (item.name == testName) {
+						console.error(error_warning("ERROR: This test '"+testName+"' exists.\nPlease use another name!\n"));
+						process.exit(1);
+					}
+				}
+				good();
+				return;
+			}
+		);
+	}).then(callback);
+}
+
+/// Check for duplicate Folder
+/// @param	Project ID
+/// @param	Folder Name
+function checkFolder(projID, folderName, callback) {
+	return new Promise(function(good, bad) {
+		webstudioJsonRequest(
+			"GET",
+			"/api/studio/v1/projects/"+projID+"/workspace/folders",
+			{ name: folderName },
+			function (list) {
+				for (let i = 0; i < list.length; i++) {
+					let item = list[i];
+					if (item.name == folderName) {
+						console.error(error_warning("ERROR: This folder '"+folderName+"' exists.\nPlease use another name!\n"));
+						process.exit(1);
+					}
+				}
+				good();
+				return;
+			}
+		);
+	}).then(callback);
+}
+
 //------------------------------------------------------------------------------
 //	Project Functions
 //------------------------------------------------------------------------------
@@ -794,8 +860,10 @@ function getAllProjects(options) {
 // Create new project
 // @param		Project Name
 function createProjectHelper(projname, options) {
-	createProject(projname, function(res) {
-		console.log(success("New project '"+projname+"' created\n"));
+	checkProject(projname, function(res) {
+		createProject(projname, function(res) {
+			console.log(success("New project '"+projname+"' created.\n"));
+		});
 	});
 }
 
@@ -804,8 +872,10 @@ function createProjectHelper(projname, options) {
 // @param		New Project Name
 function updateProjectHelper(projname, new_projname, options) {
 	projectID(projname, function(projID) {
-		updateProject(projID, new_projname, function(res) {
-			console.log(success("Project '"+projname+"' renamed to '"+new_projname+"'\n"));
+		checkProject(new_projname, function(res) {
+			updateProject(projID, new_projname, function(res) {
+				console.log(success("Project '"+projname+"' renamed to '"+new_projname+"'\n"));
+			});
 		});
 	});
 }
@@ -829,8 +899,10 @@ function deleteProjectHelper(projname, options) {
 // @param		Test Name
 function createTestHelper(projname, testname, options) {
 	projectID(projname, function(projID) {
-		createTest(projID, testname, function(res) {
-			console.log(success("New test '"+testname+"' created in Project '"+projname+"'\n"));
+		checkTest(projID, testname, function(res) {
+			createTest(projID, testname, function(res) {
+				console.log(success("New test '"+testname+"' created in Project '"+projname+"'\n"));
+			});
 		});
 	});
 }
@@ -855,8 +927,10 @@ function readTestHelper(projname, testname, options) {
 function updateTestHelper(projname, testname, new_testname, options) {
 	projectID(projname, function(projID) {
 		testID(projID, testname, function(nodeID) {
-			updateTest(projID, nodeID, new_testname, function(res) {
-				console.log(success("Test '"+testname+"' from Project '"+projname+"' renamed to '"+new_testname+"'\n"));
+			checkTest(projID, new_testname, function(res) {
+				updateTestFolder(projID, nodeID, new_testname, function(res) {
+					console.log(success("Test '"+testname+"' from Project '"+projname+"' renamed to '"+new_testname+"'\n"));
+				});
 			});
 		});
 	});
@@ -882,8 +956,10 @@ function deleteTestHelper(projname, testname, options) {
 function importTestHelper(projname, testname, file_pathname, options) {
 	readFileContents(file_pathname, function(file_content) {
 		projectID(projname, function(projID) {
-			importTest(projID, testname, file_content, function(res) {
-				console.log(success("New test '"+testname+"' created in Project '"+projname+"'\n"));
+			checkTest(projID, testname, function(res) {
+				importTest(projID, testname, file_content, function(res) {
+					console.log(success("New test '"+testname+"' created in Project '"+projname+"'\n"));
+				});
 			});
 		});
 	});
@@ -898,8 +974,10 @@ function importTestHelper(projname, testname, file_pathname, options) {
 // @param		Folder Name
 function createFolderHelper(projName, folderName, options) {
 	projectID(projName, function(projID) {
-		createFolder(projID, folderName, function(res) {
-			console.log(success("New folder '"+folderName+"' created in Project '"+projName+"'\n"));
+		checkFolder(projID, folderName, function(res) {
+			createFolder(projID, folderName, function(res) {
+				console.log(success("New folder '"+folderName+"' created in Project '"+projName+"'\n"));
+			});
 		});
 	});
 }
@@ -911,8 +989,10 @@ function createFolderHelper(projName, folderName, options) {
 function updateFolderHelper(projName, folderName, new_folderName, options) {
 	projectID(projName, function(projID) {
 		folderID(projID, folderName, function(nodeID) {
-			updateTestFolder(projID, nodeID, new_folderName, function(res) {
-				console.log(success("Folder '"+folderName+"' from Project '"+projName+"' renamed to '"+new_folderName+"'\n"));
+			checkFolder(projID, new_folderName, function(res) {
+				updateTestFolder(projID, nodeID, new_folderName, function(res) {
+					console.log(success("Folder '"+folderName+"' from Project '"+projName+"' renamed to '"+new_folderName+"'\n"));
+				});
 			});
 		});
 	});
@@ -1023,7 +1103,7 @@ program
 	.description('Create a test')
 	.action(createTestHelper);
 
-// Read Test
+// Read Test (Get contents of Test)
 program
 	.command('get-test <projname> <test_name>')
 	.alias('gt')
@@ -1084,7 +1164,7 @@ program
 	.description('Run a test from a project')
 	.action(main);
 
-// end with parse to parse through the input
+// end with parse to parse through the input.txt
 program.parse(process.argv);
 
 // If program was called with no arguments or invalid arguments, show help.
