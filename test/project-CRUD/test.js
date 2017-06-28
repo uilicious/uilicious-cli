@@ -26,14 +26,14 @@ assert.containsAllValues(
 );
 
 //CREATE  a project with the same name as a already existing project
-//as the name already exists it will throw an error.
-// assert.containsAllValues(
-// 	runUiliciousCli("create-project", projectName),
-// 	[
-// 		projectName
-// 	],
-// 	"CREATE a new project with the same name as the existing project"
-// );
+// it throws an error as the name already exists.
+assert.containsAllValues(
+	runUiliciousCli("create-project", projectName),
+	[
+		projectName
+	],
+	"CREATE a new project with the same name as the existing project"
+);
 
 // READ (list) projects
 //this will list out all the projects that are created under that account

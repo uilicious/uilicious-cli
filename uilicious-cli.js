@@ -297,7 +297,7 @@ function projects(callback) {
 	}).then(callback);
 }
 
-/// Check for duplicate Project
+/// Check for duplicate Project name
 /// @param	Project Name
 function checkProject(projname, callback) {
 	return new Promise(function(good, bad) {
@@ -310,12 +310,12 @@ function checkProject(projname, callback) {
 				}
 			}
 			good();
-			return;
+
 		});
 	}).then(callback);
 }
 
-/// Check for duplicate Test
+/// Check for duplicate Test name
 /// @param	Project ID
 /// @param	Test Name
 function checkTest(projID, testName, callback) {
@@ -333,13 +333,13 @@ function checkTest(projID, testName, callback) {
 					}
 				}
 				good();
-				return;
+
 			}
 		);
 	}).then(callback);
 }
 
-/// Check for duplicate Folder
+/// Check for duplicate Folder name
 /// @param	Project ID
 /// @param	Folder Name
 function checkFolder(projID, folderName, callback) {
@@ -357,7 +357,7 @@ function checkFolder(projID, folderName, callback) {
 					}
 				}
 				good();
-				return;
+
 			}
 		);
 	}).then(callback);
@@ -411,11 +411,16 @@ function deleteProject(projectID, callback) {
 
 /// Create a new test using projectName
 /// @param	Project ID from projectID()
-function createTest(projectID, testName, callback) {
+/// @param  Folder name if creating a test under the folder and not the root folder
+function createTest(projectID, folderName, testName, callback) {
 	return webstudioRawRequest(
 		"POST",
 		"/api/studio/v1/projects/"+projectID+"/workspace/tests/addAction",
-		{ name: testName },
+		{
+			name: testName,
+			folderName: folderName
+		},
+
 		callback
 	);
 }
@@ -630,7 +635,7 @@ function pollForResult(runTestID, callback) {
 					processResultSteps(res.outputPath, res.steps);
 					if ( res.status == 'success' || res.status == 'failure') {
 						good(res);
-						return;
+
 					} else {
 						actualPoll();
 					}
@@ -650,7 +655,7 @@ function pollForError(runTestID, callback) {
 					processErrors(res.outputPath, res.steps);
 					if ( res.status == 'success' || res.status == 'failure') {
 						good(res);
-						return;
+
 					} else {
 						actualPoll();
 					}
@@ -670,7 +675,7 @@ function pollForImg(runTestID, callback) {
 					processImages(res.outputPath, res.steps);
 					if ( res.status == 'success' || res.status == 'failure') {
 						good(res);
-						return;
+
 					} else {
 						actualPoll();
 					}
@@ -896,12 +901,13 @@ function deleteProjectHelper(projname, options) {
 
 // Create test script
 // @param		Project Name
+// @param       Folder Name
 // @param		Test Name
-function createTestHelper(projname, testname, options) {
+function createTestHelper(projname, folderName, testname, options) {
 	projectID(projname, function(projID) {
-		checkTest(projID, testname, function(res) {
-			createTest(projID, testname, function(res) {
-				console.log(success("New test '"+testname+"' created in Project '"+projname+"'\n"));
+		checkTest(projID,testname, function(res) {
+			createTest(projID,folderName,testname, function(res) {
+				console.log(success("New Test '"+testname+"' created under the Folder '"+folderName+"' in the Project '"+projname+"'\n"));
 			});
 		});
 	});
@@ -1059,8 +1065,9 @@ program
 	// .option('-d, --directory <required>', 'Output directory path to use')
 	.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
 	.option('-w, --width <optional>', 'width of browser')
-	.option('-hg, --height <optional>', 'height of browser')
+	.option('-hg, --height <optional>', 'height of browser');
 
+//List the projects
 program
 	.command('list-project')
 	.alias('list')
@@ -1098,7 +1105,7 @@ program
 
 // Create Test
 program
-	.command('create-test <projname> <test_name>')
+	.command('create-test <projname> <folder_name> <test_name>')
 	.alias('ct')
 	.description('Create a test')
 	.action(createTestHelper);

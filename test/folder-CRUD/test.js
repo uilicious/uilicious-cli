@@ -2,36 +2,46 @@
  * Created by tadapatrisonika on 21/6/17.
  */
 
-var projName = "uilicious-cli-test-"+randomString(5);
-var folderName = "uilicious-cli-test-"+randomString(4);
-var newFolderName = "uilicious-cli-test-"+randomString(4);
+var projName = "uilicious-cli-test-"+randomString(7);
+var projectName = "uilicious-cli-test-"+randomString(7);
+var folderName = "uilicious-cli-test-"+randomString(5);
+var folderName2 = "uilicious-cli-test-"+randomString(5);
+var newFolderName = "uilicious-cli-test-"+randomString(5);
 var folderName1 = folderName;
 
 //CREATE a project
 assert.containsAllValues(
 	runUiliciousCli("create-project" , projName),
 	[
-		projName,
+		projName
 	],
 	"CREATE a new project with expected results"
 );
 
-// CREATE folder
+// CREATE folder under the first project
 assert.containsAllValues(
 	runUiliciousCli("create-folder" , projName , folderName),
 	[
 		projName,
-		folderName,
+		folderName
 	],
-	"CREATE a new folder under a project"
+	"CREATE a new folder under the project"
 );
 
-//return true a the folder name already exists in the list od folders
-assert.exists(runUiliciousCli("existing-folder-name", projName, folderName));
-
-// CREATE a folder with the same name as a already existing folder, under the same project
+//CREATE another folder under the first project
 assert.containsAllValues(
-	runUiliciousCli("create-duplicate-folder-under-same-project", projName, folderName1),
+	runUiliciousCli("create-folder", projName, folderName2),
+	[
+		projName,
+		folderName2
+	],
+	"CREATE a new folder under the project"
+);
+
+// CREATE a folder with the same name as a already existing folder, under the first project
+//it throws an error as the folder name already exists.
+assert.containsAllValues(
+	runUiliciousCli("create-folder", projName, folderName1),
 	[
 		projName,
 		folderName1
@@ -39,7 +49,24 @@ assert.containsAllValues(
 	"CREATE a new folder with the same name as the existing folder under the same project"
 );
 
-// READ the folder (list) under the project
+//CREATE an other project
+assert.containsAllValues(
+	runUiliciousCli("create-project", projectName),
+	[
+		projectName
+	],
+	"CREATE a new project with expected results"
+);
+
+//CREATE a folder with the same name as a already existing folder , under the second project
+assert.containsAllValues(
+	runUiliciousCli("create-folder", projectName, folderName1),
+	[
+		projectName,
+		folderName1
+	],
+	"CREATE a new folder with the same name as a existing folder under a different project"
+);
 
 // UPDATE a folder
 assert.containsAllValues(
@@ -47,7 +74,7 @@ assert.containsAllValues(
 	[
 		projName,
 		folderName,
-		newFolderName,
+		newFolderName
 	],
 	"RENAME the existing created folder under the project"
 );
@@ -57,7 +84,7 @@ assert.containsAllValues(
 	runUiliciousCli("delete-folder", projName, newFolderName),
 	[
 		projName,
-		newFolderName,
+		newFolderName
 	],
 	"DELETE the folder under the project"
 );
@@ -66,7 +93,7 @@ assert.containsAllValues(
 assert.containsAllValues(
 	runUiliciousCli("delete-project", projName),
 	[
-		projName,
+		projName
 	],
 	"DELETED the project from the list"
 );
