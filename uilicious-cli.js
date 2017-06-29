@@ -163,14 +163,22 @@ function streamRequest(writeStream, method, url, data, callback) {
 /// @param  [OPTIONAL] Callback parameter, to attach to promise
 ///
 /// @return The promise object, with the attached callback, returns the JSON output
-function jsonRequest(method, url, data, callback) {
+function jsonRequest(method, url, inData, callback) {
 	// Calling rawRequest, and parsing the good result as JSON
 	return new Promise(function(good, bad) {
-		rawRequestData(method, url, data).then(function(data) {
+		rawRequestData(method, url, inData).then(function(data) {
 			try {
 				good(JSON.parse(data));
 			} catch(err) {
-				console.log(err);
+				console.error("---- Error trace ----");
+				console.error(err);
+				console.error("---- HTTP response data ----");
+				console.error(data);
+				console.error("---- HTTP request URL ----");
+				console.error(url);
+				console.error("---- HTTP request data ----");
+				console.error(inData);
+				console.error("---- End of error report ----");
 				process.exit(1);
 			}
 		},bad);
@@ -278,6 +286,20 @@ function projectList(callback) {
 	);
 }
 
+/// Get a list of folders, under the project
+///
+/// @param  [Optional] Callback to return result, defaults to to console.log
+///
+/// @return  Promise object, for result
+function folderList(projectId, callback) {
+	return webstudioJsonRequest(
+		"GET",
+		"/api/studio/v1/projects/"+projectId+"/workspace/folders",
+		{},
+		callback
+	);
+}
+
 /// List all projects,
 /// silently terminates, with an error message if no project present
 function projects(callback) {
@@ -339,27 +361,46 @@ function checkTest(projID, testName, callback) {
 	}).then(callback);
 }
 
-/// Check for duplicate Folder name
-/// @param	Project ID
-/// @param	Folder Name
-function checkFolder(projID, folderName, callback) {
-	return new Promise(function(good, bad) {
-		webstudioJsonRequest(
-			"GET",
-			"/api/studio/v1/projects/"+projID+"/workspace/folders",
-			{ name: folderName },
-			function (list) {
-				for (let i = 0; i < list.length; i++) {
-					let item = list[i];
-					if (item.name == folderName) {
-						console.error(error_warning("ERROR: This folder '"+folderName+"' exists.\nPlease use another name!\n"));
-						process.exit(1);
-					}
-				}
-				good();
+// /// Check for duplicate Folder name
+// /// @param	Project ID
+// /// @param	Folder Name
+// function checkFolder(projID, folderName, callback) {
+// 	return new Promise(function(good, bad) {
+// 		webstudioJsonRequest(
+// 			"GET",
+// 			"/api/studio/v1/projects/"+projID+"/workspace/folders",
+// 			{ name: folderName },
+// 			function (list) {
+// 				for (let i = 0; i < list.length; i++) {
+// 					let item = list[i];
+// 					if (item.name == folderName) {
+// 						console.error(error_warning("ERROR: This folder '"+folderName+"' exists.\nPlease use another name!\n"));
+// 						process.exit(1);
+// 					}
+// 				}
+// 				good();
+//
+// 			}
+// 		);
+// 	}).then(callback);
+// }
 
+
+/// check for duplicate folders
+/// @param projectId
+/// @param FOLDER NAME
+function checkFolder(projectId, folderName, callback) {
+	return new Promise(function (good, bad) {
+		folderList(projectId, function (list) {
+			for (let i = 0; i < list.length; i++) {
+				let item = list[i];
+				if (item.name == folderName) {
+					console.error(error_warning("ERROR: This folder '" + folderName + "' exists. \n Please use another name!\n"));
+					process.exit(1);
+				}
 			}
-		);
+			good();
+		});
 	}).then(callback);
 }
 
@@ -411,14 +452,12 @@ function deleteProject(projectID, callback) {
 
 /// Create a new test using projectName
 /// @param	Project ID from projectID()
-/// @param  Folder name if creating a test under the folder and not the root folder
-function createTest(projectID, folderName, testName, callback) {
+function createTest(projectID, testName, callback) {
 	return webstudioRawRequest(
 		"POST",
 		"/api/studio/v1/projects/"+projectID+"/workspace/tests/addAction",
 		{
-			name: testName,
-			folderName: folderName
+			name: testName
 		},
 
 		callback
@@ -513,34 +552,58 @@ function projectID(projectName, callback) {
 	}).then(callback);
 }
 
+// /// Returns the folder ID (if found), given the project ID AND folder webPath
+// /// Also can be used to return node ID for folder
+// ///
+// /// @param  Project ID
+// /// @param  Folder Name
+// /// @param  [Optional] Callback to return result
+// ///
+// /// @return  Promise object, for result
+// function folderID(projID, folderName, callback) {
+// 	return new Promise(function(good, bad) {
+// 		webstudioJsonRequest(
+// 			"GET",
+// 			"/api/studio/v1/projects/"+projID+"/workspace/folders",
+// 			{ name : folderName },
+// 			function(res) {
+// 				// Prevent
+// 				if (res.length > 1) {
+// 					console.error(error_warning("ERROR: Multiple folders named '"+folderName+"' found.\nPlease give the correct name!\n"));
+// 					process.exit(1);
+// 				} else {
+// 					let id = res[0].id;
+// 					good(parseInt(id));
+// 					return;
+// 				}
+// 				console.error(error_warning("ERROR: Unable to find folder: '"+folderName+"'\n"));
+// 				process.exit(1);
+// 			}
+// 		);
+// 	}).then(callback);
+// }
+
 /// Returns the folder ID (if found), given the project ID AND folder webPath
 /// Also can be used to return node ID for folder
 ///
 /// @param  Project ID
-/// @param  Folder Path
+/// @param  Folder Name
 /// @param  [Optional] Callback to return result
 ///
 /// @return  Promise object, for result
-function folderID(projID, folderPath, callback) {
+function folderID(projectId, folderName, callback) {
 	return new Promise(function(good, bad) {
-		webstudioJsonRequest(
-			"GET",
-			"/api/studio/v1/projects/"+projID+"/workspace/folders",
-			{ path : folderPath },
-			function(res) {
-				// Prevent
-				if (res.length > 1) {
-					console.error(error_warning("ERROR: Multiple folders named '"+folderPath+"' found.\nPlease give the correct path!\n"));
-					process.exit(1);
-				} else {
-					let id = res[0].id;
-					good(parseInt(id));
+		folderList(projectId, function(list) {
+			for(let i = 0 ; i < list.length ; ++i) {
+				let item = list[i];
+				if(item.name == folderName) {
+					good(parseInt(item.id));
 					return;
 				}
-				console.error(error_warning("ERROR: Unable to find folder: '"+folderPath+"'\n"));
-				process.exit(1);
 			}
-		);
+			console.error(error_warning("ERROR: Folder is not found:"+folderName));
+			process.exit(1);
+		});
 	}).then(callback);
 }
 
@@ -903,13 +966,16 @@ function deleteProjectHelper(projname, options) {
 // @param		Project Name
 // @param       Folder Name
 // @param		Test Name
-function createTestHelper(projname, folderName, testname, options) {
+function createTestHelper(projname, testname, options) {
 	projectID(projname, function(projID) {
-		checkTest(projID,testname, function(res) {
-			createTest(projID,folderName,testname, function(res) {
-				console.log(success("New Test '"+testname+"' created under the Folder '"+folderName+"' in the Project '"+projname+"'\n"));
+		//folderID(projID, folderName, function (folderID) {
+			checkTest(projID,testname, function(res) {
+				createTest(projID, testname, function(res) {
+					//console.log(success("New Test '"+testname+"' created under the Folder '"+folderName+"' in the Project '"+projname+"'\n"));
+					console.log(success("New test '"+testname+"' created.\n"));
+		        });
 			});
-		});
+		//});
 	});
 }
 
@@ -980,12 +1046,12 @@ function importTestHelper(projname, testname, file_pathname, options) {
 // @param		Folder Name
 function createFolderHelper(projName, folderName, options) {
 	projectID(projName, function(projID) {
-		checkFolder(projID, folderName, function(res) {
+		//checkFolder(projID, folderName, function(res) {
 			createFolder(projID, folderName, function(res) {
 				console.log(success("New folder '"+folderName+"' created in Project '"+projName+"'\n"));
 			});
 		});
-	});
+	//});
 }
 
 // Update test script
@@ -1105,7 +1171,7 @@ program
 
 // Create Test
 program
-	.command('create-test <projname> <folder_name> <test_name>')
+	.command('create-test <projname> <test_name>')
 	.alias('ct')
 	.description('Create a test')
 	.action(createTestHelper);
