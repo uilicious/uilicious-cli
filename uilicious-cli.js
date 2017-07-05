@@ -286,20 +286,6 @@ function projectList(callback) {
 	);
 }
 
-// /// Get a list of folders, under the project
-// ///
-// /// @param  [Optional] Callback to return result, defaults to to console.log
-// ///
-// /// @return  Promise object, for result
-// function folderList(projectId, callback) {
-// 	return webstudioJsonRequest(
-// 		"GET",
-// 		"/api/studio/v1/projects/"+projectId+"/workspace/folders",
-// 		{},
-// 		callback
-// 	);
-// }
-
 /// List all projects,
 /// silently terminates, with an error message if no project present
 function projects(callback) {
@@ -313,6 +299,39 @@ function projects(callback) {
 				console.log("");
 			} else {
 				console.error(error_warning("ERROR: No project present."));
+				process.exit(1);
+			}
+		});
+	}).then(callback);
+}
+
+/// Get a list of folders
+///
+/// @param  [Optional] Callback to return result, defaults to to console.log
+///
+/// @return  Promise object, for result
+function folderList(projectID, callback) {
+	return webstudioJsonRequest(
+		"GET",
+		"/api/studio/v1/projects/"+projectID+"/workspace/folders",
+		{},
+		callback
+	);
+}
+
+// List all the folders
+// silently terminates , with an error message if no project is present
+function folders(projectId, callback) {
+	return new Promise(function(good,bad) {
+		folderList(projectId, function(list) {
+			if(list != null) {
+				for(let i = 0; i < list.length; i++) {
+					let item = list[i];
+					console.log(" * " + item.name);
+				}
+				console.log("");
+			} else {
+				console.error(error_warning("ERROR: No folder is present."));
 				process.exit(1);
 			}
 		});
@@ -366,11 +385,7 @@ function checkTest(projID, testName, callback) {
 /// @param	Folder Name
 function checkFolder(projID, folderName, callback) {
 	return new Promise(function(good, bad) {
-		webstudioJsonRequest(
-			"GET",
-			"/api/studio/v1/projects/"+projID+"/workspace/folders",
-			{ name: folderName },
-			function (list) {
+		folderList(projID, function (list) {
 				for (let i = 0; i < list.length; i++) {
 					let folder = list[i];
 					if (folder.name == folderName) {
@@ -380,8 +395,7 @@ function checkFolder(projID, folderName, callback) {
 				}
 				good();
 				return;
-			}
-		);
+			});
 	}).then(callback);
 }
 
@@ -431,15 +445,29 @@ function deleteProject(projectID, callback) {
 //	Folder & Test Functions
 //------------------------------------------------------------------------------
 
-/// Create a new test using projectName
+/// Create a new test under a project using the projectName
 /// @param	Project ID from projectID()
-function createTest(projectID, folderID, testName, callback) {
+function createTest(projectID, testName, callback) {
+	return webstudioRawRequest(
+		"POST",
+		"/api/studio/v1/projects/"+projectID+"/workspace/tests/addAction",
+		{
+			name: testName
+		},
+		callback
+	);
+}
+
+/// Create a new test under a folder using the folderID and projectName
+/// @param	Project ID from projectID()
+/// @param Node ID from the nodeID()
+function createTestUnderFolder(projectID, nodeID, testName, callback) {
 	return webstudioRawRequest(
 		"POST",
 		"/api/studio/v1/projects/"+projectID+"/workspace/tests/addAction",
 		{
 			name: testName,
-			parentId: folderID
+			parentId: nodeID
 		},
 		callback
 	);
@@ -469,6 +497,22 @@ function importTest(projectID, testName, testContent, callback) {
 	);
 }
 
+// Create a new test by importing it under a folder in a project
+//@param Project ID from projectID()
+//@param nodeID from nodeID()
+function importTestUnderFolder(projectID, nodeID, testName, testContent, callback) {
+	return webstudioRawRequest(
+		"POST",
+		"/api/studio/v1/projects/"+projectID+"/workspace/tests/addAction",
+		{
+			name: testName,
+			parentId: nodeID,
+			script: testContent
+		},
+		callback
+	);
+}
+
 /// Create a new folder using projectName
 /// @param	Project ID from projectID()
 function createFolder(projectID, folderName, callback) {
@@ -477,6 +521,21 @@ function createFolder(projectID, folderName, callback) {
 		"/api/studio/v1/projects/"+projectID+"/workspace/folders/addAction",
 		{
 			name: folderName
+		},
+		callback
+	);
+}
+
+/// Create a new folder under another folder under the project using the nodeID and the projectName
+/// @param projectID
+/// @param nodeID
+function createFolderUnderFolder(projectID, nodeID, creatingfoldername, callback) {
+	return webstudioRawRequest(
+		"POST",
+		"/api/studio/v1/projects/"+projectID+"/workspace/folders/addAction",
+		{
+			name: creatingfoldername,
+			parentId: nodeID
 		},
 		callback
 	);
@@ -565,6 +624,28 @@ function folderID(projID, folderPath, callback) {
 				process.exit(1);
 			}
 		);
+	}).then(callback);
+}
+
+/// Returns the node ID (if found) , given the project ID and folderName
+///@param projectID
+///@param folderName
+///@param [optional] callback to return the result
+///
+/// return promise object , for result
+function nodeID(projectId, folderName, callback) {
+	return new Promise(function(good, bad) {
+		folderList(projectId, function(list) {
+			for(let i = 0; i<list.length; ++i) {
+				let item = list[i];
+				if(item.name == folderName) {
+					good(parseInt(item.id));
+					return;
+				}
+			}
+			console.error(error_warning("ERROR: Folder Name not found:"+folderName));
+			process.exit(1);
+		});
 	}).then(callback);
 }
 
@@ -930,21 +1011,23 @@ function createTestHelper(projname, testname) {
 	projectID(projname, function(projID) {
 		checkTest(projID, testname, function(res) {
 			createTest(projID, testname, function(res) {
-				console.log(success("New test '"+testname+"' created.\n"));
+				console.log(success("New test '" + testname + "' created under Project '" + projname + "'.\n"));
 			});
 		});
 	});
 }
 
-// Create test script in folder
+// Create test script under folder
 // @param		Project Name
 // @param		Folder Name
 // @param		Test Name
-function createFolderTestHelper(projname, folderName, testname) {
+function createTestUnderFolderHelper(projname, folderName, testname) {
 	projectID(projname, function(projID) {
-		checkTest(projID, testname, function(res) {
-			createTest(projID, testname, function(res) {
-				console.log(success("New test '"+testname+"' created.\n"));
+		nodeID(projID, folderName, function (nodeId) {
+			checkTest(projID, testname, function (res) {
+				createTestUnderFolder(projID, nodeId, testname, function (res) {
+					console.log(success("New test '" + testname + "' created.\nUnder the Folder '" + folderName + "' under the Project '" + projname));
+				});
 			});
 		});
 	});
@@ -1008,6 +1091,24 @@ function importTestHelper(projname, testname, file_pathname, options) {
 	});
 }
 
+// Import test script under a folder
+// @param Project Name
+// @param folder Name
+// @param Test Name
+function importTestUnderFolderhelper(projname, foldername, testname, file_pathname, options) {
+	readFileContents(file_pathname, function(file_content) {
+		projectID(projname, function(projID) {
+			nodeID(projID, foldername, function(nodeId) {
+				checkTest(projID, testname, function(res) {
+					importTestUnderFolder(projID, nodeId, testname, file_content, function(res) {
+						console.log(success("New test '" + testname +"' created under the Folder '" + foldername + "' under the Project '" +projname));
+					});
+				});
+			});
+		});
+	});
+}
+
 //------------------------------------------------------------------------------
 //	Folder Helper Functions
 //------------------------------------------------------------------------------
@@ -1021,6 +1122,32 @@ function createFolderHelper(projName, folderName, options) {
 			createFolder(projID, folderName, function(res) {
 			 	console.log(success("New folder '"+folderName+"' created in Project '"+projName+"'\n"));
 			 });
+		});
+	});
+}
+
+// Create folder under a folder
+// @param Project Name
+// @param FolderName
+// @param creating Folder Name
+function createFolderUnderFolderHelper(projname, foldername, creatingfoldername) {
+	projectID(projname, function(projID) {
+		nodeID(projID, foldername, function(nodeId) {
+			checkFolder(projID, creatingfoldername, function(res) {
+				createFolderUnderFolder(projID, nodeId, creatingfoldername, function(res) {
+					console.log(success("New folder '" + creatingfoldername + "' created.\nUnder the Folder '" + foldername + "' under the Project '" + projname));
+				});
+			});
+		});
+	});
+}
+
+// Get folder List under the project
+// @param Project Name
+function getFolderListHelper( projectName , options) {
+	projectID(projectName, function(projectId) {
+		folders(projectId, function(list) {
+			console.log(list);
 		});
 	});
 }
@@ -1111,6 +1238,13 @@ program
 	.description('List all projects')
 	.action(getAllProjects);
 
+// List the folders under a project
+program
+	.command('list-folder <projname>')
+	.alias('lf')
+	.description('List all folders under a project')
+	.action(getFolderListHelper);
+
 // -----------------------------
 // 	Commands for Project CRUD
 // -----------------------------
@@ -1137,18 +1271,22 @@ program
 	.action(deleteProjectHelper);
 
 // -----------------------------
-// 	Commands for Test
+// 	Commands for Test CRUD
 // -----------------------------
 
-// Create Test
+// Create test
 program
-	.command('create-test <projname> <test_name>')
-	.option('-f, --folder <folder>', 'Set the folder path.')
+	.command('create-test <projName> <test_name>')
+	.option('-f, --folder <folder>', 'Set the folder name')
 	.alias('ct')
 	.description('Create a test')
 	.action(function(projname, test_name, options) {
 		let folder_name = options.folder || null;
-		createTestHelper(projname, test_name);
+		if (folder_name == null) {
+			createTestHelper(projname, test_name);
+		} else {
+			createTestUnderFolderHelper(projname, folder_name, test_name);
+		}
 	});
 
 // Read Test (Get contents of Test)
@@ -1175,20 +1313,43 @@ program
 // Import Test
 program
 	.command('import-test <projname> <test_name> <file_pathname>')
+	.option('-f, --folder <folder>', 'Set the folder path')
 	.alias('it')
 	.description('Import a test')
-	.action(importTestHelper);
+	.action(function(projname, test_name, file_pathname, options) {
+		let folder_name = options.folder || null;
+		if (folder_name == null) {
+			importTestHelper(projname, test_name, file_pathname);
+		} else {
+			importTestUnderFolderhelper(projname, folder_name, test_name, file_pathname);
+		}
+	});
 
 // -----------------------------
-// 	Commands for Folder
+// 	Commands for Folder CRUD
 // -----------------------------
 
 // Create Folder
 program
 	.command('create-folder <projname> <folder_name>')
+	.option('-f, --folder <folder>', 'Set the folder name')
 	.alias('cf')
 	.description('Create a folder')
-	.action(createFolderHelper);
+	.action(function(projname, folder_name, options) {
+		let folder  = options.folder || null;
+		if(folder == null) {
+			createFolderHelper(projname, folder_name);
+		} else {
+			createFolderUnderFolderHelper(projname, folder, folder_name);
+		}
+	});
+
+// // Create Folder under a folder
+// program
+// 	.command('create-folder-under-folder <projName> <folder_name> <creating_folder_name>')
+// 	.alias('cff')
+// 	.description('Create folder under folder')
+// 	. action(createFolderUnderFolderHelper);
 
 // Update Folder
 program

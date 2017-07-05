@@ -10,12 +10,15 @@ var testName2 = "uilicious-cli-test-"+randomString(5);
 var testName3 = testName;
 var newTestName = "uilicious-cli-test-"+randomString(5);
 var importTestName = "uilicious-cli-test-"+randomString(5);
+var folderName1 = "uilicious-cli-test-"+randomString(4);
+var testName4 = "uilicious-cli-test-"+randomString(5);
+
 
 var file_pathname = "/Users/tadapatrisonika/Documents/input.txt";
 
 //CREATE a project
 assert.containsAllValues(
-	runUiliciousCli("create-project" , projName),
+	runUiliciousCli("create-project", projName),
 	[
 		projName
 	],
@@ -24,7 +27,7 @@ assert.containsAllValues(
 
 // CREATE a test under the first project
 assert.containsAllValues(
-	runUiliciousCli("create-test" , projName , testName),
+	runUiliciousCli("create-test", projName, testName),
 	[
 		projName,
 		testName
@@ -34,7 +37,7 @@ assert.containsAllValues(
 
 // CREATE a test2 under the first project
 assert.containsAllValues(
-	runUiliciousCli("create-test" , projName , testName2),
+	runUiliciousCli("create-test", projName, testName2),
 	[
 		projName,
 		testName2
@@ -118,6 +121,40 @@ assert.containsAllValues(
 // 	"IMPORT a new test script using the file path"
 // );
 
+//CREATE a folder under the first project
+assert.containsAllValues(
+	runUiliciousCli("create-folder", projName, folderName1),
+	[
+		projName,
+		folderName1
+	],
+	"CREATE a folder"
+);
+
+//CREATE a test under the folder created in the first project
+assert.containsAllValues(
+	runUiliciousCli("create-test", "--folder", folderName1, projName, testName4),
+	[
+		projName,
+		testName4,
+		folderName1
+	],
+	"CREATE a test under a folder"
+);
+
+// //CREATE a test with a already existing name under a folder in the first project
+// // this throws error as you cant have two tests with the same name under the same project
+// assert.containsAllValues(
+// 	runUiliciousCli("create-test-under-folder", projName, folderName1, testName4),
+// 	[
+// 		projName,
+// 		folderName1,
+// 		testName4
+// 	],
+// 	"CREATE  a test with a name that already exists"
+// );
+
+
 // DELETE test under the project
 assert.containsAllValues(
 	runUiliciousCli("delete-test", projName, newTestName),
@@ -147,6 +184,3 @@ assert.containsAllValues(
 	],
 	"DELETE the project from the list"
 );
-
-//check if the test created under the second project , which just was deleted , still exists
-console.log(assert.exists(runUiliciousCli("get-test", testName3)));
