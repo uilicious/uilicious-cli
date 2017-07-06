@@ -13,12 +13,19 @@ const request = require('request');
 const http = require('http');
 const url = require('url');
 const path = require('path');
+const util = require('util');
 
 // Chalk messages
 const error_warning = chalk.bold.red;
 const success_warning = chalk.bold.green;
-const error = chalk.red ;
+const error = chalk.red;
 const success = chalk.green;
+
+// Log variables
+const logFile = fs.createWriteStream('log.txt', {
+  flags: 'a'
+});
+const logStdout = process.stdout;
 
 //------------------------------------------------------------------------------------------
 //
@@ -1186,6 +1193,10 @@ function deleteFolderHelper(projName, folderPath, options) {
 
 // Run test script from project
 function main(projname, scriptpath, options) {
+	console.log = function() {
+		logFile.write(util.format.apply(null, arguments) + '\n');
+		logStdout.write(util.format.apply(null, arguments) + '\n');
+	}
 
 	console.log("#");
 	console.log("# Uilicious CLI - Runner");
