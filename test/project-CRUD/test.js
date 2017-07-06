@@ -25,15 +25,15 @@ assert.containsAllValues(
 	"CREATE a new project with expected success"
 );
 
-//CREATE  a project with the same name as a already existing project
-// it throws an error as the name already exists.
-assert.containsAllValues(
-	runUiliciousCli("create-project", projectName),
-	[
-		projectName
-	],
-	"CREATE a new project with the same name as the existing project"
-);
+// //CREATE  a project with the same name as a already existing project
+// // it throws an error as the name already exists.
+// assert.containsAllValues(
+// 	runUiliciousCli("create-project", projectName),
+// 	[
+// 		projectName
+// 	],
+// 	"CREATE a new project with the same name as the existing project"
+// );
 
 // READ (list) projects
 //this will list out all the projects that are created under that account
@@ -44,6 +44,9 @@ assert.containsAllValues(
 	],
 	"READ that the created project is in list"
 );
+// get the list of projects
+console.log(runUiliciousCli("list-project"));
+
 
 // UPDATE project
 // rename a existing project name with a new project name
@@ -56,18 +59,28 @@ assert.containsAllValues(
 	"RENAME the existing created project"
 );
 
-// UPDATE project name with a existing project name
-//this will throw an error if u rename a existing project name with another existing project name
+// // UPDATE project name with a existing project name
+// //this will throw an error if u rename a existing project name with another existing project name
+// assert.containsAllValues(
+// 	runUiliciousCli("rename-project", newprojName,projName2),
+// 	[
+// 		newprojName,
+// 		projName2
+// 	],
+// 	"RENAME the existing project with a name of another existing project "
+// );
+
+//DELETE the first project where we updated its name to a new project name
+//
 assert.containsAllValues(
-	runUiliciousCli("rename-project", newprojName,projName2),
+	runUiliciousCli("delete-project", newprojName),
 	[
-		newprojName,
-		projName2
+		newprojName
 	],
-	"RENAME the existing project with a name of another existing project "
+	"DELETE the project from the list"
 );
 
-// DELETE project
+// DELETE the second project
 //delete a existing project
 assert.containsAllValues(
 	runUiliciousCli("delete-project", projName2),
@@ -78,6 +91,6 @@ assert.containsAllValues(
 );
 
 // get the list of projects
-//console.log(runUiliciousCli("list-project"));
+console.log(runUiliciousCli("list-project"));
 
 

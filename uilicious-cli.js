@@ -58,7 +58,6 @@ if (!String.prototype.startsWith) {
 // 		writeToOutputFile(msg);
 // 	}
 // 	console.log(msg);
-//
 // }
 //
 // function outputError(msg) {
@@ -66,7 +65,6 @@ if (!String.prototype.startsWith) {
 // 		writeToOutputFile(msg);
 // 	}
 // 	console.error(error(msg));
-//
 // }
 
 //------------------------------------------------------------------------------------------
@@ -888,7 +886,7 @@ function outputImgPathInfo(remoteOutputPath, idx, step) {
 }
 
 // Output log for test status and errors after completion
-function outputLog(errorCount) {
+function outputStatus(errorCount) {
 	// Display this log if no errors
 	if (errorCount == 0) {
 		console.log(success_warning("Test successful: No errors."));
@@ -1084,7 +1082,7 @@ function importTestHelper(projname, testname, file_pathname, options) {
 		projectID(projname, function(projID) {
 			checkTest(projID, testname, function(res) {
 				importTest(projID, testname, file_content, function(res) {
-					console.log(success("New test '"+testname+"' created in Project '"+projname+"'\n"));
+					console.log(success("Import successful!\nNew test '"+testname+"' created in Project '"+projname+"'\n"));
 				});
 			});
 		});
@@ -1095,13 +1093,14 @@ function importTestHelper(projname, testname, file_pathname, options) {
 // @param Project Name
 // @param folder Name
 // @param Test Name
+// @param File Path Name
 function importTestUnderFolderhelper(projname, foldername, testname, file_pathname, options) {
 	readFileContents(file_pathname, function(file_content) {
 		projectID(projname, function(projID) {
 			nodeID(projID, foldername, function(nodeId) {
 				checkTest(projID, testname, function(res) {
 					importTestUnderFolder(projID, nodeId, testname, file_content, function(res) {
-						console.log(success("New test '" + testname +"' created under the Folder '" + foldername + "' under the Project '" +projname));
+						console.log(success("Import successful!\nNew test '"+testname+"' created under Folder '"+foldername+"' under Project '"+projname+"'.\n"));
 					});
 				});
 			});
@@ -1135,7 +1134,7 @@ function createFolderUnderFolderHelper(projname, foldername, creatingfoldername)
 		nodeID(projID, foldername, function(nodeId) {
 			checkFolder(projID, creatingfoldername, function(res) {
 				createFolderUnderFolder(projID, nodeId, creatingfoldername, function(res) {
-					console.log(success("New folder '" + creatingfoldername + "' created.\nUnder the Folder '" + foldername + "' under the Project '" + projname));
+					console.log(success("New folder '" + creatingfoldername + "' created under Folder '" + foldername + "' under Project '" + projname));
 				});
 			});
 		});
@@ -1204,7 +1203,7 @@ function main(projname, scriptpath, options) {
 				console.log("");
 				pollForResult(postID, function(finalRes) {
 					console.log("");
-					outputLog(errorCount);
+					outputStatus(errorCount);
 					pollForError(postID);
 					// makeDir();
 					// pollForImg(postID);
