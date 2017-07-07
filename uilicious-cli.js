@@ -942,13 +942,20 @@ function readFileContents(file_pathname, callback) {
 // Read folder contents
 function readFolderContents(folder_pathname, callback) {
   return new Promise(function(good, bad) {
-    let folderLocation = path.resolve(folder_pathname);
-    let folderContents = fs.readdirSync(folder_pathname, function(err, tests) {
-      for (var i = 0; i < tests.length; i++) {
-        let single_test = tests[i];
-        console.log(single_test);
+    let folderLocation = path.resolve(folder_pathname)
+    let folderContents = fs.readdir(folderLocation, function(err, files) {
+      if (err) {
+        return;
       }
-    });
+      for (var i = 0; i < files.length; i++) {
+        let fileLocation = path.resolve(files[i]);
+        // console.log("File: " + fileLocation);
+        readFileContents(fileLocation, function(res) {
+          console.log("File: " + fileLocation);
+          console.log(res);
+        });
+      }
+    })
   }).then(callback);
 }
 
@@ -1214,10 +1221,10 @@ function importFolderHelper(folderPath, options) {
 
 // Run test script from project
 function main(projname, scriptpath, options) {
-	console.log = function() {
-		logFile.write(util.format.apply(null, arguments) + '\n');
-		logStdout.write(util.format.apply(null, arguments) + '\n');
-	}
+	// console.log = function() {
+	// 	logFile.write(util.format.apply(null, arguments) + '\n');
+	// 	logStdout.write(util.format.apply(null, arguments) + '\n');
+	// }
 
 	console.log("#");
 	console.log("# Uilicious CLI - Runner");
