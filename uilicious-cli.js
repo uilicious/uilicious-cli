@@ -925,6 +925,7 @@ function downloadImg(remoteOutputPath, afterImg, localremoteOutputPath, callback
 }
 
 // Read file contents
+// @param   File Pathname
 function readFileContents(file_pathname, callback) {
 	return new Promise(function(good, bad) {
 		let fileLocation = path.resolve(file_pathname);
@@ -936,6 +937,19 @@ function readFileContents(file_pathname, callback) {
 			process.exit(1);
 		}
 	}).then(callback);
+}
+
+// Read folder contents
+function readFolderContents(folder_pathname, callback) {
+  return new Promise(function(good, bad) {
+    let folderLocation = path.resolve(folder_pathname);
+    let folderContents = fs.readdirSync(folder_pathname, function(err, tests) {
+      for (var i = 0; i < tests.length; i++) {
+        let single_test = tests[i];
+        console.log(single_test);
+      }
+    });
+  }).then(callback);
 }
 
 // Make directory
@@ -1187,6 +1201,13 @@ function deleteFolderHelper(projName, folderPath, options) {
 	});
 }
 
+// Import folder and its contents
+function importFolderHelper(folderPath, options) {
+  readFolderContents(folderPath, function(res) {
+    console.log("");
+  });
+}
+
 //------------------------------------------------------------------------------
 //	Main Function to run test script
 //------------------------------------------------------------------------------
@@ -1204,6 +1225,7 @@ function main(projname, scriptpath, options) {
 	console.log("# Script Path : "+scriptpath);
 	console.log("#");
 
+  // makeDir();
 	projectID(projname, function(projID) {
 		console.log("# Project ID : "+projID);
 		testID(projID, scriptpath, function(scriptID) {
@@ -1216,7 +1238,6 @@ function main(projname, scriptpath, options) {
 					console.log("");
 					outputStatus(errorCount);
 					pollForError(postID);
-					// makeDir();
 					// pollForImg(postID);
 					// console.log(success("All images saved in "+program.directory+"\n"));
 				});
@@ -1284,7 +1305,7 @@ program
 // 	Commands for Test CRUD
 // -----------------------------
 
-// Create test
+// Create Test
 program
 	.command('create-test <projName> <test_name>')
 	.option('-f, --folder <folder>', 'Set the folder name')
@@ -1374,6 +1395,13 @@ program
 	.alias('df')
 	.description('Delete a folder')
 	.action(deleteFolderHelper);
+
+  // Import Folder
+  program
+  	.command('import-folder <folder_path>')
+  	.alias('if')
+  	.description('Import a folder')
+  	.action(importFolderHelper);
 
 // -----------------------------
 // 	Commands for running tests

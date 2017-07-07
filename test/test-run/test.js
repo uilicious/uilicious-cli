@@ -20,54 +20,52 @@ assert.containsAllValues(
 	"CREATE project"
 );
 
-//IMPORT a test that contains test script to run
-assert.containsAllValues(
-	runUiliciousCli("import-test", projectname, importTestName, file_pathname),
-	[
-		projectname,
-		importTestName
-	],
-	"IMPORT a new test script using the file path"
-);
-
-//IMPORT a test that contains test script to run
-assert.containsAllValues(
-	runUiliciousCli("import-test", projectname, importTestName1, file_pathname1),
-	[
-		projectname,
-		importTestName1
-	],
-	"IMPORT a new test script using the file path"
-);
-
 // //IMPORT a test that contains test script to run
 // assert.containsAllValues(
-// 	runUiliciousCli("import-test", projectname, importTestName2, file_pathname2),
+// 	runUiliciousCli("import-test", projectname, importTestName, file_pathname),
 // 	[
 // 		projectname,
-// 		importTestName2
+// 		importTestName
 // 	],
 // 	"IMPORT a new test script using the file path"
 // );
 //
-// //Read for the contain in the imported test script
-// console.log(runUiliciousCliiliciousCli)
+// //IMPORT a test that contains test script to run
+// assert.containsAllValues(
+// 	runUiliciousCli("import-test", projectname, importTestName1, file_pathname1),
+// 	[
+// 		projectname,
+// 		importTestName1
+// 	],
+// 	"IMPORT a new test script using the file path"
+// );
 
-//RUN the test script
+//IMPORT a test that contains test script to run
 assert.containsAllValues(
-	runUiliciousCli("run", projectname, importTestName),
+	runUiliciousCli("import-test", projectname, importTestName2, file_pathname2),
 	[
-
+		projectname,
+		importTestName2
 	],
-	"RUN the test"
+	"IMPORT a new test script using the file path"
 );
 
-//RUN the test script
-assert.containsAllValues(
-	runUiliciousCli("run", projectname, importTestName1),
-	[
 
-	],
-	"RUN the test"
-);
+// //RUN the test script
+// assert.containsAllValues(
+// 	runUiliciousCli("run", projectname, importTestName),
+// 	[
+//
+// 	],
+// 	"RUN the test"
+// );
+//
+// //RUN the test script
+// assert.containsAllValues(
+// 	runUiliciousCli("run", projectname, importTestName1),
+// 	[
+//
+// 	],
+// 	"RUN the test"
+// );
 
