@@ -942,28 +942,36 @@ function readFileContents(file_pathname, callback) {
 // Read folder contents
 function readFolderContents(folder_pathname, callback) {
   return new Promise(function(good, bad) {
-    let folderLocation = path.resolve(folder_pathname)
-    let folderName = path.basename(folderLocation);
-    if (!fs.existsSync(folderLocation)) {
-      console.error(error_warning("This folder does not exist!\n"));
+    let folderName = path.basename(folder_pathname);
+    let folderContents = fs.readdir(folder_pathname, function(err, files) {
+      if (err || files.length == 0) {
+        console.error(error_warning("This folder is empty!\n"));
+        process.exit(1);
+      }
+      for (var i = 0; i < files.length; i++) {
+        let file = files[i];
+        let fileName = path.parse(file).name;
+        console.log(fileName);
+        // let fileLocation = folderLocation + "/" + file;
+        // readFileContents(fileLocation, function(res) {
+        //   console.log("File: " + file + "\n----------------------------------------------------");
+        //   console.log(res);
+        // });
+      }
+    })
+  }).then(callback);
+}
+
+// Check path
+function checkPath(path_name, callback) {
+  return new Promise(function(good, bad) {
+    let pathLocation = path.resolve(path_name);
+    if (!fs.existsSync(pathLocation)) {
+      console.error(error_warning("This path does not exist!\n"));
       process.exit(1);
     } else {
-      let folderContents = fs.readdir(folderLocation, function(err, files) {
-        if (err || files.length == 0) {
-          console.error(error_warning("This folder is empty!\n"));
-          process.exit(1);
-        }
-        for (var i = 0; i < files.length; i++) {
-          let file = files[i];
-          let fileName = path.parse(file).name;
-          console.log(fileName);
-          // let fileLocation = folderLocation + "/" + file;
-          // readFileContents(fileLocation, function(res) {
-          //   console.log("File: " + file + "\n----------------------------------------------------");
-          //   console.log(res);
-          // });
-        }
-      })
+      good(pathLocation);
+      return;
     }
   }).then(callback);
 }
@@ -1219,8 +1227,10 @@ function deleteFolderHelper(projName, folderPath, options) {
 
 // Import folder and its contents
 function importFolderHelper(folderPath, options) {
-  readFolderContents(folderPath, function(res) {
-    console.log("");
+  checkPath(folderPath, function(folder) {
+    readFolderContents(folder, function() {
+      console.log("");
+    });
   });
 }
 
