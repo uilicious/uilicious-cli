@@ -1368,20 +1368,36 @@ program
 	.action(deleteTestHelper);
 
 // Import Test
-program
-	.command('import <projname> <test_name> <file_pathname>')
-	.option('-t, --test <test>', 'Set the test path')
-	.option('-f, --folder <folder>', 'Set the folder path')
-	.alias('i')
-	.description('Import a test')
-	.action(function(projname, test_name, file_pathname, options) {
-		let folder_name = options.folder || null;
-		if (folder_name == null) {
-			importTestHelper(projname, test_name, file_pathname);
-		} else {
-			importTestUnderFolderhelper(projname, folder_name, test_name, file_pathname);
-		}
-	});
+// program
+// 	.command('import <projname> <test_name> <file_pathname>')
+// 	.option('-t, --test <test_pathname>', 'Set the test path')
+// 	.option('-f, --folder <folder_pathname>', 'Set the folder path')
+// 	.alias('i')
+// 	.description('Import a test')
+// 	.action(function(projname, test_name, file_pathname, options) {
+// 		let folder_name = options.folder_pathname;
+// 		if (folder_name == null) {
+// 			importTestHelper(projname, test_name, file_pathname);
+// 		} else {
+// 			importTestUnderFolderhelper(projname, folder_name, test_name, file_pathname);
+// 		}
+// 	});
+
+	// Import Test/Folder
+	program
+		.command('import <projname>')
+		.option('-t, --test <test_pathname>', 'Set the test path')
+		// .option('-f, --folder <folder_pathname>', 'Set the folder path')
+		.alias('i')
+		.description('Import a test')
+		.action(function(projname, options) {
+			let folder_name = options.folder_pathname;
+			if (folder_name == null) {
+				importTestHelper(projname, test_name, file_pathname);
+			} else {
+				importTestUnderFolderhelper(projname, folder_name, test_name, file_pathname);
+			}
+		});
 
 // -----------------------------
 // 	Commands for Folder CRUD
