@@ -398,7 +398,7 @@ function checkFolder(projID, folderName, callback) {
 						process.exit(1);
 					}
 				}
-				good();
+				good(folderName);
 				return;
 			});
 	}).then(callback);
@@ -942,16 +942,12 @@ function readFileContents(file_pathname, callback) {
 // Read folder contents
 function readFolderContents(folder_pathname, callback) {
   return new Promise(function(good, bad) {
-    let folderName = path.basename(folder_pathname);
+    // let folderName = path.basename(folder_pathname);
     let folderContents = fs.readdir(folder_pathname, function(err, files) {
-      if (err || files.length == 0) {
-        console.error(error_warning("This folder is empty!\n"));
-        process.exit(1);
-      }
       for (var i = 0; i < files.length; i++) {
         let file = files[i];
-        let fileName = path.parse(file).name;
-        console.log(fileName);
+        let fileLocation = path.resolve(file);
+        console.log(fileLocation);
         // let fileLocation = folderLocation + "/" + file;
         // readFileContents(fileLocation, function(res) {
         //   console.log("File: " + file + "\n----------------------------------------------------");
@@ -962,10 +958,11 @@ function readFolderContents(folder_pathname, callback) {
   }).then(callback);
 }
 
-// Check path
+// Check path and return path location if valid
 function checkPath(path_name, callback) {
   return new Promise(function(good, bad) {
     let pathLocation = path.resolve(path_name);
+		let folderName = path.basename(path_name);
     if (!fs.existsSync(pathLocation)) {
       console.error(error_warning("This path does not exist!\n"));
       process.exit(1);
@@ -973,6 +970,22 @@ function checkPath(path_name, callback) {
       good(pathLocation);
       return;
     }
+  }).then(callback);
+}
+
+// Check folder contents and return folder name if folder is not empty
+function checkFolderContents(folder_pathname, callback) {
+  return new Promise(function(good, bad) {
+    let folderName = path.basename(folder_pathname);
+    let folderContents = fs.readdir(folder_pathname, function(err, files) {
+      if (err || files.length == 0) {
+        console.error(error_warning("This folder is empty!\n"));
+        process.exit(1);
+      } else {
+      	good(folderName);
+				return;
+      }
+    })
   }).then(callback);
 }
 
@@ -1226,11 +1239,19 @@ function deleteFolderHelper(projName, folderPath, options) {
 }
 
 // Import folder and its contents
-function importFolderHelper(folderPath, options) {
-  checkPath(folderPath, function(folder) {
-    readFolderContents(folder, function() {
-      console.log("");
-    });
+function importFolderHelper(projName, folderPath, options) {
+  checkPath(folderPath, function(folder_pathname) {
+		checkFolderContents(folder_pathname, function(folder_name) {
+			projectID(projName, function(projID) {
+				checkFolder(projID, folder_name, function() {
+					createFolder(projID, folder_name, function(res) {
+						readFolderContents(folderPath, function(res) {
+							console.log("");
+						});
+					});
+				});
+			});
+		});
   });
 }
 
@@ -1368,36 +1389,19 @@ program
 	.action(deleteTestHelper);
 
 // Import Test
-// program
-// 	.command('import <projname> <test_name> <file_pathname>')
-// 	.option('-t, --test <test_pathname>', 'Set the test path')
-// 	.option('-f, --folder <folder_pathname>', 'Set the folder path')
-// 	.alias('i')
-// 	.description('Import a test')
-// 	.action(function(projname, test_name, file_pathname, options) {
-// 		let folder_name = options.folder_pathname;
-// 		if (folder_name == null) {
-// 			importTestHelper(projname, test_name, file_pathname);
-// 		} else {
-// 			importTestUnderFolderhelper(projname, folder_name, test_name, file_pathname);
-// 		}
-// 	});
-
-	// Import Test/Folder
-	program
-		.command('import <projname>')
-		.option('-t, --test <test_pathname>', 'Set the test path')
-		// .option('-f, --folder <folder_pathname>', 'Set the folder path')
-		.alias('i')
-		.description('Import a test')
-		.action(function(projname, options) {
-			let folder_name = options.folder_pathname;
-			if (folder_name == null) {
-				importTestHelper(projname, test_name, file_pathname);
-			} else {
-				importTestUnderFolderhelper(projname, folder_name, test_name, file_pathname);
-			}
-		});
+program
+	.command('import-test <projname> <test_name> <file_pathname>')
+	.option('-f, --folder <folder_pathname>', 'Set the folder path')
+	.alias('it')
+	.description('Import a test')
+	.action(function(projname, test_name, file_pathname, options) {
+		let folder_name = options.folder_pathname || null;
+		if (folder_name == null) {
+			importTestHelper(projname, test_name, file_pathname);
+		} else {
+			importTestUnderFolderhelper(projname, folder_name, test_name, file_pathname);
+		}
+	});
 
 // -----------------------------
 // 	Commands for Folder CRUD
@@ -1441,7 +1445,7 @@ program
 
   // Import Folder
   program
-  	.command('import-folder <folder_path>')
+  	.command('import-folder <projname> <folder_path>')
   	.alias('if')
   	.description('Import a folder')
   	.action(importFolderHelper);
