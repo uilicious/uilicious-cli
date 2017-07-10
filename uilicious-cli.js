@@ -364,8 +364,9 @@ function checkProject(projname, callback) {
 /// Check for duplicate Test name
 /// @param	Project ID
 /// @param	Test Name
-function checkTest(projID, testName, callback) {
+function checkTest(projID, filePathname, callback) {
 	return new Promise(function(good, bad) {
+		let testName = path.parse(filePathname).name;
 		webstudioJsonRequest(
 			"GET",
 			"/api/studio/v1/projects/"+projID+"/workspace/tests",
@@ -378,7 +379,7 @@ function checkTest(projID, testName, callback) {
 						process.exit(1);
 					}
 				}
-				good();
+				good(testName);
 				return;
 			}
 		);
@@ -940,20 +941,20 @@ function readFileContents(file_pathname, callback) {
 }
 
 // Read folder contents
-function readFolderContents(folder_pathname, callback) {
-  return new Promise(function(good, bad) {
-    let folderLocation = path.resolve(folder_pathname);
-    let folderContents = fs.readdir(folder_pathname, function(err, files) {
-      for (var i = 0; i < files.length; i++) {
-        let file = files[i];
-        let fileLocation = folderLocation + "/" + file;
-        // readFileContents(fileLocation, function(res) {
-        //   console.log("File: " + file + "\n----------------------------------------------------");
-        //   console.log(res);
-        // });
-      }
-    })
-  }).then(callback);
+function importFolderContents(folder_pathname, callback) {
+	return new Promise(function(good, bad) {
+		let folderLocation = path.resolve(folder_pathname);
+		let folderContents = fs.readdir(folder_pathname, function(err, files) {
+			for (var i = 0; i < files.length; i++) {
+				let file = files[i];
+				let fileName = path.parse(file).name;
+				let fileLocation = folderLocation + "/" + file;
+				readFileContents(fileLocation, function(fileContent) {
+					importTestUnderFolder(projectID, nodeID, fileName, fileContent);
+				});
+			}
+		})
+	}).then(callback);
 }
 
 // Check path and return path location if valid
@@ -1133,10 +1134,10 @@ function deleteTestHelper(projname, testname, options) {
 // @param		Project Name
 // @param		Test Name
 // @param		File Path Name
-function importTestHelper(projname, testname, file_pathname, options) {
+function importTestHelper(projname, file_pathname, options) {
 	readFileContents(file_pathname, function(file_content) {
 		projectID(projname, function(projID) {
-			checkTest(projID, testname, function(res) {
+			checkTest(projID, file_pathname, function(testname) {
 				importTest(projID, testname, file_content, function(res) {
 					console.log(success("Import successful!\nNew test '"+testname+"' created in Project '"+projname+"'\n"));
 				});
@@ -1150,11 +1151,11 @@ function importTestHelper(projname, testname, file_pathname, options) {
 // @param folder Name
 // @param Test Name
 // @param File Path Name
-function importTestUnderFolderHelper(projname, foldername, testname, file_pathname, options) {
+function importTestUnderFolderHelper(projname, foldername, file_pathname, options) {
 	readFileContents(file_pathname, function(file_content) {
 		projectID(projname, function(projID) {
 			nodeID(projID, foldername, function(nodeId) {
-				checkTest(projID, testname, function(res) {
+				checkTest(projID, file_pathname, function(testname) {
 					importTestUnderFolder(projID, nodeId, testname, file_content, function(res) {
 						console.log(success("Import successful!\nNew test '"+testname+"' created under Folder '"+foldername+"' under Project '"+projname+"'.\n"));
 					});
@@ -1241,10 +1242,10 @@ function importFolderHelper(projName, folderPath, options) {
   checkPath(folderPath, function(folder_pathname) {
 		checkFolderContents(folder_pathname, function(folder_name) {
 			projectID(projName, function(projID) {
-				checkFolder(projID, folder_name, function() {
+				checkFolder(projID, folder_name, function(res) {
 					createFolder(projID, folder_name, function(res) {
-						readFolderContents(folderPath, function(res) {
-							console.log("");
+						nodeID(projID, folder_name, function(nodeID) {
+
 						});
 					});
 				});
@@ -1388,16 +1389,16 @@ program
 
 // Import Test
 program
-	.command('import-test <projname> <test_name> <file_pathname>')
+	.command('import-test <projname> <file_pathname>')
 	.option('-f, --folder <folder_pathname>', 'Set the folder path')
 	.alias('it')
 	.description('Import a test')
-	.action(function(projname, test_name, file_pathname, options) {
+	.action(function(projname, file_pathname, options) {
 		let folder_name = options.folder_pathname || null;
 		if (folder_name == null) {
-			importTestHelper(projname, test_name, file_pathname);
+			importTestHelper(projname, file_pathname);
 		} else {
-			importTestUnderFolderHelper(projname, folder_name, test_name, file_pathname);
+			importTestUnderFolderHelper(projname, folder_name, file_pathname);
 		}
 	});
 
