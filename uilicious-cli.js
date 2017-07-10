@@ -1390,11 +1390,11 @@ program
 // Import Test
 program
 	.command('import-test <projname> <file_pathname>')
-	.option('-f, --folder <folder_pathname>', 'Set the folder path')
+	.option('-f, --folder <folder>', 'Set the folder path')
 	.alias('it')
 	.description('Import a test')
 	.action(function(projname, file_pathname, options) {
-		let folder_name = options.folder_pathname || null;
+		let folder_name = options.folder || null;
 		if (folder_name == null) {
 			importTestHelper(projname, file_pathname);
 		} else {
