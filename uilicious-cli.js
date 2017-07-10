@@ -1369,9 +1369,10 @@ program
 
 // Import Test
 program
-	.command('import-test <projname> <test_name> <file_pathname>')
+	.command('import <projname> <test_name> <file_pathname>')
+	.option('-t, --test <test>', 'Set the test path')
 	.option('-f, --folder <folder>', 'Set the folder path')
-	.alias('it')
+	.alias('i')
 	.description('Import a test')
 	.action(function(projname, test_name, file_pathname, options) {
 		let folder_name = options.folder || null;
