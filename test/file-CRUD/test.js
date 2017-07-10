@@ -13,7 +13,7 @@ var folderName1 = "uilicious-cli-test-"+randomString(4);
 var testName4 = "uilicious-cli-test-"+randomString(5);
 
 
-var file_pathname = "/Users/tadapatrisonika/Documents/input4.txt";
+var file_pathname = "/Users/tadapatrisonika/Documents/input.txt";
 var file_pathname2 = "/Users/tadapatrisonika/Documents/input5.txt";
 
 //CREATE a project

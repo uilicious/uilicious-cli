@@ -3,7 +3,7 @@
  */
 
 var projectName = "uilicious-cli-test-"+randomString(6);
-var folderPath = " /Users/tadapatrisonika/Documents/folder";
+var folderPath = "/Users/tadapatrisonika/Documents/folder";
 
 
 // CREATE a project
