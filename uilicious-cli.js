@@ -940,8 +940,8 @@ function readFileContents(file_pathname, callback) {
 	}).then(callback);
 }
 
-// Read folder contents
-function importFolderContents(folder_pathname, callback) {
+// Import folder contents
+function importFolderContents(projname, foldername, folder_pathname, callback) {
 	return new Promise(function(good, bad) {
 		let folderLocation = path.resolve(folder_pathname);
 		let folderContents = fs.readdir(folder_pathname, function(err, files) {
@@ -949,9 +949,7 @@ function importFolderContents(folder_pathname, callback) {
 				let file = files[i];
 				let fileName = path.parse(file).name;
 				let fileLocation = folderLocation + "/" + file;
-				readFileContents(fileLocation, function(fileContent) {
-					importTestUnderFolder(projectID, nodeID, fileName, fileContent);
-				});
+				importTestUnderFolderHelper(projname, foldername, fileLocation);
 			}
 		})
 	}).then(callback);
@@ -1242,11 +1240,9 @@ function importFolderHelper(projName, folderPath, options) {
   checkPath(folderPath, function(folder_pathname) {
 		checkFolderContents(folder_pathname, function(folder_name) {
 			projectID(projName, function(projID) {
-				checkFolder(projID, folder_name, function(res) {
+				checkFolder(projID, folder_name, function(folder_name) {
 					createFolder(projID, folder_name, function(res) {
-						nodeID(projID, folder_name, function(nodeID) {
-
-						});
+						importFolderContents(projName, folder_name, folder_pathname);
 					});
 				});
 			});
