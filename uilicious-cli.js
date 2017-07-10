@@ -942,13 +942,11 @@ function readFileContents(file_pathname, callback) {
 // Read folder contents
 function readFolderContents(folder_pathname, callback) {
   return new Promise(function(good, bad) {
-    // let folderName = path.basename(folder_pathname);
+    let folderLocation = path.resolve(folder_pathname);
     let folderContents = fs.readdir(folder_pathname, function(err, files) {
       for (var i = 0; i < files.length; i++) {
         let file = files[i];
-        let fileLocation = path.resolve(file);
-        console.log(fileLocation);
-        // let fileLocation = folderLocation + "/" + file;
+        let fileLocation = folderLocation + "/" + file;
         // readFileContents(fileLocation, function(res) {
         //   console.log("File: " + file + "\n----------------------------------------------------");
         //   console.log(res);
@@ -1152,7 +1150,7 @@ function importTestHelper(projname, testname, file_pathname, options) {
 // @param folder Name
 // @param Test Name
 // @param File Path Name
-function importTestUnderFolderhelper(projname, foldername, testname, file_pathname, options) {
+function importTestUnderFolderHelper(projname, foldername, testname, file_pathname, options) {
 	readFileContents(file_pathname, function(file_content) {
 		projectID(projname, function(projID) {
 			nodeID(projID, foldername, function(nodeId) {
@@ -1399,7 +1397,7 @@ program
 		if (folder_name == null) {
 			importTestHelper(projname, test_name, file_pathname);
 		} else {
-			importTestUnderFolderhelper(projname, folder_name, test_name, file_pathname);
+			importTestUnderFolderHelper(projname, folder_name, test_name, file_pathname);
 		}
 	});
 
