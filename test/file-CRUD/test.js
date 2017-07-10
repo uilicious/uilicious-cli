@@ -13,8 +13,8 @@ var folderName1 = "uilicious-cli-test-"+randomString(4);
 var testName4 = "uilicious-cli-test-"+randomString(5);
 
 
-var file_pathname = "/Users/tadapatrisonika/Documents/input.txt";
-var file_pathname2 = "/Users/tadapatrisonika/Documents/input3.txt";
+var file_pathname = "/Users/tadapatrisonika/Documents/input4.txt";
+var file_pathname2 = "/Users/tadapatrisonika/Documents/input5.txt";
 
 //CREATE a project
 assert.containsAllValues(
@@ -83,10 +83,9 @@ assert.containsAllValues(
 
 //IMPORT a test script by giving in the file-path, under the first project
 assert.containsAllValues(
-	runUiliciousCli("import-test", projName, importTestName, file_pathname),
+	runUiliciousCli("import-test", projName, file_pathname),
 	[
-		projName,
-		importTestName
+
 	],
 	"IMPORT a new test script using the file path"
 );
@@ -136,30 +135,28 @@ assert.containsAllValues(
 
 //IMPORT  a test script under the folder that we created in the first project
 assert.containsAllValues(
-	runUiliciousCli("import-test" , "--folder", folderName1, projName, importTestName2, file_pathname2),
+	runUiliciousCli("import-test" , "--folder", folderName1, projName, file_pathname2),
 	[
-		projName,
-		folderName1,
-		importTestName2
+
 	],
 	"IMPORT a test script under a folder in a project"
 );
 
-// DELETE test under the project
-assert.containsAllValues(
-	runUiliciousCli("delete-test", projName, newTestName),
-	[
-		projName,
-		newTestName
-	],
-	"DELETE the test under the project"
-);
-
-// DELETE the project
-assert.containsAllValues(
-	runUiliciousCli("delete-project", projName),
-	[
-		projName
-	],
-	"DELETED the project from the list"
-);
+// // DELETE test under the project
+// assert.containsAllValues(
+// 	runUiliciousCli("delete-test", projName, newTestName),
+// 	[
+// 		projName,
+// 		newTestName
+// 	],
+// 	"DELETE the test under the project"
+// );
+//
+// // DELETE the project
+// assert.containsAllValues(
+// 	runUiliciousCli("delete-project", projName),
+// 	[
+// 		projName
+// 	],
+// 	"DELETED the project from the list"
+// );
