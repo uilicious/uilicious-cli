@@ -1190,7 +1190,6 @@ function importTestHelper(projname, file_pathname, options) {
 // Import test script under a folder
 // @param Project Name
 // @param folder Name
-// @param Test Name
 // @param File Path Name
 function importTestUnderFolderHelper(projname, foldername, file_pathname, options) {
 	readFileContents(file_pathname, function(file_content) {

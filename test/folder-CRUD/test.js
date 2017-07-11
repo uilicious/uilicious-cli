@@ -20,7 +20,7 @@ assert.containsAllValues(
 	"CREATE a new project with expected results"
 );
 
-// CREATE folder under the first project
+// CREATE folder under the project
 assert.containsAllValues(
 	runUiliciousCli("create-folder" , projName , folderName),
 	[
@@ -30,7 +30,7 @@ assert.containsAllValues(
 	"CREATE a new folder under the project"
 );
 
-//CREATE another folder under the first project
+//CREATE another folder under the project
 assert.containsAllValues(
 	runUiliciousCli("create-folder", projName, folderName2),
 	[
@@ -56,7 +56,7 @@ assert.containsAllValues(
 //List the folders under the first project
 console.log(runUiliciousCli("list-folder", projName));
 
-// // CREATE a folder with the same name as a already existing folder, under the first project
+// // CREATE a folder with the same name as a already existing folder, under the project
 // //it throws an error as the folder name already exists.
 // assert.containsAllValues(
 // 	runUiliciousCli("create-folder", projName, folderName1),
@@ -93,8 +93,10 @@ assert.containsAllValues(
 );
 
 //List the list of folders
-// now we should not get the folder that was deleted along with the folder which was created under it too being deleted
+//now we should not get the folder that was deleted
+//along with the folder which was created under it too being deleted
 console.log(runUiliciousCli("list-folder", projName));
+
 
 // UPDATE a folder
 assert.containsAllValues(
