@@ -279,13 +279,41 @@ function webstudioStreamRequest(writeStream, method, webPath, params, callback) 
 
 /// Get a list of project, in the following format [ { id, title, logoUrl }]
 ///
-/// @param  [Optional] Callback to return result, defaults to to console.log
+/// @param  [Optional] Callback to return result, defaults to console.log
 ///
 /// @return  Promise object, for result
 function projectList(callback) {
 	return webstudioJsonRequest(
 		"GET",
 		"/api/studio/v1/projects",
+		{},
+		callback
+	);
+}
+
+/// Get a list of folders
+///
+/// @param  [Optional] Callback to return result, defaults to console.log
+///
+/// @return  Promise object, for result
+function folderList(projectID, callback) {
+	return webstudioJsonRequest(
+		"GET",
+		"/api/studio/v1/projects/"+projectID+"/workspace/folders",
+		{},
+		callback
+	);
+}
+
+/// Get a list of tests
+///
+/// @param  [Optional] Callback to return result, defaults to console.log
+///
+/// @return  Promise object, for result
+function testList(projectID, callback) {
+	return webstudioJsonRequest(
+		"GET",
+		"/api/studio/v1/projects/"+projectID+"/workspace/tests",
 		{},
 		callback
 	);
@@ -308,20 +336,6 @@ function projects(callback) {
 			}
 		});
 	}).then(callback);
-}
-
-/// Get a list of folders
-///
-/// @param  [Optional] Callback to return result, defaults to to console.log
-///
-/// @return  Promise object, for result
-function folderList(projectID, callback) {
-	return webstudioJsonRequest(
-		"GET",
-		"/api/studio/v1/projects/"+projectID+"/workspace/folders",
-		{},
-		callback
-	);
 }
 
 // List all the folders
@@ -391,9 +405,9 @@ function checkTest(projID, filePathname, callback) {
 /// @param	Folder Name
 function checkFolder(projID, folderName, callback) {
 	return new Promise(function(good, bad) {
-		folderList(projID, function (list) {
-				for (let i = 0; i < list.length; i++) {
-					let folder = list[i];
+		folderList(projID, function(folders) {
+				for (let i = 0; i < folders.length; i++) {
+					let folder = folders[i];
 					if (folder.name == folderName) {
 						console.error(error_warning("ERROR: This folder '"+folderName+"' exists.\nPlease use another name!\n"));
 						process.exit(1);
@@ -406,8 +420,32 @@ function checkFolder(projID, folderName, callback) {
 }
 
 // Get children of folder
-function getChildren() {
-	
+function getChildren(projID, folderID, callback) {
+	return new Promise(function(good, bad) {
+		testList(projID, function(children) {
+			for (var i = 0; i < children.length; i++) {
+				let child = children[i];
+				if (child.parentId == folderID) {
+					getScript(projID, child.id);
+				}
+			}
+			return;
+		});
+	}).then(callback);
+}
+
+function getScript(projectID, testID, callback) {
+	return new Promise(function(good, bad) {
+		webstudioRawRequest(
+			"GET",
+			"/api/studio/v1/projects/"+projectID+"/workspace/tests/"+testID+"/script",
+			{},
+			function(res) {
+				// console.log(res);
+				good(res);
+			}
+		);
+	}).then(callback);
 }
 
 //------------------------------------------------------------------------------
@@ -486,7 +524,7 @@ function createTestUnderFolder(projectID, nodeID, testName, callback) {
 
 /// Read a test and display its directory
 function readTest(projectID, testID, callback) {
-	webstudioRawRequest(
+	return webstudioRawRequest(
 		"GET",
 		"/api/studio/v1/projects/"+projectID+"/workspace/tests/"+testID+"/script",
 		{},
@@ -1261,7 +1299,9 @@ function importFolderHelper(projName, folderPath, options) {
 function exportFolderHelper(projName, folderName, options) {
 	projectID(projName, function(projID) {
 		nodeID(projID, folderName, function(folderID) {
-
+			getChildren(projID, folderID, function(res) {
+				console.log("");
+			});
 		});
 	});
 }
