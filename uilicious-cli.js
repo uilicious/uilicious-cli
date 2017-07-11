@@ -419,24 +419,6 @@ function checkFolder(projID, folderName, callback) {
 	}).then(callback);
 }
 
-// Export children(tests) of folder
-// @param		Project ID
-// @param		Folder ID
-function exportTests(projName, projID, folderID, options, callback) {
-	return new Promise(function(good, bad) {
-		testList(projID, function(children) {
-			for (var i = 0; i < children.length; i++) {
-				let child = children[i];
-				if (child.parentId == folderID) {
-					let test_name = child.name;
-					exportTestHelper(projName, test_name, options);
-				}
-			}
-			return;
-		});
-	}).then(callback);
-}
-
 // Get script of test
 // @param		Project ID
 //@param		Test ID
@@ -455,12 +437,34 @@ function getScript(projectID, testID, callback) {
 
 function exportTest(directory, test_name, file_content) {
 	let filePathName = path.resolve(directory) + "/" + test_name + ".txt";
+	let fileName = test_name + ".txt";
 	fs.writeFile(filePathName, file_content, function(err) {
 		if (err) {
 			throw err;
 		}
-		console.log("The file was succesfully saved!");
+		console.log(success("File <" + fileName + "> successfully saved in " + directory));
 	});
+}
+
+// Export children(tests) of folder
+// @param		Project ID
+// @param		Folder ID
+function exportTests(projID, folderID, directory, callback) {
+	return new Promise(function(good, bad) {
+		testList(projID, function(children) {
+			for (var i = 0; i < children.length; i++) {
+				let child = children[i];
+				if (child.parentId == folderID) {
+					let test_name = child.name;
+					let test_id = child.id;
+					getScript(projID, test_id, function(fileContent) {
+						exportTest(directory, test_name, fileContent);
+					});
+				}
+			}
+			return;
+		});
+	}).then(callback);
 }
 
 //------------------------------------------------------------------------------
@@ -1045,14 +1049,28 @@ function checkFolderContents(folder_pathname, callback) {
 }
 
 // Make directory
-function makeDir(callback) {
+// function makeDir(callback) {
+// 	return new Promise(function(good, bad) {
+// 		fs.mkdir(program.directory, function(err) {
+// 			if (err === 'EEXIST') {
+// 				console.error(error_warning("ERROR: '"+program.directory+"' exists.\nPlease use another directory.\n"));
+// 				process.exit(1);
+// 			}
+// 		});
+// 	}).then(callback);
+// }
+// Make directory
+function makeDir(folderName, options, callback) {
 	return new Promise(function(good, bad) {
-		fs.mkdir(program.directory, function(err) {
+		let newDirectory = options.directory + "/" + folderName;
+		fs.mkdir(newDirectory, function(err) {
 			if (err === 'EEXIST') {
-				console.error(error_warning("ERROR: '"+program.directory+"' exists.\nPlease use another directory.\n"));
+				console.error(error_warning("ERROR: This folder <"+ folderName +"> exists.\nPlease use another directory.\n"));
 				process.exit(1);
 			}
 		});
+		good(newDirectory);
+		return;
 	}).then(callback);
 }
 
@@ -1265,7 +1283,7 @@ function createFolderUnderFolderHelper(projname, foldername, creatingfoldername)
 
 // Get folder List under the project
 // @param Project Name
-function getFolderListHelper( projectName , options) {
+function getFolderListHelper(projectName, options) {
 	projectID(projectName, function(projectId) {
 		folders(projectId, function(list) {
 			console.log(list);
@@ -1323,7 +1341,9 @@ function importFolderHelper(projName, folderPath, options) {
 function exportFolderHelper(projName, folderName, options) {
 	projectID(projName, function(projID) {
 		nodeID(projID, folderName, function(folderID) {
-			exportTests(projName, projID, folderID, options);
+			makeDir(folderName, options, function(new_directory) {
+				exportTests(projID, folderID, new_directory);
+			});
 		});
 	});
 }
