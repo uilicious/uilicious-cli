@@ -419,16 +419,17 @@ function checkFolder(projID, folderName, callback) {
 	}).then(callback);
 }
 
-// Get children of folder
+// Export children(tests) of folder
 // @param		Project ID
 // @param		Folder ID
-function getChildren(projID, folderID, callback) {
+function exportTests(projName, projID, folderID, options, callback) {
 	return new Promise(function(good, bad) {
 		testList(projID, function(children) {
 			for (var i = 0; i < children.length; i++) {
 				let child = children[i];
 				if (child.parentId == folderID) {
-					getScript(projID, child.id);
+					let test_name = child.name;
+					exportTestHelper(projName, test_name, options);
 				}
 			}
 			return;
@@ -1322,9 +1323,7 @@ function importFolderHelper(projName, folderPath, options) {
 function exportFolderHelper(projName, folderName, options) {
 	projectID(projName, function(projID) {
 		nodeID(projID, folderName, function(folderID) {
-			getChildren(projID, folderID, function(res) {
-				console.log("");
-			});
+			exportTests(projName, projID, folderID, options);
 		});
 	});
 }
@@ -1536,9 +1535,18 @@ program
 // Export Folder
 program
 	.command('export-folder <projname> <folder_name>')
+	.option('-d, --directory <directory>', 'Set the directory path.')
 	.alias('ef')
 	.description('Export a folder.')
-	.action(exportFolderHelper);
+	.action(function(projname, folder_name, options) {
+		let directory = options.directory || null;
+		if (directory == null) {
+			console.error(error_warning("The directory option is required!\nPlease use -d <directory> to set the directory path!\n"));
+			process.exit(1);
+		} else {
+			exportFolderHelper(projname, folder_name, options);
+		}
+	});
 
 // -----------------------------
 // 	Commands for running tests
