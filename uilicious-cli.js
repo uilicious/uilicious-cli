@@ -420,6 +420,8 @@ function checkFolder(projID, folderName, callback) {
 }
 
 // Get children of folder
+// @param		Project ID
+// @param		Folder ID
 function getChildren(projID, folderID, callback) {
 	return new Promise(function(good, bad) {
 		testList(projID, function(children) {
@@ -434,6 +436,9 @@ function getChildren(projID, folderID, callback) {
 	}).then(callback);
 }
 
+// Get script of test
+// @param		Project ID
+//@param		Test ID
 function getScript(projectID, testID, callback) {
 	return new Promise(function(good, bad) {
 		webstudioRawRequest(
@@ -441,11 +446,20 @@ function getScript(projectID, testID, callback) {
 			"/api/studio/v1/projects/"+projectID+"/workspace/tests/"+testID+"/script",
 			{},
 			function(res) {
-				// console.log(res);
 				good(res);
 			}
 		);
 	}).then(callback);
+}
+
+function exportTest(directory, test_name, file_content) {
+	let filePathName = path.resolve(directory) + "/" + test_name + ".txt";
+	fs.writeFile(filePathName, file_content, function(err) {
+		if (err) {
+			throw err;
+		}
+		console.log("The file was succesfully saved!");
+	});
 }
 
 //------------------------------------------------------------------------------
@@ -1208,7 +1222,9 @@ function importTestUnderFolderHelper(projname, foldername, file_pathname, option
 function exportTestHelper(projname, testname, options) {
 	projectID(projname, function(projID) {
 		testID(projID, testname, function(testID) {
-			createFile();
+			getScript(projID, testID, function(fileContent) {
+				exportTest(options.directory, testname, fileContent);
+			});
 		});
 	});
 }
@@ -1473,7 +1489,7 @@ program
 			console.error(error_warning("The directory option is required!\nPlease use -d <directory> to set the directory path!\n"));
 			process.exit(1);
 		} else {
-			exportTestHelper(projname, test_name);
+			exportTestHelper(projname, test_name, options);
 		}
 	});
 
