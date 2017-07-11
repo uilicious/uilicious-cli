@@ -405,6 +405,11 @@ function checkFolder(projID, folderName, callback) {
 	}).then(callback);
 }
 
+// Get children of folder
+function getChildren() {
+	
+}
+
 //------------------------------------------------------------------------------
 //	Project Functions
 //------------------------------------------------------------------------------
@@ -649,7 +654,7 @@ function nodeID(projectId, folderName, callback) {
 					return;
 				}
 			}
-			console.error(error_warning("ERROR: Folder Name not found:"+folderName));
+			console.error(error_warning("ERROR: This folder <" + folderName + "> does not exist!"));
 			process.exit(1);
 		});
 	}).then(callback);
@@ -1242,12 +1247,23 @@ function importFolderHelper(projName, folderPath, options) {
 			projectID(projName, function(projID) {
 				checkFolder(projID, folder_name, function(folder_name) {
 					createFolder(projID, folder_name, function(res) {
-						importFolderContents(projName, folder_name, folder_pathname);
+						importFolderContents(projName, folder_name, folder_pathname, function(res) {
+							console.log("");
+						});
 					});
 				});
 			});
 		});
   });
+}
+
+// Export folder and its contents
+function exportFolderHelper(projName, folderName, options) {
+	projectID(projName, function(projID) {
+		nodeID(projID, folderName, function(folderID) {
+
+		});
+	});
 }
 
 //------------------------------------------------------------------------------
@@ -1417,13 +1433,6 @@ program
 		}
 	});
 
-// // Create Folder under a folder
-// program
-// 	.command('create-folder-under-folder <projName> <folder_name> <creating_folder_name>')
-// 	.alias('cff')
-// 	.description('Create folder under folder')
-// 	. action(createFolderUnderFolderHelper);
-
 // Update Folder
 program
 	.command('rename-folder <projname> <folder_name> <new_folder_name>')
@@ -1438,12 +1447,19 @@ program
 	.description('Delete a folder')
 	.action(deleteFolderHelper);
 
-  // Import Folder
-  program
-  	.command('import-folder <projname> <folder_path>')
-  	.alias('if')
-  	.description('Import a folder')
-  	.action(importFolderHelper);
+// Import Folder
+program
+	.command('import-folder <projname> <folder_path>')
+	.alias('if')
+	.description('Import a folder')
+	.action(importFolderHelper);
+
+// Export Folder
+program
+	.command('export-folder <projname> <folder_name>')
+	.alias('ef')
+	.description('Export a folder')
+	.action(exportFolderHelper);
 
 // -----------------------------
 // 	Commands for running tests
