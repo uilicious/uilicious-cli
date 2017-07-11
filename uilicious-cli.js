@@ -1205,6 +1205,14 @@ function importTestUnderFolderHelper(projname, foldername, file_pathname, option
 	});
 }
 
+function exportTestHelper(projname, testname, options) {
+	projectID(projname, function(projID) {
+		testID(projID, testname, function(testID) {
+			createFile();
+		});
+	});
+}
+
 //------------------------------------------------------------------------------
 //	Folder Helper Functions
 //------------------------------------------------------------------------------
@@ -1363,14 +1371,14 @@ program
 program
 	.command('list-project')
 	.alias('list')
-	.description('List all projects')
+	.description('List all projects.')
 	.action(getAllProjects);
 
 // List the folders under a project
 program
 	.command('list-folder <projname>')
 	.alias('lf')
-	.description('List all folders under a project')
+	.description('List all folders under a project.')
 	.action(getFolderListHelper);
 
 // -----------------------------
@@ -1381,21 +1389,21 @@ program
 program
 	.command('create-project <projname>')
 	.alias('cp')
-	.description('Create a new project')
+	.description('Create a new project.')
 	.action(createProjectHelper);
 
 // Update Project
 program
 	.command('rename-project <projname> <new_projname>')
 	.alias('rp')
-	.description('Rename a project')
+	.description('Rename a project.')
 	.action(updateProjectHelper);
 
 // Delete Project
 program
 	.command('delete-project <projname>')
 	.alias('dp')
-	.description('Delete a project')
+	.description('Delete a project.')
 	.action(deleteProjectHelper);
 
 // -----------------------------
@@ -1405,9 +1413,9 @@ program
 // Create Test
 program
 	.command('create-test <projName> <test_name>')
-	.option('-f, --folder <folder>', 'Set the folder name')
+	.option('-f, --folder <folder>', 'Set the folder name.')
 	.alias('ct')
-	.description('Create a test')
+	.description('Create a test.')
 	.action(function(projname, test_name, options) {
 		let folder_name = options.folder || null;
 		if (folder_name == null) {
@@ -1421,35 +1429,51 @@ program
 program
 	.command('get-test <projname> <test_name>')
 	.alias('gt')
-	.description('Read a test')
+	.description('Read a test.')
 	.action(readTestHelper);
 
 // Update Test
 program
 	.command('rename-test <projname> <test_name> <new_testname>')
 	.alias('rt')
-	.description('Rename a test')
+	.description('Rename a test.')
 	.action(updateTestHelper);
 
 // Delete Test
 program
 	.command('delete-test <projname> <test_name>')
 	.alias('dt')
-	.description('Delete a test')
+	.description('Delete a test.')
 	.action(deleteTestHelper);
 
 // Import Test
 program
 	.command('import-test <projname> <file_pathname>')
-	.option('-f, --folder <folder>', 'Set the folder path')
+	.option('-f, --folder <folder>', 'Set the folder path.')
 	.alias('it')
-	.description('Import a test')
+	.description('Import a test.')
 	.action(function(projname, file_pathname, options) {
 		let folder_name = options.folder || null;
 		if (folder_name == null) {
 			importTestHelper(projname, file_pathname);
 		} else {
 			importTestUnderFolderHelper(projname, folder_name, file_pathname);
+		}
+	});
+
+// Export Test
+program
+	.command('export-test <projname> <test_name>')
+	.option('-d, --directory <directory>', 'Set the directory path.')
+	.alias('et')
+	.description('Export a test.')
+	.action(function(projname, test_name, options) {
+		let directory = options.directory || null;
+		if (directory == null) {
+			console.error(error_warning("The directory option is required!\nPlease use -d <directory> to set the directory path!\n"));
+			process.exit(1);
+		} else {
+			exportTestHelper(projname, test_name);
 		}
 	});
 
@@ -1462,7 +1486,7 @@ program
 	.command('create-folder <projname> <folder_name>')
 	.option('-f, --folder <folder>', 'Set the folder name')
 	.alias('cf')
-	.description('Create a folder')
+	.description('Create a folder.')
 	.action(function(projname, folder_name, options) {
 		let folder  = options.folder || null;
 		if(folder == null) {
@@ -1483,21 +1507,21 @@ program
 program
 	.command('delete-folder <projname> <folder_name>')
 	.alias('df')
-	.description('Delete a folder')
+	.description('Delete a folder.')
 	.action(deleteFolderHelper);
 
 // Import Folder
 program
 	.command('import-folder <projname> <folder_path>')
 	.alias('if')
-	.description('Import a folder')
+	.description('Import a folder.')
 	.action(importFolderHelper);
 
 // Export Folder
 program
 	.command('export-folder <projname> <folder_name>')
 	.alias('ef')
-	.description('Export a folder')
+	.description('Export a folder.')
 	.action(exportFolderHelper);
 
 // -----------------------------
@@ -1505,7 +1529,7 @@ program
 // -----------------------------
 program
 	.command('run <projname> <scriptpath>')
-	.description('Run a test from a project')
+	.description('Run a test from a project.')
 	.action(main);
 
 // end with parse to parse through the input.txt
