@@ -21,12 +21,6 @@ const success_warning = chalk.bold.green;
 const error = chalk.red;
 const success = chalk.green;
 
-// Log variables
-// const logFile = fs.createWriteStream('log.txt', {
-//   flags: 'a'
-// });
-// const logStdout = process.stdout;
-
 //------------------------------------------------------------------------------------------
 //
 // Support polyfill
@@ -60,20 +54,6 @@ if (!String.prototype.startsWith) {
 //
 //------------------------------------------------------------------------------------------
 
-// function outputLog(msg) {
-// 	if(hasDirectory) {
-// 		writeToOutputFile(msg);
-// 	}
-// 	console.log(msg);
-// }
-//
-// function outputError(msg) {
-// 	if(hasDirectory) {
-// 		writeToOutputFile(msg);
-// 	}
-// 	console.error(error(msg));
-// }
-
 function testDate() {
 	var objToday = new Date();
 
@@ -94,7 +74,6 @@ function testDate() {
 	// var currentTime = hour + ":" + minute + ":" + seconds + " " + meridiem;
 	// console.log("Executed on:\n" + currentDate + " " + currentTime + "\n");
 }
-
 
 //------------------------------------------------------------------------------------------
 //
@@ -134,12 +113,12 @@ function rawRequestData(method, url, data, callback) {
 	return new Promise(function(good, bad) {
 		request(option, function( err, res, body ) {
 			if (err) {
-				throw new Error(error_warning("Unexpected error for URL request : "+url+" -> "+err));
+				throw new Error("Unexpected error for URL request : " + url + " -> " + err);
 			} else {
 				try {
 					good(body);
 				} catch(err) {
-					throw new Error(error_warning("Invalid data (JSON) format for URL request : "+url+" -> "+body));
+					throw new Error("Invalid data (JSON) format for URL request : " + url + " -> " + body);
 				}
 			}
 		});
@@ -173,7 +152,7 @@ function streamRequest(writeStream, method, url, data, callback) {
 		let req = request(option);
 		req.pipe(writeStream)
 		.on('error', function(err){
-			throw new Error(error_warning("Unexpected error for URL request : "+url+" -> "+err));
+			throw new Error("Unexpected error for URL request : " + url + " -> " + err);
 		})
 		.on('close', function(misc) {
 			good(req, misc);
@@ -234,7 +213,7 @@ function getFullHostURL(callback) {
 			},
 			function(res) {
 				if ( res.protectedURL == null ) {
-					console.error(error_warning("ERROR: Unable to login - Invalid username/password"));
+					console.error("ERROR: Unable to login - Invalid username/password");
 					process.exit(1);
 				} else {
 					_fullHostURL = res.protectedURL;
@@ -321,7 +300,7 @@ function projectList(callback) {
 function folderList(projectID, callback) {
 	return webstudioJsonRequest(
 		"GET",
-		"/api/studio/v1/projects/"+projectID+"/workspace/folders",
+		"/api/studio/v1/projects/" + projectID + "/workspace/folders",
 		{},
 		callback
 	);
@@ -335,7 +314,7 @@ function folderList(projectID, callback) {
 function testList(projectID, callback) {
 	return webstudioJsonRequest(
 		"GET",
-		"/api/studio/v1/projects/"+projectID+"/workspace/tests",
+		"/api/studio/v1/projects/" + projectID + "/workspace/tests",
 		{},
 		callback
 	);
@@ -353,7 +332,7 @@ function projects(callback) {
 				}
 				console.log("");
 			} else {
-				console.error(error_warning("ERROR: No project present."));
+				console.error("ERROR: No project present.");
 				process.exit(1);
 			}
 		});
@@ -372,7 +351,7 @@ function folders(projectId, callback) {
 				}
 				console.log("");
 			} else {
-				console.error(error_warning("ERROR: No folder is present."));
+				console.error("ERROR: No folder is present.");
 				process.exit(1);
 			}
 		});
@@ -387,7 +366,7 @@ function checkProject(projname, callback) {
 			for (let i = 0; i < list.length; i++) {
 				let item = list[i];
 				if (item.title == projname) {
-					console.error(error_warning("ERROR: This project '"+projname+"' exists.\nPlease use another name!\n"));
+					console.error("ERROR: This project '" + projname + "' exists.\nPlease use another name!\n");
 					process.exit(1);
 				}
 			}
@@ -405,13 +384,13 @@ function checkTest(projID, filePathname, callback) {
 		let testName = path.parse(filePathname).name;
 		webstudioJsonRequest(
 			"GET",
-			"/api/studio/v1/projects/"+projID+"/workspace/tests",
+			"/api/studio/v1/projects/" + projID + "/workspace/tests",
 			{ name: testName },
 			function (list) {
 				for (let i = 0; i < list.length; i++) {
 					let item = list[i];
 					if (item.name == testName) {
-						console.error(error_warning("ERROR: This test '"+testName+"' exists.\nPlease use another name!\n"));
+						console.error("ERROR: This test '" + testName + "' exists.\nPlease use another name!\n");
 						process.exit(1);
 					}
 				}
@@ -431,7 +410,7 @@ function checkFolder(projID, folderName, callback) {
 				for (let i = 0; i < folders.length; i++) {
 					let folder = folders[i];
 					if (folder.name == folderName) {
-						console.error(error_warning("ERROR: This folder '"+folderName+"' exists.\nPlease use another name!\n"));
+						console.error(error_warning("ERROR: This folder '" + folderName + "' exists.\nPlease use another name!\n"));
 						process.exit(1);
 					}
 				}
@@ -448,7 +427,7 @@ function getScript(projectID, testID, callback) {
 	return new Promise(function(good, bad) {
 		webstudioRawRequest(
 			"GET",
-			"/api/studio/v1/projects/"+projectID+"/workspace/tests/"+testID+"/script",
+			"/api/studio/v1/projects/" + projectID + "/workspace/tests/" + testID + "/script",
 			{},
 			function(res) {
 				good(res);
@@ -464,7 +443,7 @@ function exportTest(directory, test_name, file_content) {
 		if (err) {
 			throw err;
 		}
-		console.log(success("File <" + fileName + "> successfully saved in " + directory));
+		console.log("File <" + fileName + "> successfully saved in " + directory);
 	});
 }
 
@@ -513,7 +492,7 @@ function createProject(projectName, callback) {
 function updateProject(projectID, newProjectName, callback) {
 	return webstudioRawRequest(
 		"POST",
-		"/api/studio/v1/projects/"+projectID,
+		"/api/studio/v1/projects/" + projectID,
 		{ title: newProjectName },
 		callback
 	);
@@ -525,7 +504,7 @@ function updateProject(projectID, newProjectName, callback) {
 function deleteProject(projectID, callback) {
 	return webstudioRawRequest(
 		"DELETE",
-		"/api/studio/v1/projects/"+projectID,
+		"/api/studio/v1/projects/" + projectID,
 		{},
 		callback
 	);
@@ -540,7 +519,7 @@ function deleteProject(projectID, callback) {
 function createTest(projectID, testName, callback) {
 	return webstudioRawRequest(
 		"POST",
-		"/api/studio/v1/projects/"+projectID+"/workspace/tests/addAction",
+		"/api/studio/v1/projects/" + projectID + "/workspace/tests/addAction",
 		{
 			name: testName
 		},
@@ -554,7 +533,7 @@ function createTest(projectID, testName, callback) {
 function createTestUnderFolder(projectID, nodeID, testName, callback) {
 	return webstudioRawRequest(
 		"POST",
-		"/api/studio/v1/projects/"+projectID+"/workspace/tests/addAction",
+		"/api/studio/v1/projects/" + projectID + "/workspace/tests/addAction",
 		{
 			name: testName,
 			parentId: nodeID
@@ -567,7 +546,7 @@ function createTestUnderFolder(projectID, nodeID, testName, callback) {
 function readTest(projectID, testID, callback) {
 	return webstudioRawRequest(
 		"GET",
-		"/api/studio/v1/projects/"+projectID+"/workspace/tests/"+testID+"/script",
+		"/api/studio/v1/projects/" + projectID + "/workspace/tests/" + testID + "/script",
 		{},
 		callback
 	);
@@ -578,7 +557,7 @@ function readTest(projectID, testID, callback) {
 function importTest(projectID, testName, testContent, callback) {
 	return webstudioRawRequest(
 		"POST",
-		"/api/studio/v1/projects/"+projectID+"/workspace/tests/addAction",
+		"/api/studio/v1/projects/" + projectID + "/workspace/tests/addAction",
 		{
 			name: testName,
 			script: testContent
@@ -593,7 +572,7 @@ function importTest(projectID, testName, testContent, callback) {
 function importTestUnderFolder(projectID, nodeID, testName, testContent, callback) {
 	return webstudioRawRequest(
 		"POST",
-		"/api/studio/v1/projects/"+projectID+"/workspace/tests/addAction",
+		"/api/studio/v1/projects/" + projectID + "/workspace/tests/addAction",
 		{
 			name: testName,
 			parentId: nodeID,
@@ -608,7 +587,7 @@ function importTestUnderFolder(projectID, nodeID, testName, testContent, callbac
 function createFolder(projectID, folderName, callback) {
 	return webstudioRawRequest(
 		"POST",
-		"/api/studio/v1/projects/"+projectID+"/workspace/folders/addAction",
+		"/api/studio/v1/projects/" + projectID + "/workspace/folders/addAction",
 		{
 			name: folderName
 		},
@@ -622,7 +601,7 @@ function createFolder(projectID, folderName, callback) {
 function createFolderUnderFolder(projectID, nodeID, creatingfoldername, callback) {
 	return webstudioRawRequest(
 		"POST",
-		"/api/studio/v1/projects/"+projectID+"/workspace/folders/addAction",
+		"/api/studio/v1/projects/" + projectID + "/workspace/folders/addAction",
 		{
 			name: creatingfoldername,
 			parentId: nodeID
@@ -638,7 +617,7 @@ function createFolderUnderFolder(projectID, nodeID, creatingfoldername, callback
 function updateTestFolder(projectID, nodeID, new_Name, callback) {
 	return webstudioRawRequest(
 		"POST",
-		"/api/studio/v1/projects/"+projectID+"/workspace/nodes/"+nodeID+"/renameAction",
+		"/api/studio/v1/projects/" + projectID + "/workspace/nodes/" + nodeID + "/renameAction",
 		{
 			name: new_Name
 		},
@@ -653,7 +632,7 @@ function updateTestFolder(projectID, nodeID, new_Name, callback) {
 function deleteTestFolder(projectID, nodeID, callback) {
 	return webstudioRawRequest(
 		"POST",
-		"/api/studio/v1/projects/"+projectID+"/workspace/nodes/"+nodeID+"/deleteAction",
+		"/api/studio/v1/projects/" + projectID + "/workspace/nodes/" + nodeID + "/deleteAction",
 		{},
 		callback
 	);
@@ -680,7 +659,7 @@ function projectID(projectName, callback) {
 					return;
 				}
 			}
-			console.error(error_warning("ERROR: Project Name not found: "+projectName));
+			console.error("ERROR: Project Name not found: " + projectName);
 			process.exit(1);
 		});
 	}).then(callback);
@@ -698,19 +677,19 @@ function folderID(projID, folderPath, callback) {
 	return new Promise(function(good, bad) {
 		webstudioJsonRequest(
 			"GET",
-			"/api/studio/v1/projects/"+projID+"/workspace/folders",
+			"/api/studio/v1/projects/" + projID + "/workspace/folders",
 			{ path : folderPath },
 			function(res) {
 				// Prevent
 				if (res.length > 1) {
-					console.error(error_warning("ERROR: Multiple folders named '"+folderPath+"' found.\nPlease give the correct name!\n"));
+					console.error("ERROR: Multiple folders named '" + folderPath + "' found.\nPlease give the correct name!\n");
 					process.exit(1);
 				} else {
 					let id = res[0].id;
 					good(parseInt(id));
 					return;
 				}
-				console.error(error_warning("ERROR: Unable to find folder: '"+folderPath+"'\n"));
+				console.error("ERROR: Unable to find folder: '" + folderPath + "'\n");
 				process.exit(1);
 			}
 		);
@@ -733,7 +712,7 @@ function nodeID(projectId, folderName, callback) {
 					return;
 				}
 			}
-			console.error(error_warning("ERROR: This folder <" + folderName + "> does not exist!"));
+			console.error("ERROR: This folder <" + folderName + "> does not exist!");
 			process.exit(1);
 		});
 	}).then(callback);
@@ -751,19 +730,19 @@ function testID(projID, testPath, callback) {
 	return new Promise(function(good, bad) {
 		webstudioJsonRequest(
 			"GET",
-			"/api/studio/v1/projects/"+projID+"/workspace/tests",
+			"/api/studio/v1/projects/" + projID + "/workspace/tests",
 			{ path : testPath },
 			function(res) {
 				// Prevent
 				if (res.length > 1) {
-					console.error(error_warning("ERROR: Multiple scripts named '"+testPath+"' found.\nPlease give the correct path!\n"));
+					console.error("ERROR: Multiple scripts named '" + testPath + "' found.\nPlease give the correct path!\n");
 					process.exit(1);
 				} else {
 					let id = res[0].id;
 					good(parseInt(id));
 					return;
 				}
-				console.error(error_warning("ERROR: Unable to find test script: '"+testPath+"'\n"));
+				console.error("ERROR: Unable to find test script: '" + testPath + "'\n");
 				process.exit(1);
 			}
 		);
@@ -795,14 +774,14 @@ function runTest(projID, testID, callback) {
 	return new Promise(function(good, bad) {
 		webstudioJsonRequest(
 			"POST",
-			"/api/studio/v1/projects/"+projID+"/workspace/tests/"+testID+"/runAction?cli=true",
+			"/api/studio/v1/projects/" + projID + "/workspace/tests/" + testID + "/runAction?cli=true",
 			form,
 			function(res) {
 				if ( res.id != null ) {
 					good(res.id);
 					return;
 				}
-				throw new Error(error_warning("Missing test run ID -> "+res.id));
+				throw new Error("Missing test run ID -> " + res.id);
 			}
 		);
 	}).then(callback);
@@ -924,12 +903,12 @@ function processImages(remoteOutputPath, stepArr, directory) {
 
 // Return the status of each step
 function formatStepOutputMsg(step) {
-	return "[Step "+(step.idx+1)+" - "+step.status+"]: "+step.description+" - "+step.time.toFixed(2)+"s";
+	return "[Step " + (step.idx+1) + " - " + step.status + "]: " + step.description + " - " + step.time.toFixed(2) + "s";
 }
 
 // Return each error
 function formatErrorOutput(step) {
-	return "[Step "+(step.idx+1)+" - "+step.status+"]: "+step.error.message;
+	return "[Step " + (step.idx+1) + " - " + step.status + "]: " + step.error.message;
 }
 
 // Return image name of each step
@@ -945,10 +924,10 @@ function outputStep(remoteOutputPath, idx, step) {
 		outputStepCache[idx] = step;
 		let stepMsg = formatStepOutputMsg(step);
 		if ( step.status == 'success' ) {
-			console.log(success(stepMsg));
+			console.log(stepMsg);
 		} else if ( step.status == 'failure' ) {
 			errorCount++;
-			console.error(error(stepMsg));
+			console.error(stepMsg);
 		}
 	}
 }
@@ -960,7 +939,7 @@ function outputError(remoteOutputPath, idx, step) {
 		outputErrorCache[idx] = step;
 		let stepError = formatErrorOutput(step);
 		if ( step.status == 'failure' ) {
-			console.error(error(stepError));
+			console.error(stepError);
 		}
 	}
 }
@@ -981,13 +960,13 @@ function outputImgPathInfo(remoteOutputPath, idx, step) {
 function outputStatus(errorCount) {
 	// Display this log if no errors
 	if (errorCount == 0) {
-		console.log(success_warning("Test successful: No errors."));
+		console.log("Test successful: No errors.");
 	}
 	// Display this log if there are errors
 	if (errorCount == 1) {
-		console.log(error_warning("Test failed with "+errorCount+" error."));
+		console.log("Test failed with " + errorCount + " error.");
 	} else if (errorCount > 1) {
-		console.log(error_warning("Test failed with "+errorCount+" errors."));
+		console.log("Test failed with " + errorCount + " errors.");
 	}
 }
 
@@ -1003,7 +982,7 @@ function downloadImg(remoteOutputPath, afterImg, localremoteOutputPath, callback
 	return webstudioStreamRequest(
 		fs.createWriteStream( path.join(localremoteOutputPath, afterImg) ),
 		"GET",
-		remoteOutputPath+afterImg,
+		remoteOutputPath + afterImg,
 		{},
 		callback
 	);
@@ -1018,7 +997,7 @@ function readFileContents(file_pathname, callback) {
 		if (fileContent != null) {
 			good(fileContent);
 		} else {
-			console.error(error_warning("ERROR: There is nothing in this file!\n"));
+			console.error("ERROR: There is nothing in this file!\n");
 			process.exit(1);
 		}
 	}).then(callback);
@@ -1045,7 +1024,7 @@ function checkPath(path_name, callback) {
     let pathLocation = path.resolve(path_name);
 		let folderName = path.basename(path_name);
     if (!fs.existsSync(pathLocation)) {
-      console.error(error_warning("This path does not exist!\n"));
+      console.error("This path does not exist!\n");
       process.exit(1);
     } else {
       good(pathLocation);
@@ -1060,7 +1039,7 @@ function checkFolderContents(folder_pathname, callback) {
     let folderName = path.basename(folder_pathname);
     let folderContents = fs.readdir(folder_pathname, function(err, files) {
       if (err || files.length == 0) {
-        console.error(error_warning("This folder is empty!\n"));
+        console.error("This folder is empty!\n");
         process.exit(1);
       } else {
       	good(folderName);
@@ -1074,7 +1053,7 @@ function checkFolderContents(folder_pathname, callback) {
 function makeDir(directory, callback) {
 	return new Promise(function(good, bad) {
 		let testRun = new Date().toLocaleString();
-		let testDirectory = directory + "/" + testRun;
+		let testDirectory = directory + "/Test Run " + testRun;
 		fs.mkdir(testDirectory, function(err) {
 			if (err) {
 				throw new err;
@@ -1092,7 +1071,7 @@ function makeFolder(folderName, options, callback) {
 		let newDirectory = options.directory + "/" + folderName;
 		fs.mkdir(newDirectory, function(err) {
 			if (err === 'EEXIST') {
-				console.error(error_warning("ERROR: This folder <"+ folderName +"> exists.\nPlease use another directory.\n"));
+				console.error("ERROR: This folder <"+ folderName +"> exists.\nPlease use another directory.\n");
 				process.exit(1);
 			}
 		});
@@ -1387,6 +1366,18 @@ function main(projname, scriptpath, options) {
 	// }
 	if (program.directory != null) {
 		makeDir(program.directory, function(testDirectory) {
+			// Test log functionality
+			let testLog = testDirectory + '/log.txt';
+			const logFile = fs.createWriteStream(testLog, {
+			  flags: 'a'
+			});
+			const logStdout = process.stdout;
+			console.log = function() {
+				logFile.write(util.format.apply(null, arguments) + '\n');
+				logStdout.write(util.format.apply(null, arguments) + '\n');
+			}
+			console.error = console.log;
+
 			testDate();
 
 			console.log("#");
@@ -1408,7 +1399,7 @@ function main(projname, scriptpath, options) {
 							outputStatus(errorCount);
 							pollForError(postID);
 							pollForImg(postID, testDirectory);
-							console.log(success("All images saved in "+testDirectory+"\n"));
+							console.log("Test Info saved in "+testDirectory+"\n");
 						});
 					});
 				});
