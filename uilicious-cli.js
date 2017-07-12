@@ -1052,11 +1052,11 @@ function checkFolderContents(folder_pathname, callback) {
 // Make directory to save report and images
 function makeDir(directory, callback) {
 	return new Promise(function(good, bad) {
-		let testRun = new Date().toLocaleString();
-		let testDirectory = directory + "/Test Run " + testRun;
+		let testRun = new Date().toString();
+		let testDirectory = directory + "/TestRun" + testRun;
 		fs.mkdir(testDirectory, function(err) {
 			if (err) {
-				throw new err;
+				throw err;
 				process.exit(1);
 			}
 		});
@@ -1395,7 +1395,7 @@ function main(projname, scriptpath, options) {
 			console.log = function() {
 				logFile.write(util.format.apply(null, arguments) + '\n');
 				logStdout.write(util.format.apply(null, arguments) + '\n');
-			}
+			};
 			console.error = console.log;
 
 			testDate();
