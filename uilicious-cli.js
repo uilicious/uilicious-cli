@@ -1080,7 +1080,6 @@ function makeFolder(folderName, options, callback) {
 	}).then(callback);
 }
 
-
 //------------------------------------------------------------------------------------------
 //
 // Core Commands
