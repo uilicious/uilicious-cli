@@ -1048,19 +1048,22 @@ function checkFolderContents(folder_pathname, callback) {
   }).then(callback);
 }
 
-// Make directory
-// function makeDir(callback) {
-// 	return new Promise(function(good, bad) {
-// 		fs.mkdir(program.directory, function(err) {
-// 			if (err === 'EEXIST') {
-// 				console.error(error_warning("ERROR: '"+program.directory+"' exists.\nPlease use another directory.\n"));
-// 				process.exit(1);
-// 			}
-// 		});
-// 	}).then(callback);
-// }
-// Make directory
-function makeDir(folderName, options, callback) {
+// Make directory to save report and images
+function makeDir(callback) {
+	return new Promise(function(good, bad) {
+		fs.mkdir(program.directory, function(err) {
+			if (err === 'EEXIST') {
+				console.error(error_warning("ERROR: '"+program.directory+"' exists.\nPlease use another directory.\n"));
+				process.exit(1);
+			}
+		});
+		good(program.directory);
+		return;
+	}).then(callback);
+}
+
+// Make folder for export
+function makeFolder(folderName, options, callback) {
 	return new Promise(function(good, bad) {
 		let newDirectory = options.directory + "/" + folderName;
 		fs.mkdir(newDirectory, function(err) {
@@ -1341,7 +1344,7 @@ function importFolderHelper(projName, folderPath, options) {
 function exportFolderHelper(projName, folderName, options) {
 	projectID(projName, function(projID) {
 		nodeID(projID, folderName, function(folderID) {
-			makeDir(folderName, options, function(new_directory) {
+			makeFolder(folderName, options, function(new_directory) {
 				exportTests(projID, folderID, new_directory);
 			});
 		});
@@ -1365,7 +1368,9 @@ function main(projname, scriptpath, options) {
 	console.log("# Script Path : "+scriptpath);
 	console.log("#");
 
-  // makeDir();
+	if (options.directory != null) {
+		makeDir();
+	}
 	projectID(projname, function(projID) {
 		console.log("# Project ID : "+projID);
 		testID(projID, scriptpath, function(scriptID) {
@@ -1397,7 +1402,7 @@ program
 	.version('1.3.12')
 	.option('-u, --user <required>', 'username')
 	.option('-p, --pass <required>', 'password')
-	// .option('-d, --directory <required>', 'Output directory path to use')
+	.option('-d, --directory <optional>', 'Output directory path to use')
 	.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
 	.option('-w, --width <optional>', 'width of browser')
 	.option('-hg, --height <optional>', 'height of browser');
