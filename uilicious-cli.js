@@ -1362,7 +1362,8 @@ function importFolderUnderFolderHelper(projName, folderPath, folderName, options
 	});
 }
 
-// Export folder and its contents
+// Export folder and its test scripts
+// @todo Call api /directory to find parent's folders and tests
 function exportFolderHelper(projName, folderName, options) {
 	projectID(projName, function(projID) {
 		nodeID(projID, folderName, function(folderID) {
@@ -1379,10 +1380,6 @@ function exportFolderHelper(projName, folderName, options) {
 
 // Run test script from project
 function main(projname, scriptpath, options) {
-	// console.log = function() {
-	// 	logFile.write(util.format.apply(null, arguments) + '\n');
-	// 	logStdout.write(util.format.apply(null, arguments) + '\n');
-	// }
 	if (program.directory != null) {
 		makeDir(program.directory, function(testDirectory) {
 			// Test log functionality
