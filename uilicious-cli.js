@@ -862,12 +862,12 @@ function pollForError(runTestID, callback) {
 }
 
 // Get result from API and return images
-function pollForImg(runTestID, callback) {
+function pollForImg(runTestID, directory, callback) {
 	return new Promise(function(good, bad) {
 		function actualPoll() {
 			setTimeout(function() {
 				getResult(runTestID, function(res) {
-					processImages(res.outputPath, res.steps);
+					processImages(res.outputPath, res.steps, directory);
 					if ( res.status == 'success' || res.status == 'failure') {
 						good(res);
 						return;
@@ -905,7 +905,7 @@ function processErrors(remoteOutputPath, stepArr) {
 }
 
 // Cycle through every step and output images
-function processImages(remoteOutputPath, stepArr) {
+function processImages(remoteOutputPath, stepArr, directory) {
 	for ( let idx = 0; idx < stepArr.length; idx++ ) {
 		let step = stepArr[idx];
 		if ( step.status == 'success' || step.status == 'failure' ) {
@@ -917,7 +917,7 @@ function processImages(remoteOutputPath, stepArr) {
 			// @TODO : (low priority), download the image after a step completes, instead of the very end
 			//         Due to the async nature of the image from the test run, this will prevent very large tests
 			//         from going through a very large download phase
-			downloadImg(remoteOutputPath, step.afterImg, program.directory);
+			downloadImg(remoteOutputPath, step.afterImg, directory);
 		}
 	}
 }
@@ -1073,13 +1073,15 @@ function checkFolderContents(folder_pathname, callback) {
 // Make directory to save report and images
 function makeDir(directory, callback) {
 	return new Promise(function(good, bad) {
-		fs.mkdir(directory, function(err) {
-			if (err === 'EEXIST') {
-				console.error(error_warning("ERROR: '"+directory+"' exists.\nPlease use another directory.\n"));
+		let testRun = new Date().toLocaleString();
+		let testDirectory = directory + "/" + testRun;
+		fs.mkdir(testDirectory, function(err) {
+			if (err) {
+				throw new err;
 				process.exit(1);
 			}
 		});
-		good(directory);
+		good(testDirectory);
 		return;
 	}).then(callback);
 }
@@ -1384,34 +1386,60 @@ function main(projname, scriptpath, options) {
 	// 	logStdout.write(util.format.apply(null, arguments) + '\n');
 	// }
 	if (program.directory != null) {
-		makeDir(program.directory);
-	}
-	testDate();
+		makeDir(program.directory, function(testDirectory) {
+			testDate();
 
-	console.log("#");
-	console.log("# Uilicious CLI - Runner");
-	console.log("# Project Name: " + projname);
-	console.log("# Script Path : " + scriptpath);
-	console.log("#");
+			console.log("#");
+			console.log("# Uilicious CLI - Runner");
+			console.log("# Project Name: " + projname);
+			console.log("# Script Path : " + scriptpath);
+			console.log("#");
 
-	projectID(projname, function(projID) {
-		console.log("# Project ID : "+projID);
-		testID(projID, scriptpath, function(scriptID) {
-			console.log("# Script ID  : "+scriptID);
-			runTest(projID, scriptID, function(postID) {
-				console.log("# Test run ID: "+postID);
-				console.log("#");
-				console.log("");
-				pollForResult(postID, function(finalRes) {
-					console.log("");
-					outputStatus(errorCount);
-					pollForError(postID);
-					// pollForImg(postID);
-					// console.log(success("All images saved in "+program.directory+"\n"));
+			projectID(projname, function(projID) {
+				console.log("# Project ID : "+projID);
+				testID(projID, scriptpath, function(scriptID) {
+					console.log("# Script ID  : "+scriptID);
+					runTest(projID, scriptID, function(postID) {
+						console.log("# Test run ID: "+postID);
+						console.log("#");
+						console.log("");
+						pollForResult(postID, function(finalRes) {
+							console.log("");
+							outputStatus(errorCount);
+							pollForError(postID);
+							pollForImg(postID, testDirectory);
+							console.log(success("All images saved in "+testDirectory+"\n"));
+						});
+					});
 				});
 			});
 		});
-	});
+	} else {
+		testDate();
+
+		console.log("#");
+		console.log("# Uilicious CLI - Runner");
+		console.log("# Project Name: " + projname);
+		console.log("# Script Path : " + scriptpath);
+		console.log("#");
+
+		projectID(projname, function(projID) {
+			console.log("# Project ID : "+projID);
+			testID(projID, scriptpath, function(scriptID) {
+				console.log("# Script ID  : "+scriptID);
+				runTest(projID, scriptID, function(postID) {
+					console.log("# Test run ID: "+postID);
+					console.log("#");
+					console.log("");
+					pollForResult(postID, function(finalRes) {
+						console.log("");
+						outputStatus(errorCount);
+						pollForError(postID);
+					});
+				});
+			});
+		});
+	}
 }
 
 //-----------------------------------------------------------------------------------------
