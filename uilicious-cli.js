@@ -74,6 +74,28 @@ if (!String.prototype.startsWith) {
 // 	console.error(error(msg));
 // }
 
+function testDate() {
+	var objToday = new Date();
+
+	// Get current date
+	var weekday = new Array('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat');
+	var dayOfWeek = weekday[objToday.getDay()];
+	var day = objToday.getDate();
+	var month = objToday.getMonth() + 1;
+	var year = objToday.getFullYear();
+	var currentDate = dayOfWeek + ", " + day + "-" + month + "-" + year;
+
+	// Get current time
+	var hour = objToday.getHours() > 12 ? objToday.getHours() - 12 : (objToday.getHours() < 10 ? "0" + objToday.getHours() : objToday.getHours());
+	var minute = objToday.getMinutes() < 10 ? "0" + objToday.getMinutes() : objToday.getMinutes();
+	var seconds = objToday.getSeconds() < 10 ? "0" + objToday.getSeconds() : objToday.getSeconds();
+	var meridiem = objToday.getHours() > 12 ? "AM" : "PM";
+	var currentTime = hour + ":" + minute + ":" + seconds + " " + meridiem;
+
+	console.log("Executed on:\n" + currentDate + " " + currentTime + "\n");
+}
+
+
 //------------------------------------------------------------------------------------------
 //
 // Utility for HTTP / API handling
@@ -1361,16 +1383,17 @@ function main(projname, scriptpath, options) {
 	// 	logFile.write(util.format.apply(null, arguments) + '\n');
 	// 	logStdout.write(util.format.apply(null, arguments) + '\n');
 	// }
+	testDate();
 
 	console.log("#");
 	console.log("# Uilicious CLI - Runner");
-	console.log("# Project Name: "+projname);
-	console.log("# Script Path : "+scriptpath);
+	console.log("# Project Name: " + projname);
+	console.log("# Script Path : " + scriptpath);
 	console.log("#");
 
-	if (options.directory != null) {
-		makeDir();
-	}
+	// if (options.directory != null) {
+	// 	makeDir();
+	// }
 	projectID(projname, function(projID) {
 		console.log("# Project ID : "+projID);
 		testID(projID, scriptpath, function(scriptID) {
