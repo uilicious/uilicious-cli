@@ -10,11 +10,6 @@ var newTestName = "uilicious-cli-test-"+randomString(5);
 var folderName1 = "uilicious-cli-test-"+randomString(4);
 var testName4 = "uilicious-cli-test-"+randomString(5);
 
-
-var file_pathname = "/Users/tadapatrisonika/Documents/input.txt";
-var file_pathname2 = "/Users/tadapatrisonika/Documents/input5.txt";
-var file_pathname3 = "/Users/tadapatrisonika/Downloads/input.txt";
-
 //CREATE a project
 assert.containsAllValues(
 	runUiliciousCli("create-project", projName),
@@ -80,24 +75,6 @@ assert.containsAllValues(
 // 	"RENAME the existing created test with the same name as already existing test under the project"
 // );
 
-//IMPORT a TEST script by giving in the file-path, under the project
-assert.containsAllValues(
-	runUiliciousCli("import-test", projName, file_pathname),
-	[
-
-	],
-	"IMPORT a new test script using the file path"
-);
-
-// //IMPORT a test script having the same name as a already existing test name by giving in the file-path, under the project
-// //this throws an error as the test name already exists
-// assert.containsAllValues(
-// 	runUiliciousCli("import-test", projName, file_pathname3),
-// 	[
-//
-// 	],
-// 	"IMPORT a new test script using the file path"
-// );
 
 //CREATE a folder under the project
 assert.containsAllValues(
@@ -130,25 +107,6 @@ assert.containsAllValues(
 // 		testName4
 // 	],
 // 	"CREATE  a test with a name that already exists"
-// );
-
-//IMPORT  a test script under the folder that we created in the first project
-assert.containsAllValues(
-	runUiliciousCli("import-test" , "--folder", folderName1, projName, file_pathname2),
-	[
-
-	],
-	"IMPORT a test script under a folder in a project"
-);
-
-// //IMPORT TEST script under a folder with the same name as a existing test name
-// //this will throw an error as the name already exists
-// assert.containsAllValues(
-// 	runUiliciousCli("import-test", "--folder", folderName1, projName, file_pathname3),
-// 	[
-//
-// 	],
-// 	"IMPORT test script under a folder with the same name as a existing test script"
 // );
 
 // DELETE test under the project

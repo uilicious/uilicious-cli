@@ -1074,6 +1074,7 @@ function makeDir(folderName, options, callback) {
 	}).then(callback);
 }
 
+
 //------------------------------------------------------------------------------------------
 //
 // Core Commands
@@ -1337,6 +1338,25 @@ function importFolderHelper(projName, folderPath, options) {
   });
 }
 
+//Import folder under another folder that is present in the project along with its contents
+function importFolderUnderFolderHelper(projName, folderPath, folderName, options) {
+	checkPath(folderPath, function(folder_pathname) {
+		checkFolderContents(folder_pathname, function(folder_name) {
+			projectID(projName, function(projID) {
+				nodeID(projID, folderName, function(nodeId) {
+					checkFolder(projID, folder_name, function(folder_name) {
+						createFolderUnderFolder(projID, nodeId, folder_name, function(res) {
+							importFolderContents(projName, folder_name, folder_pathname, function(res) {
+								console.log("");
+							});
+						});
+					});
+				});
+			});
+		});
+	});
+}
+
 // Export folder and its contents
 function exportFolderHelper(projName, folderName, options) {
 	projectID(projName, function(projID) {
@@ -1548,9 +1568,17 @@ program
 // Import Folder
 program
 	.command('import-folder <projname> <folder_path>')
+	.option('-f, --folder <folder>', 'Set the folder.')
 	.alias('if')
 	.description('Import a folder.')
-	.action(importFolderHelper);
+	.action(function(projname, folder_path, options) {
+		let foldername = options.folder || null;
+		if(foldername == null) {
+			importFolderHelper(projname, folder_path);
+		} else {
+			importFolderUnderFolderHelper(projname, folder_path, foldername);
+		}
+	});
 
 // Export Folder
 program
