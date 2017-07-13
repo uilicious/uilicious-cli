@@ -301,19 +301,14 @@ function directoryList(projectID, callback) {
 	return new Promise(function(good, bad) {
 		webstudioJsonRequest(
 			"GET",
-			"/api/studio/v1/projects" + projectID + "/workspace/directory",
+			"/api/studio/v1/projects/" + projectID + "/workspace/directory",
 			{},
-			function(list) {
-				console.log(list.children);
+			function(project) {
+				good(project.children);
+				return;
 			}
 		);
 	}).then(callback);
-	// return webstudioJsonRequest(
-	// 	"GET",
-	// 	"/api/studio/v1/projects" + projectID + "/workspace/directory",
-	// 	{},
-	// 	callback
-	// );
 }
 
 /// Get a list of folders
@@ -468,7 +463,7 @@ function exportTest(directory, test_name, file_content) {
 		if (err) {
 			throw err;
 		}
-		console.log("File <" + fileName + "> successfully saved in " + directory + "\n");
+		console.log("File <" + fileName + "> successfully saved in " + directory);
 	});
 }
 
@@ -493,11 +488,50 @@ function exportTests(projID, folderID, directory, callback) {
 	}).then(callback);
 }
 
-// function getChildren(projID, nodeID, callback) {
-// 	return new Promise(function(good, bad) {
-// 		directoryList()
-// 	}).then(callback);
-// }
+// Get children of folder
+function getChildren(projID, folderID, directory, callback) {
+	return new Promise(function(good, bad) {
+		// Get children of project
+		directoryList(projID, function(project_children) {
+			for (var i = 0; i < project_children.length; i++) {
+				let project_child = project_children[i];
+				if (project_child.id == folderID) {
+					let main_folder = project_child.children;
+					for (var i = 0; i < main_folder.length; i++) {
+						let child = main_folder[i];
+						// Export test
+						if (child.typeName == 'TEST') {
+							// console.log(child.name);
+							getScript(projID, child.id, function(fileContent) {
+								exportTest(directory, child.name, fileContent);
+							});
+						}
+
+						// Export folder
+						if (child.typeName == 'FOLDER') {
+							makeFolder(child.name, directory, function(new_directory) {
+								exportTests(projID, child.id, new_directory);
+							});
+						}
+					}
+				}
+			}
+		});
+	}).then(callback);
+}
+
+// Find children if type is folder
+function findChildren(parent) {
+	return new Promise(function(good, bad) {
+		if (parent.children != null) {
+			let children = parent.children;
+			for (var i = 0; i < children.length; i++) {
+				let child = children[i];
+			}
+		}
+		return;
+	}).then(callback);
+}
 
 //------------------------------------------------------------------------------
 //	Project Functions
@@ -1097,9 +1131,9 @@ function makeDir(directory, callback) {
 }
 
 // Make folder for export
-function makeFolder(folderName, options, callback) {
+function makeFolder(folderName, directory, callback) {
 	return new Promise(function(good, bad) {
-		let newDirectory = options.directory + "/" + folderName;
+		let newDirectory = directory + "/" + folderName;
 		fs.mkdir(newDirectory, function(err) {
 			if (err === 'EEXIST') {
 				console.error("ERROR: This folder <"+ folderName +"> exists.\nPlease use another directory.\n");
@@ -1395,24 +1429,24 @@ function importFolderUnderFolderHelper(projName, folderPath, folderName, options
 
 // Export folder and its test scripts
 // @todo Call api /directory to find parent's folders and tests
+// function exportFolderHelper(projName, folderName, options) {
+// 	projectID(projName, function(projID) {
+// 		nodeID(projID, folderName, function(folderID) {
+// 			makeFolder(folderName, options, function(new_directory) {
+// 				exportTests(projID, folderID, new_directory);
+// 			});
+// 		});
+// 	});
+// }
 function exportFolderHelper(projName, folderName, options) {
 	projectID(projName, function(projID) {
 		nodeID(projID, folderName, function(folderID) {
-			makeFolder(folderName, options, function(new_directory) {
-				exportTests(projID, folderID, new_directory);
+			makeFolder(folderName, options.directory, function(new_directory) {
+				getChildren(projID, folderID, new_directory);
 			});
 		});
 	});
 }
-// function exportFolderHelper(projName, folderName, options) {
-// 	projectID(projName, function(projID) {
-// 		nodeID(projID, folderName, function(folderID) {
-// 			directoryList(projID, function(res) {
-// 				console.log("");
-// 			});
-// 		})
-// 	});
-// }
 
 //------------------------------------------------------------------------------
 //	Main Function to run test script
