@@ -455,10 +455,10 @@ function getScript(projectID, testID, callback) {
 	}).then(callback);
 }
 
-// Export test
-function exportTest(directory, test_name, file_content) {
-	let filePathName = path.resolve(directory) + "/" + test_name + ".txt";
-	let fileName = test_name + ".txt";
+// Export a test
+function exportTestFile(directory, test_name, file_content) {
+	let filePathName = path.resolve(directory) + "/" + test_name + ".js";
+	let fileName = test_name + ".js";
 	fs.writeFile(filePathName, file_content, function(err) {
 		if (err) {
 			throw err;
@@ -467,71 +467,186 @@ function exportTest(directory, test_name, file_content) {
 	});
 }
 
-// Export children(tests) of folder
-// @param		Project ID
-// @param		Folder ID
-function exportTests(projID, folderID, directory, callback) {
+/// Export children(tests) of folder
+///
+/// @param   Project ID
+/// @param   Folder ID
+/// @param   local system file path, to export tests into
+///
+function exportTestDirectory(projID, folderID, directory, callback) {
 	return new Promise(function(good, bad) {
-		testList(projID, function(children) {
-			for (var i = 0; i < children.length; i++) {
-				let child = children[i];
-				if (child.parentId == folderID) {
-					let test_name = child.name;
-					let test_id = child.id;
-					getScript(projID, test_id, function(fileContent) {
-						exportTest(directory, test_name, fileContent);
-					});
-				}
+		getDirectoryMapByID(projID, folderID, function(dirNode) {
+			if( dirNode ) {
+				exportDirectoryNodeToDirectoryPath(dirNode, directory);
+				good(true);
+			} else {
+				bad(false);
 			}
-			return;
 		});
 	}).then(callback);
 }
 
-// Get children of folder
-function getChildren(projID, folderID, directory, callback) {
-	return new Promise(function(good, bad) {
-		// Get children of project
-		directoryList(projID, function(project_children) {
-			for (var i = 0; i < project_children.length; i++) {
-				let project_child = project_children[i];
-				if (project_child.id == folderID) {
-					let main_folder = project_child.children;
-					for (var i = 0; i < main_folder.length; i++) {
-						let child = main_folder[i];
-						// Export test
-						if (child.typeName == 'TEST') {
-							// console.log(child.name);
-							getScript(projID, child.id, function(fileContent) {
-								exportTest(directory, child.name, fileContent);
-							});
-						}
+/// Recursively scans the directory node, and export the folders / files when needed
+///
+/// @param  The directory node to use
+/// @param  local directory path to export into
+// function exportDirectoryNodeToDirectoryPath(dirNode, localDirPath) {
+// 	if( dirNode == null ) {
+// 		return;
+// 	}
+// 	if (dirNode == "FOLDER") {
+// 		makeSureDirectoryExists(localDirPath);
+// 		var nextPath = localDirPath+"/"+dirNode.name;
+// 		for( each childNode inside dirNode.children ) {
+// 			exportDirectoryNodeToDirectoryPath( childNode, nextPath );
+// 		}
+// 	} else if (dirNode == "TEST") {
+// 		exportTestFile( fileID, localDirPath + "/"+ dirNode.fileName );
+// 	}
+// }
 
-						// Export folder
-						if (child.typeName == 'FOLDER') {
-							makeFolder(child.name, directory, function(new_directory) {
-								exportTests(projID, child.id, new_directory);
-							});
-						}
+/// Does a recursive search on the parentDir object, and its children
+/// For the target folderID, if not found, returns a null
+///
+/// @param  parentDir object, an example would be the return from "api/studio/v1/projects/:projid/workspace/directory"
+/// @param  folderID to find, not folder path.
+///
+/// @return  The directory node, that matches the ID
+function findSubDirectoryByID(parentDir, folderID) {
+	if( parentDir.typeName == "FOLDER" ) {
+		if( parentDir.id == folderID ) {
+			// console.log(parentDir);
+			return parentDir;
+		}
+		// childrenList (children of directory)
+		var childrenList = parentDir.children;
+		for (var i = 0; i < childrenList.length; i++) {
+			var validatedChildNode = findSubDirectoryByID( childrenList[i], folderID );
+			if( validatedChildNode != null ) {
+				// console.log(validatedChildNode);
+				return validatedChildNode;
+			}
+		}
+	}
+	return null;
+}
+
+/// Does a recursive search on the parentDir object, and its children
+/// For the target folderID, if not found, returns a null
+///
+/// @param  parentDir object, an example would be the return from "api/studio/v1/projects/:projid/workspace/directory"
+/// @param  folderID to find, not folder path.
+///
+/// @return  The directory node, that matches the ID
+// function findSubDirectoryByPath(parentDir, fullPath) {
+// 	if( parentDir.typeName == "FOLDER" ) {
+// 		if( parentDir.path == fullPath ) {
+// 			return parentDir;
+// 		}
+//
+// 		var childrenList = parentDir.children;
+// 		for( var i = 0; i < childrenList.length; ++i ) {
+// 			var validatedChildNode = findSubDirectoryByPath( childrenList[i], fullPath );
+// 			if( validatedChildNode != null ) {
+// 				return validatedChildNode;
+// 			}
+// 		}
+// 	}
+// 	return null;
+// }
+
+/// Get the directory map, using the projectID and folderID
+///
+/// @param  projectID to export from
+/// @param  folderID to export from
+/// @param  callback to call with result
+///
+/// @return  Promise object that returns the directory map
+function getDirectoryMapByID(projID, folderID, callback) {
+	return new Promise(function(good, bad) {
+		directoryList(projID, function(rootDirMap) {
+			for (var i = 0; i < rootDirMap.length; i++) {
+				let root_folder = rootDirMap[i];
+				if (root_folder.id == folderID) {
+					if( folderID != null ) {
+						good(findSubDirectoryByID(root_folder, folderID));
+					} else {
+						good(root_folder);
 					}
 				}
 			}
+			// if( folderID != null ) {
+			// 	good(findSubDirectoryByID(rootDirMap, folderID));
+			// } else {
+			// 	good( rootDirMap );
+			// }
 		});
 	}).then(callback);
 }
 
+/// Get the directory map, using the projectID and folderID
+///
+/// @param  projectID to export from
+/// @param  folderPath to export from
+/// @param  callback to call with result
+///
+/// @return  Promise object that returns the directory map
+// function getDirectoryMapByPath(projID, folderPath, callback) {
+// 	return new Promise(function(good,bad) {
+// 		directoryList(projID, function(rootDirMap) {
+// 			if( folderPath != null ) {
+// 				good(findSubDirectoryByPath(rootDirMap, folderPath));
+// 			} else {
+// 				good( rootDirMap );
+// 			}
+// 		});
+// 	}).then(callback);
+// }
+
+// Get children of folder
+// function getChildren(projID, folderID, directory, callback) {
+// 	return new Promise(function(good, bad) {
+// 		// Get children of project
+// 		directoryList(projID, function(project_children) {
+// 			for (var i = 0; i < project_children.length; i++) {
+// 				let project_child = project_children[i];
+// 				if (project_child.id == folderID) {
+// 					let main_folder = project_child.children;
+// 					for (var i = 0; i < main_folder.length; i++) {
+// 						let child = main_folder[i];
+// 						// Export test
+// 						if (child.typeName == 'TEST') {
+// 							// console.log(child.name);
+// 							getScript(projID, child.id, function(fileContent) {
+// 								exportTestFile(directory, child.name, fileContent);
+// 							});
+// 						}
+//
+// 						// Export folder
+// 						if (child.typeName == 'FOLDER') {
+// 							makeFolder(child.name, directory, function(new_directory) {
+// 								exportTestDirectory(projID, child.id, new_directory);
+// 							});
+// 						}
+// 					}
+// 				}
+// 			}
+// 		});
+// 	}).then(callback);
+// }
+
 // Find children if type is folder
-function findChildren(parent) {
-	return new Promise(function(good, bad) {
-		if (parent.children != null) {
-			let children = parent.children;
-			for (var i = 0; i < children.length; i++) {
-				let child = children[i];
-			}
-		}
-		return;
-	}).then(callback);
-}
+// function findChildren(parent) {
+// 	return new Promise(function(good, bad) {
+// 		if (parent.children != null) {
+// 			let children = parent.children;
+// 			for (var i = 0; i < children.length; i++) {
+// 				let child = children[i];
+// 			}
+// 		}
+// 		return;
+// 	}).then(callback);
+// }
 
 //------------------------------------------------------------------------------
 //	Project Functions
@@ -1313,7 +1428,7 @@ function exportTestHelper(projname, testname, options) {
 	projectID(projname, function(projID) {
 		testID(projID, testname, function(testID) {
 			getScript(projID, testID, function(fileContent) {
-				exportTest(options.directory, testname, fileContent);
+				exportTestFile(options.directory, testname, fileContent);
 			});
 		});
 	});
@@ -1433,7 +1548,7 @@ function importFolderUnderFolderHelper(projName, folderPath, folderName, options
 // 	projectID(projName, function(projID) {
 // 		nodeID(projID, folderName, function(folderID) {
 // 			makeFolder(folderName, options, function(new_directory) {
-// 				exportTests(projID, folderID, new_directory);
+// 				exportTestDirectory(projID, folderID, new_directory);
 // 			});
 // 		});
 // 	});
@@ -1441,8 +1556,11 @@ function importFolderUnderFolderHelper(projName, folderPath, folderName, options
 function exportFolderHelper(projName, folderName, options) {
 	projectID(projName, function(projID) {
 		nodeID(projID, folderName, function(folderID) {
-			makeFolder(folderName, options.directory, function(new_directory) {
-				getChildren(projID, folderID, new_directory);
+			// makeFolder(folderName, options.directory, function(new_directory) {
+			// 	getChildren(projID, folderID, new_directory);
+			// });
+			getDirectoryMapByID(projID, folderID, function(res) {
+				console.log(res);
 			});
 		});
 	});
