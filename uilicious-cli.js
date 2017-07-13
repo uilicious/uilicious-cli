@@ -292,6 +292,30 @@ function projectList(callback) {
 	);
 }
 
+/// Get the directory of a project
+///
+/// @param  [Optional] Callback to return result, defaults to console.log
+///
+/// @return  Promise object, for result
+function directoryList(projectID, callback) {
+	return new Promise(function(good, bad) {
+		webstudioJsonRequest(
+			"GET",
+			"/api/studio/v1/projects" + projectID + "/workspace/directory",
+			{},
+			function(list) {
+				console.log(list.children);
+			}
+		);
+	}).then(callback);
+	// return webstudioJsonRequest(
+	// 	"GET",
+	// 	"/api/studio/v1/projects" + projectID + "/workspace/directory",
+	// 	{},
+	// 	callback
+	// );
+}
+
 /// Get a list of folders
 ///
 /// @param  [Optional] Callback to return result, defaults to console.log
@@ -436,6 +460,7 @@ function getScript(projectID, testID, callback) {
 	}).then(callback);
 }
 
+// Export test
 function exportTest(directory, test_name, file_content) {
 	let filePathName = path.resolve(directory) + "/" + test_name + ".txt";
 	let fileName = test_name + ".txt";
@@ -443,7 +468,7 @@ function exportTest(directory, test_name, file_content) {
 		if (err) {
 			throw err;
 		}
-		console.log("File <" + fileName + "> successfully saved in " + directory);
+		console.log("File <" + fileName + "> successfully saved in " + directory + "\n");
 	});
 }
 
@@ -467,6 +492,12 @@ function exportTests(projID, folderID, directory, callback) {
 		});
 	}).then(callback);
 }
+
+// function getChildren(projID, nodeID, callback) {
+// 	return new Promise(function(good, bad) {
+// 		directoryList()
+// 	}).then(callback);
+// }
 
 //------------------------------------------------------------------------------
 //	Project Functions
@@ -1053,7 +1084,7 @@ function checkFolderContents(folder_pathname, callback) {
 function makeDir(directory, callback) {
 	return new Promise(function(good, bad) {
 		let testRun = new Date().toString();
-		let testDirectory = directory + "/TestRun" + testRun;
+		let testDirectory = directory + "/TestRun " + testRun;
 		fs.mkdir(testDirectory, function(err) {
 			if (err) {
 				throw err;
@@ -1373,6 +1404,15 @@ function exportFolderHelper(projName, folderName, options) {
 		});
 	});
 }
+// function exportFolderHelper(projName, folderName, options) {
+// 	projectID(projName, function(projID) {
+// 		nodeID(projID, folderName, function(folderID) {
+// 			directoryList(projID, function(res) {
+// 				console.log("");
+// 			});
+// 		})
+// 	});
+// }
 
 //------------------------------------------------------------------------------
 //	Main Function to run test script
@@ -1380,8 +1420,8 @@ function exportFolderHelper(projName, folderName, options) {
 
 // Run test script from project
 function main(projname, scriptpath, options) {
-	if (program.directory != null) {
-		makeDir(program.directory, function(testDirectory) {
+	if (options.directory != null) {
+		makeDir(options.directory, function(testDirectory) {
 			// Test log functionality
 			let testLog = testDirectory + '/log.txt';
 			const logFile = fs.createWriteStream(testLog, {
@@ -1460,7 +1500,7 @@ program
 	.version('1.3.12')
 	.option('-u, --user <required>', 'username')
 	.option('-p, --pass <required>', 'password')
-	.option('-d, --directory <optional>', 'Output directory path to use')
+	// .option('-d, --directory <optional>', 'Output directory path to use')
 	.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
 	.option('-w, --width <optional>', 'width of browser')
 	.option('-hg, --height <optional>', 'height of browser');
@@ -1632,7 +1672,7 @@ program
 	.action(function(projname, folder_name, options) {
 		let directory = options.directory || null;
 		if (directory == null) {
-			console.error(error_warning("The directory option is required!\nPlease use -d <directory> to set the directory path!\n"));
+			console.error("The directory option is required!\nPlease use -d <directory> to set the directory path!\n");
 			process.exit(1);
 		} else {
 			exportFolderHelper(projname, folder_name, options);
@@ -1644,6 +1684,7 @@ program
 // -----------------------------
 program
 	.command('run <projname> <scriptpath>')
+	.option('-d, --directory <directory>', 'Set the directory path.')
 	.description('Run a test from a project.')
 	.action(main);
 
