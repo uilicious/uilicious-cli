@@ -456,6 +456,8 @@ function getScript(projectID, testID, callback) {
 }
 
 // Export a test
+// @param directory to export test
+// @param test_name (name of test)
 function exportTestFile(directory, test_name, file_content) {
 	let filePathName = path.resolve(directory) + "/" + test_name + ".js";
 	let fileName = test_name + ".js";
@@ -477,7 +479,7 @@ function exportTestDirectory(projID, folderID, directory, callback) {
 	return new Promise(function(good, bad) {
 		getDirectoryMapByID(projID, folderID, function(dirNode) {
 			if( dirNode ) {
-				exportDirectoryNodeToDirectoryPath(dirNode, directory);
+				exportDirectoryNodeToDirectoryPath(projID, dirNode, directory);
 				good(true);
 			} else {
 				bad(false);
@@ -490,20 +492,25 @@ function exportTestDirectory(projID, folderID, directory, callback) {
 ///
 /// @param  The directory node to use
 /// @param  local directory path to export into
-// function exportDirectoryNodeToDirectoryPath(dirNode, localDirPath) {
-// 	if( dirNode == null ) {
-// 		return;
-// 	}
-// 	if (dirNode == "FOLDER") {
-// 		makeSureDirectoryExists(localDirPath);
-// 		var nextPath = localDirPath+"/"+dirNode.name;
-// 		for( each childNode inside dirNode.children ) {
-// 			exportDirectoryNodeToDirectoryPath( childNode, nextPath );
-// 		}
-// 	} else if (dirNode == "TEST") {
-// 		exportTestFile( fileID, localDirPath + "/"+ dirNode.fileName );
-// 	}
-// }
+function exportDirectoryNodeToDirectoryPath(projID, dirNode, localDirPath) {
+	if( dirNode == null ) {
+		return;
+	}
+	if (dirNode.typeName == "FOLDER") {
+		// makeSureDirectoryExists(localDirPath);
+		makeFolder(dirNode.name, localDirPath);
+		var nextPath = localDirPath+"/"+dirNode.name;
+		let folder_children = dirNode.children;
+		for (var i = 0; i < folder_children.length; i++) {
+			let folder_child = folder_children[i];
+			exportDirectoryNodeToDirectoryPath(projID, folder_child, nextPath);
+		}
+	} else if (dirNode.typeName == "TEST") {
+		getScript(projID, dirNode.id, function(fileContent) {
+			exportTestFile(localDirPath, dirNode.name, fileContent);
+		});
+	}
+}
 
 /// Does a recursive search on the parentDir object, and its children
 /// For the target folderID, if not found, returns a null
@@ -521,9 +528,9 @@ function findSubDirectoryByID(parentDir, folderID) {
 		// childrenList (children of directory)
 		var childrenList = parentDir.children;
 		for (var i = 0; i < childrenList.length; i++) {
-			var validatedChildNode = findSubDirectoryByID( childrenList[i], folderID );
-			if( validatedChildNode != null ) {
-				// console.log(validatedChildNode);
+			var validatedChildNode = findSubDirectoryByID(childrenList[i], folderID);
+			if (validatedChildNode != null) {
+				// return folder
 				return validatedChildNode;
 			}
 		}
@@ -570,8 +577,6 @@ function getDirectoryMapByID(projID, folderID, callback) {
 				if (root_folder.id == folderID) {
 					if( folderID != null ) {
 						good(findSubDirectoryByID(root_folder, folderID));
-					} else {
-						good(root_folder);
 					}
 				}
 			}
@@ -1556,11 +1561,9 @@ function importFolderUnderFolderHelper(projName, folderPath, folderName, options
 function exportFolderHelper(projName, folderName, options) {
 	projectID(projName, function(projID) {
 		nodeID(projID, folderName, function(folderID) {
-			// makeFolder(folderName, options.directory, function(new_directory) {
-			// 	getChildren(projID, folderID, new_directory);
-			// });
-			getDirectoryMapByID(projID, folderID, function(res) {
-				console.log(res);
+			getDirectoryMapByID(projID, folderID, function(rootDirMap) {
+				// console.log("Root: " + rootDirMap);
+				exportDirectoryNodeToDirectoryPath(projID, rootDirMap, options.directory);
 			});
 		});
 	});
