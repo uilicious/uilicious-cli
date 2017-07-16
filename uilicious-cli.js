@@ -1562,12 +1562,21 @@ function exportFolderHelper(projName, folderName, options) {
 	projectID(projName, function(projID) {
 		nodeID(projID, folderName, function(folderID) {
 			getDirectoryMapByID(projID, folderID, function(rootDirMap) {
-				// console.log("Root: " + rootDirMap);
 				exportDirectoryNodeToDirectoryPath(projID, rootDirMap, options.directory);
 			});
 		});
 	});
 }
+
+// function exportHelper(projName, foldertestName, options) {
+// 	projectID(projName, function(projID) {
+// 		nodeID(projID, foldertestName, function(nodeID) {
+// 			getDirectoryMapByID(projID, nodeID, function(rootDirMap) {
+// 				exportDirectoryNodeToDirectoryPath(projID, rootDirMap, options.directory);
+// 			});
+// 		});
+// 	});
+// }
 
 //------------------------------------------------------------------------------
 //	Main Function to run test script
@@ -1833,6 +1842,22 @@ program
 			exportFolderHelper(projname, folder_name, options);
 		}
 	});
+
+// Export file/folder
+// program
+// 	.command('export <projname> <foldertest_name>')
+// 	.option('-d, --directory <directory>', 'Set the directory path.')
+// 	.alias('e')
+// 	.description('Export a folder or test.')
+// 	.action(function(projname, foldertest_name, options) {
+// 		let directory = options.directory || null;
+// 		if (directory == null) {
+// 			console.error("The directory option is required!\nPlease use -d <directory> to set the directory path!\n");
+// 			process.exit(1);
+// 		} else {
+// 			exportHelper(projname, foldertest_name, options);
+// 		}
+// 	});
 
 // -----------------------------
 // 	Commands for running tests
