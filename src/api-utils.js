@@ -99,7 +99,7 @@ class APIUtils {
 	static jsonRequest(method, url, inData, callback) {
 		// Calling rawRequest, and parsing the good result as JSON
 		return new Promise(function(good, bad) {
-			rawRequestData(method, url, inData).then(function(data) {
+			APIUtils.rawRequestData(method, url, inData).then(function(data) {
 				try {
 					good(JSON.parse(data));
 				} catch(err) {
@@ -124,14 +124,14 @@ class APIUtils {
 	/// @return   Promise object, returning the full URL to make request to
 	static getFullHostURL(callback) {
 		/// Cached full host URL
-		var _fullHostURL = null;
+		 var _fullHostURL = null;
 
 		if ( _fullHostURL != null ) {
 			return Promise.resolve(_fullHostURL).then(callback);
 		}
 
 		return new Promise(function(good, bad) {
-			jsonRequest(
+			APIUtils.jsonRequest(
 				"POST",
 				"https://beta-login.uilicious.com/api/fetchHostURL",
 				{
@@ -143,7 +143,7 @@ class APIUtils {
 						console.error("ERROR: Unable to login - Invalid username/password");
 						process.exit(1);
 					} else {
-						_fullHostURL = res.protectedURL;
+						var _fullHostURL = res.protectedURL;
 						good(_fullHostURL);
 					}
 				}
@@ -160,8 +160,8 @@ class APIUtils {
 	///
 	static webstudioJsonRequest(method, webPath, params, callback) {
 		return new Promise(function(good, bad) {
-			getFullHostURL(function(hostURL) {
-				jsonRequest(method, hostURL+webPath, params).then(good, bad);
+			APIUtils.getFullHostURL(function(hostURL) {
+				APIUtils.jsonRequest(method, hostURL+webPath, params).then(good, bad);
 			});
 		}).then(callback);
 	}
@@ -176,8 +176,8 @@ class APIUtils {
 	///
 	static webstudioRawRequest(method, webPath, params, callback) {
 		return new Promise(function(good, bad) {
-			getFullHostURL(function(hostURL) {
-				rawRequestData(method, hostURL+webPath, params).then(good, bad);
+			APIUtils.getFullHostURL(function(hostURL) {
+				APIUtils.rawRequestData(method, hostURL+webPath, params).then(good, bad);
 			});
 		}).then(callback);
 	}
@@ -195,8 +195,8 @@ class APIUtils {
 	/// @return The promise object, returns the request object
 	static webstudioStreamRequest(writeStream, method, webPath, params, callback) {
 		return new Promise(function(good, bad) {
-			getFullHostURL(function(hostURL) {
-				streamRequest(writeStream, method, hostURL+webPath, params).then(good, bad);
+			APIUtils.getFullHostURL(function(hostURL) {
+				APIUtils.streamRequest(writeStream, method, hostURL+webPath, params).then(good, bad);
 			});
 		}).then(callback);
 	}
