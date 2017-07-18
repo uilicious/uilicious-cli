@@ -744,61 +744,6 @@ function makeFolder(folderName, directory, callback) {
 	}).then(callback);
 }
 
-//------------------------------------------------------------------------------------------
-//
-// Core Commands
-//
-//------------------------------------------------------------------------------------------
-
-// Get list of projects from account
-function getAllProjects(options) {
-	console.log("#------------#");
-	console.log("#  Projects  #");
-	console.log("#------------#");
-	console.log("");
-
-	ProjectCRUD.projects(function(list) {
-		console.log("");
-	});
-}
-
-//------------------------------------------------------------------------------
-//	Project Helper Functions
-//------------------------------------------------------------------------------
-
-// Create new project
-// @param		Project Name
-function createProjectHelper(projname, options) {
-	ProjectCRUD.checkProject(projname, function(res) {
-		ProjectCRUD.createProject(projname, function(res) {
-			console.log(success("New project '"+projname+"' created.\n"));
-		});
-	});
-}
-
-// Update project using projname to get projID
-// @param		Project Name
-// @param		New Project Name
-function updateProjectHelper(projname, new_projname, options) {
-	ProjectCRUD.projectID(projname, function(projID) {
-		ProjectCRUD.checkProject(new_projname, function(res) {
-			ProjectCRUD.updateProject(projID, new_projname, function(res) {
-				console.log(success("Project '"+projname+"' renamed to '"+new_projname+"'.\n"));
-			});
-		});
-	});
-}
-
-// Delete project using project name
-// @param		Project Name
-function deleteProjectHelper(projname, options) {
-	ProjectCRUD.projectID(projname, function(projID) {
-		ProjectCRUD.deleteProject(projID, function(res) {
-			console.log(error("Project '"+projname+"' deleted.\n"));
-		});
-	});
-}
-
 //------------------------------------------------------------------------------
 //	Test Helper Functions
 //------------------------------------------------------------------------------
@@ -1079,28 +1024,28 @@ function CLIApp() {
 		.command('list-project')
 		.alias('list')
 		.description('List all projects.')
-		.action(getAllProjects);
+		.action(ProjectCRUD.getAllProjects);
 
 	// Create Project
 	program
 		.command('create-project <projname>')
 		.alias('cp')
 		.description('Create a new project.')
-		.action(createProjectHelper);
+		.action(ProjectCRUD.createProjectHelper);
 
 	// Update Project
 	program
 		.command('rename-project <projname> <new_projname>')
 		.alias('rp')
 		.description('Rename a project.')
-		.action(updateProjectHelper);
+		.action(ProjectCRUD.updateProjectHelper);
 
 	// Delete Project
 	program
 		.command('delete-project <projname>')
 		.alias('dp')
 		.description('Delete a project.')
-		.action(deleteProjectHelper);
+		.action(ProjectCRUD.deleteProjectHelper);
 
 	// Create Folder
 	program

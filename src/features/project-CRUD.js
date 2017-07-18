@@ -1,6 +1,55 @@
 const APIUtils = require('./../api-utils');
 
 class ProjectCRUD {
+  //------------------------------------------------------------------------------
+  //	Project Helper Functions
+  //------------------------------------------------------------------------------
+
+  // Get list of projects from account
+  static getAllProjects(options) {
+  	console.log("#------------#");
+  	console.log("#  Projects  #");
+  	console.log("#------------#");
+  	console.log("");
+
+  	ProjectCRUD.projects(function(list) {
+  		console.log("");
+  	});
+  }
+
+  // Create new project
+  // @param		Project Name
+  static createProjectHelper(projname, options) {
+  	ProjectCRUD.checkProject(projname, function(res) {
+  		ProjectCRUD.createProject(projname, function(res) {
+  			console.log(success("New project '"+projname+"' created.\n"));
+  		});
+  	});
+  }
+
+  // Update project using projname to get projID
+  // @param		Project Name
+  // @param		New Project Name
+  static updateProjectHelper(projname, new_projname, options) {
+  	ProjectCRUD.projectID(projname, function(projID) {
+  		ProjectCRUD.checkProject(new_projname, function(res) {
+  			ProjectCRUD.updateProject(projID, new_projname, function(res) {
+  				console.log(success("Project '"+projname+"' renamed to '"+new_projname+"'.\n"));
+  			});
+  		});
+  	});
+  }
+
+  // Delete project using project name
+  // @param		Project Name
+  static deleteProjectHelper(projname, options) {
+  	ProjectCRUD.projectID(projname, function(projID) {
+  		ProjectCRUD.deleteProject(projID, function(res) {
+  			console.log(error("Project '"+projname+"' deleted.\n"));
+  		});
+  	});
+  }
+
   /// Get a list of projects, in the following format [ { id, title, logoUrl }]
   /// @param  [Optional] Callback to return result, defaults to console.log
   /// @return  Promise object, for result
