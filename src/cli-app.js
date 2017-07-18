@@ -54,20 +54,6 @@ function directoryList(projectID, callback) {
 	}).then(callback);
 }
 
-// /// Get a list of folders
-// ///
-// /// @param  [Optional] Callback to return result, defaults to console.log
-// ///
-// /// @return  Promise object, for result
-// function folderList(projectID, callback) {
-// 	return APIUtils.webstudioJsonRequest(
-// 		"GET",
-// 		"/api/studio/v1/projects/" + projectID + "/workspace/folders",
-// 		{},
-// 		callback
-// 	);
-// }
-
 /// Get a list of tests
 ///
 /// @param  [Optional] Callback to return result, defaults to console.log
@@ -82,24 +68,42 @@ function testList(projectID, callback) {
 	);
 }
 
-// // List all the folders
-// // silently terminates , with an error message if no project is present
-// function folders(projectId, callback) {
-// 	return new Promise(function(good,bad) {
-// 		folderList(projectId, function(list) {
-// 			if(list != null) {
-// 				for(let i = 0; i < list.length; i++) {
-// 					let item = list[i];
-// 					console.log(" * " + item.name);
-// 				}
-// 				console.log("");
-// 			} else {
-// 				console.error("ERROR: No folder is present.");
-// 				process.exit(1);
-// 			}
-// 		});
-// 	}).then(callback);
-// }
+/// List all projects,
+/// silently terminates, with an error message if no project present
+function projects(callback) {
+	return new Promise(function(good, bad) {
+		projectList(function(list) {
+			if (list != null) {
+				for (let i = 0; i < list.length; i++) {
+					let item = list[i];
+					console.log(" * " + item.title);
+				}
+				console.log("");
+			} else {
+				console.error("ERROR: No project present.");
+				process.exit(1);
+			}
+		});
+	}).then(callback);
+}
+
+/// Check for duplicate Project name
+/// @param	Project Name
+function checkProject(projname, callback) {
+	return new Promise(function(good, bad) {
+		projectList(function(list) {
+			for (let i = 0; i < list.length; i++) {
+				let item = list[i];
+				if (item.title == projname) {
+					console.error("ERROR: This project '" + projname + "' exists.\nPlease use another name!\n");
+					process.exit(1);
+				}
+			}
+			good();
+			return;
+		});
+	}).then(callback);
+}
 
 /// Check for duplicate Test name
 /// @param	Project ID
@@ -126,26 +130,8 @@ function checkTest(projID, filePathname, callback) {
 	}).then(callback);
 }
 
-// /// Check for duplicate Folder name
-// /// @param	Project ID
-// /// @param	Folder Name
-// function checkFolder(projID, folderName, callback) {
-// 	return new Promise(function(good, bad) {
-// 		folderList(projID, function(folders) {
-// 			for (let i = 0; i < folders.length; i++) {
-// 				let folder = folders[i];
-// 				if (folder.name == folderName) {
-// 					console.error(error_warning("ERROR: This folder '" + folderName + "' exists.\nPlease use another name!\n"));
-// 					process.exit(1);
-// 				}
-// 			}
-// 			good(folderName);
-// 			return;
-// 		});
-// 	}).then(callback);
-// }
 
-// Get script of test
+
 // @param		Project ID
 //@param		Test ID
 function getScript(projectID, testID, callback) {
@@ -431,118 +417,33 @@ function importTestUnderFolder(projectID, nodeID, testName, testContent, callbac
 	);
 }
 
-// /// Create a new folder using projectName
-// /// @param	Project ID from projectID()
-// function createFolder(projectID, folderName, callback) {
-// 	return APIUtils.webstudioRawRequest(
-// 		"POST",
-// 		"/api/studio/v1/projects/" + projectID + "/workspace/folders/addAction",
-// 		{
-// 			name: folderName
-// 		},
-// 		callback
-// 	);
-// }
-
-// /// Create a new folder under another folder under the project using the nodeID and the projectName
-// /// @param projectID
-// /// @param nodeID
-// function createFolderUnderFolder(projectID, nodeID, creatingfoldername, callback) {
-// 	return APIUtils.webstudioRawRequest(
-// 		"POST",
-// 		"/api/studio/v1/projects/" + projectID + "/workspace/folders/addAction",
-// 		{
-// 			name: creatingfoldername,
-// 			parentId: nodeID
-// 		},
-// 		callback
-// 	);
-// }
-
-// /// Update a test/folder
-// /// @param	Project ID from projectID()
-// /// @param	Node ID from testID() or folderID()
-// /// @param  [Optional] Callback to return result
-// function updateTestFolder(projectID, nodeID, new_Name, callback) {
-// 	return APIUtils.webstudioRawRequest(
-// 		"POST",
-// 		"/api/studio/v1/projects/" + projectID + "/workspace/nodes/" + nodeID + "/renameAction",
-// 		{
-// 			name: new_Name
-// 		},
-// 		callback
-// 	);
-// }
-//
-// /// Delete a test/folder
-// /// @param	Project ID from projectID()
-// /// @param	Node ID from testID() of folderID()
-// /// @param  [Optional] Callback to return result
-// function deleteTestFolder(projectID, nodeID, callback) {
-// 	return APIUtils.webstudioRawRequest(
-// 		"POST",
-// 		"/api/studio/v1/projects/" + projectID + "/workspace/nodes/" + nodeID + "/deleteAction",
-// 		{},
-// 		callback
-// 	);
-// }
-
 //------------------------------------------------------------------------------
 //	Main Functions
 //------------------------------------------------------------------------------
 
-// /// Returns the folder ID (if found), given the project ID AND folder webPath
-// /// Also can be used to return node ID for folder
-// ///
-// /// @param  Project ID
-// /// @param  Folder Name
-// /// @param  [Optional] Callback to return result
-// ///
-// /// @return  Promise object, for result
-// function folderID(projID, folderPath, callback) {
-// 	return new Promise(function(good, bad) {
-// 		APIUtils.webstudioJsonRequest(
-// 			"GET",
-// 			"/api/studio/v1/projects/" + projID + "/workspace/folders",
-// 			{ path : folderPath },
-// 			function(res) {
-// 				// Prevent
-// 				if (res.length > 1) {
-// 					console.error("ERROR: Multiple folders named '" + folderPath + "' found.\nPlease give the correct name!\n");
-// 					process.exit(1);
-// 				} else {
-// 					let id = res[0].id;
-// 					good(parseInt(id));
-// 					return;
-// 				}
-// 				console.error("ERROR: Unable to find folder: '" + folderPath + "'\n");
-// 				process.exit(1);
-// 			}
-// 		);
-// 	}).then(callback);
-// }
+/// Fetch the project ID for a project,
+/// silently terminates, with an error message if it fails
+///
+/// @param  Project Name to fetch ID
+/// @param  [Optional] Callback to return result
+///
+/// @return  Promise object, for result
+function projectID(projectName, callback) {
+	return new Promise(function(good, bad) {
+		projectList(function(list) {
+			for (let i=0; i<list.length; ++i) {
+				let item = list[i];
+				if (item.title == projectName) {
+					good(parseInt(item.id));
+					return;
+				}
+			}
+			console.error("ERROR: Project Name not found: " + projectName);
+			process.exit(1);
+		});
+	}).then(callback);
+}
 
-// /// Returns the node ID (if found) , given the project ID and folderName
-// ///@param projectID
-// ///@param folderName
-// ///@param [optional] callback to return the result
-// ///
-// /// return promise object , for result
-// function nodeID(projectId, folderName, callback) {
-// 	return new Promise(function(good, bad) {
-// 		folderList(projectId, function(list) {
-// 			for(let i = 0; i<list.length; ++i) {
-// 				let item = list[i];
-// 				if(item.name == folderName) {
-// 					good(parseInt(item.id));
-// 					return;
-// 				}
-// 			}
-// 			console.error("ERROR: This folder <" + folderName + "> does not exist!");
-// 			process.exit(1);
-// 		});
-// 	}).then(callback);
-// }
 
 /// Returns the test ID (if found), given the project ID AND test webPath
 /// Also can be used to return node ID for test
@@ -1084,81 +985,13 @@ function exportTestHelper(projname, testname, options) {
 //	Folder Helper Functions
 //------------------------------------------------------------------------------
 
-// Create folder
-// @param		Project Name
-// @param		Folder Name
-function createFolderHelper(projName, folderName, options) {
-	projectID(projName, function(projID) {
-		checkFolder(projID, folderName, function(res) {
-			createFolder(projID, folderName, function(res) {
-				console.log(success("New folder '"+folderName+"' created in Project '"+projName+"'\n"));
-			});
-		});
-	});
-}
-
-// Create folder under a folder
-// @param Project Name
-// @param FolderName
-// @param creating Folder Name
-function createFolderUnderFolderHelper(projname, foldername, creatingfoldername) {
-	projectID(projname, function(projID) {
-		nodeID(projID, foldername, function(nodeId) {
-			checkFolder(projID, creatingfoldername, function(res) {
-				createFolderUnderFolder(projID, nodeId, creatingfoldername, function(res) {
-					console.log(success("New folder '" + creatingfoldername + "' created under Folder '" + foldername + "' under Project '" + projname));
-				});
-			});
-		});
-	});
-}
-
-// Get folder List under the project
-// @param Project Name
-function getFolderListHelper(projectName, options) {
-	projectID(projectName, function(projectId) {
-		folders(projectId, function(list) {
-			console.log(list);
-		});
-	});
-}
-
-// Update test script
-// @param		Project Name
-// @param		Test Name
-// @param		New Test Name
-function updateFolderHelper(projName, folderName, new_folderName, options) {
-	projectID(projName, function(projID) {
-		folderID(projID, folderName, function(nodeID) {
-			checkFolder(projID, new_folderName, function(res) {
-				updateTestFolder(projID, nodeID, new_folderName, function(res) {
-					console.log(success("Folder '"+folderName+"' from Project '"+projName+"' renamed to '"+new_folderName+"'\n"));
-				});
-			});
-		});
-	});
-}
-
-// Delete folder
-// @param		Project Name
-// @param		Folder Name
-function deleteFolderHelper(projName, folderPath, options) {
-	projectID(projName, function(projID) {
-		folderID(projID, folderPath, function(nodeID) {
-			deleteTestFolder(projID, nodeID, function(res) {
-				console.log(error_warning("Folder '"+folderPath+"' deleted from Project '"+projName+"'\n"));
-			});
-		});
-	});
-}
-
 // Import folder and its contents
 function importFolderHelper(projName, folderPath, options) {
 	checkPath(folderPath, function(folder_pathname) {
 		checkFolderContents(folder_pathname, function(folder_name) {
 			projectID(projName, function(projID) {
-				checkFolder(projID, folder_name, function(folder_name) {
-					createFolder(projID, folder_name, function(res) {
+				folderCRUD.checkFolder(projID, folder_name, function(folder_name) {
+					folderCRUD.createFolder(projID, folder_name, function(res) {
 						importFolderContents(projName, folder_name, folder_pathname, function(res) {
 							console.log("");
 						});
@@ -1174,9 +1007,9 @@ function importFolderUnderFolderHelper(projName, folderPath, folderName, options
 	checkPath(folderPath, function(folder_pathname) {
 		checkFolderContents(folder_pathname, function(folder_name) {
 			projectID(projName, function(projID) {
-				nodeID(projID, folderName, function(nodeId) {
-					checkFolder(projID, folder_name, function(folder_name) {
-						createFolderUnderFolder(projID, nodeId, folder_name, function(res) {
+				folderCRUD.nodeID(projID, folderName, function(nodeId) {
+					folderCRUD.checkFolder(projID, folder_name, function(folder_name) {
+						folderCRUD.createFolderUnderFolder(projID, nodeId, folder_name, function(res) {
 							importFolderContents(projName, folder_name, folder_pathname, function(res) {
 								console.log("");
 							});
@@ -1201,7 +1034,7 @@ function importFolderUnderFolderHelper(projName, folderPath, folderName, options
 // }
 function exportFolderHelper(projName, folderName, options) {
 	projectID(projName, function(projID) {
-		nodeID(projID, folderName, function(folderID) {
+		folderCRUD.nodeID(projID, folderName, function(folderID) {
 			getDirectoryMapByID(projID, folderID, function(rootDirMap) {
 				exportDirectoryNodeToDirectoryPath(projID, rootDirMap, options.directory);
 			});
@@ -1341,9 +1174,9 @@ function CLIApp() {
 		.action(function(projname, folder_name, options) {
 			let folder  = options.folder || null;
 			if(folder == null) {
-				createFolderHelper(projname, folder_name);
+				folderCRUD.createFolderHelper(projname, folder_name);
 			} else {
-				createFolderUnderFolderHelper(projname, folder, folder_name);
+				folderCRUD.createFolderUnderFolderHelper(projname, folder, folder_name);
 			}
 		});
 
@@ -1352,14 +1185,14 @@ function CLIApp() {
 		.command('rename-folder <projname> <folder_name> <new_folder_name>')
 		.alias('rf')
 		.description('Rename a folder')
-		.action(updateFolderHelper);
+		.action(folderCRUD.updateFolderHelper);
 
 	// Delete Folder
 	program
 		.command('delete-folder <projname> <folder_name>')
 		.alias('df')
 		.description('Delete a folder.')
-		.action(deleteFolderHelper);
+		.action(folderCRUD.deleteFolderHelper);
 
 	// Import Folder
 	program

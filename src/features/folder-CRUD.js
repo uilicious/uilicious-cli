@@ -4,7 +4,15 @@
  */
 
 
+// Chalk messages
+const chalk = require('chalk');
+const error_warning = chalk.bold.red;
+const success_warning = chalk.bold.green;
+const error = chalk.red;
+const success = chalk.green;
+
 const APIUtils = require('./../api-utils');
+const ProjectCRUD = require('./project-CRUD');
 
 
 class folderCRUD {
@@ -168,6 +176,79 @@ class folderCRUD {
 			process.exit(1);
 		});
 	}).then(callback);
+}
+
+
+// Create folder
+// @param		Project Name
+// @param		Folder Name
+	static createFolderHelper(projName, folderName, options) {
+	ProjectCRUD.projectID(projName, function(projID) {
+		folderCRUD.checkFolder(projID, folderName, function(res) {
+			folderCRUD.createFolder(projID, folderName, function(res) {
+				console.log(success("New folder '"+folderName+"' created in Project '"+projName+"'\n"));
+			});
+		});
+	});
+}
+
+//------------------------------------------------------------------------------
+//	Folder Helper Functions
+//------------------------------------------------------------------------------
+
+// Create folder under a folder
+// @param Project Name
+// @param FolderName
+// @param creating Folder Name
+	static createFolderUnderFolderHelper(projname, foldername, creatingfoldername) {
+	ProjectCRUD.projectID(projname, function(projID) {
+		folderCRUD.nodeID(projID, foldername, function(nodeId) {
+			folderCRUD.checkFolder(projID, creatingfoldername, function(res) {
+				folderCRUD.createFolderUnderFolder(projID, nodeId, creatingfoldername, function(res) {
+					console.log(success("New folder '" + creatingfoldername + "' created under Folder '" + foldername + "' under Project '" + projname));
+				});
+			});
+		});
+	});
+}
+
+// Get folder List under the project
+// @param Project Name
+	static getFolderListHelper(projectName, options) {
+	ProjectCRUD.projectID(projectName, function(projectId) {
+		folderCRUD.folders(projectId, function(list) {
+			console.log(list);
+		});
+	});
+}
+
+// Update test script
+// @param		Project Name
+// @param		Test Name
+// @param		New Test Name
+	static updateFolderHelper(projName, folderName, new_folderName, options) {
+	ProjectCRUD.projectID(projName, function(projID) {
+		folderCRUD.folderID(projID, folderName, function(nodeID) {
+			folderCRUD.checkFolder(projID, new_folderName, function(res) {
+				folderCRUD.updateTestFolder(projID, nodeID, new_folderName, function(res) {
+					console.log(success("Folder '"+folderName+"' from Project '"+projName+"' renamed to '"+new_folderName+"'\n"));
+				});
+			});
+		});
+	});
+}
+
+// Delete folder
+// @param		Project Name
+// @param		Folder Name
+	static deleteFolderHelper(projName, folderPath, options) {
+	ProjectCRUD.projectID(projName, function(projID) {
+		folderCRUD.folderID(projID, folderPath, function(nodeID) {
+			folderCRUD.deleteTestFolder(projID, nodeID, function(res) {
+				console.log(error_warning("Folder '"+folderPath+"' deleted from Project '"+projName+"'\n"));
+			});
+		});
+	});
 }
 
 }
