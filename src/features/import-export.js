@@ -33,11 +33,9 @@ class ImportExport {
   //----------------------------------------------------------------------------
 
   /// Export children(tests) of folder
-  ///
   /// @param   Project ID
   /// @param   Folder ID
   /// @param   local system file path, to export tests into
-  ///
   static exportTestDirectory(projID, folderID, directory, callback) {
   	return new Promise(function(good, bad) {
   		ImportExport.getDirectoryMapByID(projID, folderID, function(dirNode) {
@@ -106,11 +104,9 @@ class ImportExport {
   }
 
   /// Get the directory map, using the projectID and folderID
-  ///
   /// @param  projectID to export from
   /// @param  folderID to export from
   /// @param  callback to call with result
-  ///
   /// @return  Promise object that returns the directory map
   static getDirectoryMapByID(projID, folderID, callback) {
   	return new Promise(function(good, bad) {
@@ -125,21 +121,14 @@ class ImportExport {
   					}
   				}
   			}
-  			// if( folderID != null ) {
-  			// 	good(findSubDirectoryByID(rootDirMap, folderID));
-  			// } else {
-  			// 	good( rootDirMap );
-  			// }
   		});
   	}).then(callback);
   }
 
   /// Does a recursive search on the parentDir object, and its children
   /// For the target folderID, if not found, returns a null
-  ///
   /// @param  parentDir object, an example would be the return from "api/studio/v1/projects/:projid/workspace/directory"
   /// @param  folderID to find, not folder path.
-  ///
   /// @return  The directory node, that matches the ID
   static findSubDirectoryByID(parentDir, folderID) {
   	if( parentDir.typeName == "FOLDER" ) {
