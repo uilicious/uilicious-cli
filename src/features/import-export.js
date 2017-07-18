@@ -1,6 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 
+const chalk = require('chalk');
+const error = chalk.red;
+const success = chalk.green;
+
 const APIUtils = require('./../api-utils');
 const ProjectCRUD = require('./project-CRUD');
 const folderCRUD = require('./folder-CRUD');
@@ -80,7 +84,7 @@ class ImportExport {
   		if (err) {
   			throw err;
   		}
-  		console.log("File <" + fileName + "> successfully saved in " + directory);
+  		console.log(success("File <" + fileName + "> successfully saved in " + directory));
   	});
   }
 
@@ -92,7 +96,7 @@ class ImportExport {
   		let newDirectory = directory + "/" + folderName;
   		fs.mkdir(newDirectory, function(err) {
   			if (err === 'EEXIST') {
-  				console.error("ERROR: This folder <"+ folderName +"> exists.\nPlease use another directory.\n");
+  				console.error(error("ERROR: This folder <"+ folderName +"> exists.\nPlease use another directory.\n"));
   				process.exit(1);
   			}
   		});
