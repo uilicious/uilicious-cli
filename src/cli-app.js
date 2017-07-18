@@ -483,10 +483,6 @@ function exportFolderHelper(projName, folderName, options) {
 
 
 
-// -----------------------------
-// 	Commands for Folder CRUD
-// -----------------------------
-
 function CLIApp() {
 
 	// const importExportSetup = require("./features/import-export-commands");
@@ -502,6 +498,10 @@ function CLIApp() {
 		.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
 		.option('-w, --width <optional>', 'width of browser')
 		.option('-hg, --height <optional>', 'height of browser');
+
+	//----------------------------
+	// Project Commands
+	//----------------------------
 
 	//List the projects
 	program
@@ -609,6 +609,10 @@ function CLIApp() {
 			}
 		});
 
+
+		//----------------------------
+		// Folder Commands
+		//----------------------------
 
 	// Create Folder
 	program
