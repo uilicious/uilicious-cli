@@ -28,6 +28,7 @@ const APIUtils = require("./api-utils");
 const ProjectCRUD = require('./features/project-CRUD');
 const folderCRUD = require('./features/folder-CRUD');
 const testCRUD = require('./features/test-CRUD');
+const ImportExport = require('./features/ImportExport');
 
 
 //------------------------------------------------------------------------------------------
@@ -35,20 +36,6 @@ const testCRUD = require('./features/test-CRUD');
 // API request handling
 //
 //------------------------------------------------------------------------------------------
-
-/// Get a list of project, in the following format [ { id, title, logoUrl }]
-///
-/// @param  [Optional] Callback to return result, defaults to console.log
-///
-/// @return  Promise object, for result
-function projectList(callback) {
-	return APIUtils.webstudioJsonRequest(
-		"GET",
-		"/api/studio/v1/projects",
-		{},
-		callback
-	);
-}
 
 /// Get the directory of a project
 ///
@@ -83,43 +70,6 @@ function testList(projectID, callback) {
 	);
 }
 
-/// List all projects,
-/// silently terminates, with an error message if no project present
-function projects(callback) {
-	return new Promise(function(good, bad) {
-		projectList(function(list) {
-			if (list != null) {
-				for (let i = 0; i < list.length; i++) {
-					let item = list[i];
-					console.log(" * " + item.title);
-				}
-				console.log("");
-			} else {
-				console.error("ERROR: No project present.");
-				process.exit(1);
-			}
-		});
-	}).then(callback);
-}
-
-/// Check for duplicate Project name
-/// @param	Project Name
-function checkProject(projname, callback) {
-	return new Promise(function(good, bad) {
-		projectList(function(list) {
-			for (let i = 0; i < list.length; i++) {
-				let item = list[i];
-				if (item.title == projname) {
-					console.error("ERROR: This project '" + projname + "' exists.\nPlease use another name!\n");
-					process.exit(1);
-				}
-			}
-			good();
-			return;
-		});
-	}).then(callback);
-}
-
 /// Check for duplicate Test name
 /// @param	Project ID
 /// @param	Test Name
@@ -144,8 +94,6 @@ function checkTest(projID, filePathname, callback) {
 		);
 	}).then(callback);
 }
-
-
 
 // @param		Project ID
 //@param		Test ID
@@ -361,48 +309,6 @@ function getDirectoryMapByID(projID, folderID, callback) {
 // }
 
 //------------------------------------------------------------------------------
-//	Project Functions
-//------------------------------------------------------------------------------
-
-/// Create a new project using projectName
-/// @param	Project Name
-function createProject(projectName, callback) {
-	return APIUtils.webstudioRawRequest(
-		"POST",
-		"/api/studio/v1/projects",
-		{ title: projectName },
-		callback
-	);
-}
-
-/// Read a project and display its directory
-// function getProj(projectID, callback) {
-// 	return
-// }
-
-/// Update a project
-function updateProject(projectID, newProjectName, callback) {
-	return APIUtils.webstudioRawRequest(
-		"POST",
-		"/api/studio/v1/projects/" + projectID,
-		{ title: newProjectName },
-		callback
-	);
-}
-
-/// Delete a project
-/// @param	Project ID from projectID()
-/// @param  [Optional] Callback to return result
-function deleteProject(projectID, callback) {
-	return APIUtils.webstudioRawRequest(
-		"DELETE",
-		"/api/studio/v1/projects/" + projectID,
-		{},
-		callback
-	);
-}
-
-//------------------------------------------------------------------------------
 //	Folder & Test Functions
 //------------------------------------------------------------------------------
 
@@ -477,30 +383,6 @@ function importTestUnderFolder(projectID, nodeID, testName, testContent, callbac
 //------------------------------------------------------------------------------
 //	Main Functions
 //------------------------------------------------------------------------------
-
-/// Fetch the project ID for a project,
-/// silently terminates, with an error message if it fails
-///
-/// @param  Project Name to fetch ID
-/// @param  [Optional] Callback to return result
-///
-/// @return  Promise object, for result
-function projectID(projectName, callback) {
-	return new Promise(function(good, bad) {
-		projectList(function(list) {
-			for (let i=0; i<list.length; ++i) {
-				let item = list[i];
-				if (item.title == projectName) {
-					good(parseInt(item.id));
-					return;
-				}
-			}
-			console.error("ERROR: Project Name not found: " + projectName);
-			process.exit(1);
-		});
-	}).then(callback);
-}
-
 
 /// Returns the test ID (if found), given the project ID AND test webPath
 /// Also can be used to return node ID for test
@@ -864,61 +746,6 @@ function makeFolder(folderName, directory, callback) {
 	}).then(callback);
 }
 
-//------------------------------------------------------------------------------------------
-//
-// Core Commands
-//
-//------------------------------------------------------------------------------------------
-
-// Get list of projects from account
-function getAllProjects(options) {
-	console.log("#------------#");
-	console.log("#  Projects  #");
-	console.log("#------------#");
-	console.log("");
-
-	projects(function(list) {
-		console.log("");
-	});
-}
-
-//------------------------------------------------------------------------------
-//	Project Helper Functions
-//------------------------------------------------------------------------------
-
-// Create new project
-// @param		Project Name
-function createProjectHelper(projname, options) {
-	checkProject(projname, function(res) {
-		createProject(projname, function(res) {
-			console.log(success("New project '"+projname+"' created.\n"));
-		});
-	});
-}
-
-// Update project using projname to get projID
-// @param		Project Name
-// @param		New Project Name
-function updateProjectHelper(projname, new_projname, options) {
-	projectID(projname, function(projID) {
-		checkProject(new_projname, function(res) {
-			updateProject(projID, new_projname, function(res) {
-				console.log(success("Project '"+projname+"' renamed to '"+new_projname+"'\n"));
-			});
-		});
-	});
-}
-
-// Delete project using project name
-// @param		Project Name
-function deleteProjectHelper(projname, options) {
-	projectID(projname, function(projID) {
-		deleteProject(projID, function(res) {
-			console.log(error_warning("Project '"+projname+"' deleted\n"));
-		});
-	});
-}
-
 //------------------------------------------------------------------------------
 //	Test Helper Functions
 //------------------------------------------------------------------------------
@@ -1199,7 +1026,7 @@ function CLIApp() {
 		.command('list-project')
 		.alias('list')
 		.description('List all projects.')
-		.action(getAllProjects);
+		.action(ProjectCRUD.getAllProjects);
 
 	//List the folders
 	program
@@ -1213,21 +1040,21 @@ function CLIApp() {
 		.command('create-project <projname>')
 		.alias('cp')
 		.description('Create a new project.')
-		.action(createProjectHelper);
+		.action(ProjectCRUD.createProjectHelper);
 
 	// Update Project
 	program
 		.command('rename-project <projname> <new_projname>')
 		.alias('rp')
 		.description('Rename a project.')
-		.action(updateProjectHelper);
+		.action(ProjectCRUD.updateProjectHelper);
 
 	// Delete Project
 	program
 		.command('delete-project <projname>')
 		.alias('dp')
 		.description('Delete a project.')
-		.action(deleteProjectHelper);
+		.action(ProjectCRUD.deleteProjectHelper);
 
 	// Create Folder
 	program
