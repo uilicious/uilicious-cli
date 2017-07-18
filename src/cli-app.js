@@ -26,266 +26,7 @@ const success = chalk.green;
 const CLIUtils = require("./cli-utils");
 const APIUtils = require("./api-utils");
 const ProjectCRUD = require('./features/project-CRUD');
-
-//------------------------------------------------------------------------------------------
-//
-// Support polyfill
-//
-//------------------------------------------------------------------------------------------
-
-/*
-// https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith
-if (!String.prototype.endsWith) {
-	String.prototype.endsWith = function(searchString, position) {
-		var subjectString = this.toString();
-		if (typeof position !== 'number' || !isFinite(position) || Math.floor(position) !== position || position > subjectString.length) {
-			position = subjectString.length;
-		}
-		position -= searchString.length;
-		var lastIndex = subjectString.lastIndexOf(searchString, position);
-		return lastIndex !== -1 && lastIndex === position;
-	};
-}
-
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
-if (!String.prototype.startsWith) {
-	String.prototype.startsWith = function(searchString, position){
-		position = position || 0;
-		return this.substr(position, searchString.length) === searchString;
-	};
-}
-*/
-
-//------------------------------------------------------------------------------------------
-//
-// Utility for outputing logs to both screen and file
-//
-//------------------------------------------------------------------------------------------
-
-// function testDate() {
-// 	var objToday = new Date();
-//
-// 	var weekday = new Array('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat');
-// 	var dayOfWeek = weekday[objToday.getDay()];
-// 	var localDateTime = objToday.toLocaleString();
-// 	console.log("Executed on:\n" + dayOfWeek + ", " + localDateTime + "\n");
-//
-// 	// var day = objToday.getDate();
-// 	// var month = objToday.getMonth() + 1;
-// 	// var year = objToday.getFullYear();
-// 	// var currentDate = dayOfWeek + ", " + day + "-" + month + "-" + year;
-// 	// var hour = objToday.getHours() > 12 ? objToday.getHours() - 12 : (objToday.getHours() < 10 ? "0" + objToday.getHours() : objToday.getHours());
-// 	// var minute = objToday.getMinutes() < 10 ? "0" + objToday.getMinutes() : objToday.getMinutes();
-// 	// var seconds = objToday.getSeconds() < 10 ? "0" + objToday.getSeconds() : objToday.getSeconds();
-// 	// var meridiem = objToday.getHours() > 11 ? "PM" : "AM";
-// 	// var meridiem = objToday.getHours();
-// 	// var currentTime = hour + ":" + minute + ":" + seconds + " " + meridiem;
-// 	// console.log("Executed on:\n" + currentDate + " " + currentTime + "\n");
-// }
-
-//------------------------------------------------------------------------------------------
-//
-// Utility for HTTP / API handling
-//
-//------------------------------------------------------------------------------------------
-//
-// // function requestErrorHandler(err) {
-// // 	console.log("FATAL ERROR >> ");
-// // 	console.log(err);
-// // 	process.exit(1);
-// // }
-//
-//
-// /// Makes a POST or GET request, with the given form object
-// /// and return its JSON result in a promise
-// ///
-// /// @param  "POST" or "GET" method
-// /// @param  FULL URL to make the request
-// /// @param  [OPTIONAL] Query / Form parameter to pass as an object
-// /// @param  [OPTIONAL] Callback parameter, to attach to promise
-// ///
-// /// @return The promise object, with the attached callback
-// // function rawRequestData(method, url, data, callback) {
-// //
-// // 	// Option / parameter parsing
-// // 	var option = {
-// // 		url : url,
-// // 		method : method
-// // 	};
-// // 	if ( method == "GET" ) {
-// // 		option.qs = data;
-// // 	} else {
-// // 		option.form = data;
-// // 	}
-// //
-// // 	// The actual API call, with promise object
-// // 	return new Promise(function(good, bad) {
-// // 		request(option, function( err, res, body ) {
-// // 			if (err) {
-// // 				throw new Error("Unexpected error for URL request : " + url + " -> " + err);
-// // 			} else {
-// // 				try {
-// // 					good(body);
-// // 				} catch(err) {
-// // 					throw new Error("Invalid data (JSON) format for URL request : " + url + " -> " + body);
-// // 				}
-// // 			}
-// // 		});
-// // 	}).then(callback);
-// // }
-//
-//
-// /// Makes a POST or GET request, with the given form object
-// /// and return its JSON result in a promise
-// ///
-// /// @param  Write stream to output data into
-// /// @param  "POST" or "GET" method
-// /// @param  FULL URL to make the request
-// /// @param  [OPTIONAL] Query / Form parameter to pass as an object
-// /// @param  [OPTIONAL] Callback parameter, to attach to promise
-// ///
-// /// @return The promise object, returns the request object
-// function streamRequest(writeStream, method, url, data, callback) {
-// 	// Option / parameter parsing
-// 	var option = {
-// 		url : url,
-// 		method : method
-// 	};
-// 	if( method == "GET" ) {
-// 		option.qs = data;
-// 	} else {
-// 		option.form = data;
-// 	}
-//
-// 	// The actual API call, with promise object
-// 	return new Promise(function(good, bad) {
-// 		let req = request(option);
-// 		req.pipe(writeStream)
-// 			.on('error', function(err){
-// 				throw new Error("Unexpected error for URL request : " + url + " -> " + err);
-// 			})
-// 			.on('close', function(misc) {
-// 				good(req, misc);
-// 			});
-// 	}).then(callback);
-// }
-//
-//
-// /// Makes a GET or POST request, with the given form object
-// /// and return its JSON result in a promise
-// ///
-// /// @param  "GET" or "POST" method
-// /// @param  FULL URL to make the request
-// /// @param  [OPTIONAL] Query / Form parameter to pass as an object
-// /// @param  [OPTIONAL] Callback parameter, to attach to promise
-// ///
-// /// @return The promise object, with the attached callback, returns the JSON output
-// function jsonRequest(method, url, inData, callback) {
-// 	// Calling rawRequest, and parsing the good result as JSON
-// 	return new Promise(function(good, bad) {
-// 		rawRequestData(method, url, inData).then(function(data) {
-// 			try {
-// 				good(JSON.parse(data));
-// 			} catch(err) {
-// 				console.error("---- Error trace ----");
-// 				console.error(err);
-// 				console.error("---- HTTP response data ----");
-// 				console.error(data);
-// 				console.error("---- HTTP request URL ----");
-// 				console.error(url);
-// 				console.error("---- HTTP request data ----");
-// 				console.error(inData);
-// 				console.error("---- End of error report ----");
-// 				process.exit(1);
-// 			}
-// 		},bad);
-// 	}).then(callback);
-// }
-//
-//
-// /// Does a login check, and provides the actual server URL to call API
-// /// silently terminates, with an error message if it fails
-// ///
-// /// @return   Promise object, returning the full URL to make request to
-// function getFullHostURL(callback) {
-// 	// Cached full host URL
-// var _fullHostURL = null;
-//
-//
-// 	if ( _fullHostURL != null ) {
-// 		return Promise.resolve(_fullHostURL).then(callback);
-// 	}
-//
-// 	return new Promise(function(good, bad) {
-// 		jsonRequest(
-// 			"POST",
-// 			"https://beta-login.uilicious.com/api/fetchHostURL",
-// 			{
-// 				"user" : program.user,
-// 				"pass" : program.pass
-// 			},
-// 			function(res) {
-// 				if ( res.protectedURL == null ) {
-// 					console.error("ERROR: Unable to login - Invalid username/password");
-// 					process.exit(1);
-// 				} else {
-// 					_fullHostURL = res.protectedURL;
-// 					good(_fullHostURL);
-// 				}
-// 			}
-// 		);
-// 	}).then(callback);
-// }
-//
-// /// Does a JSON request to web-studio instance of the client
-// ///
-// /// @param  "POST" or "GET" method
-// /// @param  Webstudio webPath request
-// /// @param  [OPTIONAL] Query / Form parameter to pass as an object
-// /// @param  [OPTIONAL] Callback parameter, to attach to promise
-// ///
-// function webstudioJsonRequest(method, webPath, params, callback) {
-// 	return new Promise(function(good, bad) {
-// 		getFullHostURL(function(hostURL) {
-// 			jsonRequest(method, hostURL+webPath, params).then(good, bad);
-// 		});
-// 	}).then(callback);
-// }
-//
-//
-// /// Does a RAW request to web-studio instance of the client
-// ///
-// /// @param  "POST" or "GET" method
-// /// @param  Webstudio webPath request
-// /// @param  [OPTIONAL] Query / Form parameter to pass as an object
-// /// @param  [OPTIONAL] Callback parameter, to attach to promise
-// ///
-// function webstudioRawRequest(method, webPath, params, callback) {
-// 	return new Promise(function(good, bad) {
-// 		getFullHostURL(function(hostURL) {
-// 			rawRequestData(method, hostURL+webPath, params).then(good, bad);
-// 		});
-// 	}).then(callback);
-// }
-//
-//
-// /// Makes a POST or GET request, with the given form object
-// /// and return its JSON result in a promise
-// ///
-// /// @param  Write stream to output data into
-// /// @param  "POST" or "GET" method
-// /// @param  FULL URL to make the request
-// /// @param  [OPTIONAL] Query / Form parameter to pass as an object
-// /// @param  [OPTIONAL] Callback parameter, to attach to promise
-// ///
-// /// @return The promise object, returns the request object
-// function webstudioStreamRequest(writeStream, method, webPath, params, callback) {
-// 	return new Promise(function(good, bad) {
-// 		getFullHostURL(function(hostURL) {
-// 			streamRequest(writeStream, method, hostURL+webPath, params).then(good, bad);
-// 		});
-// 	}).then(callback);
-// }
+const folderCRUD = require('./features/folder-CRUD');
 
 
 //------------------------------------------------------------------------------------------
@@ -327,19 +68,19 @@ function directoryList(projectID, callback) {
 	}).then(callback);
 }
 
-/// Get a list of folders
-///
-/// @param  [Optional] Callback to return result, defaults to console.log
-///
-/// @return  Promise object, for result
-function folderList(projectID, callback) {
-	return APIUtils.webstudioJsonRequest(
-		"GET",
-		"/api/studio/v1/projects/" + projectID + "/workspace/folders",
-		{},
-		callback
-	);
-}
+// /// Get a list of folders
+// ///
+// /// @param  [Optional] Callback to return result, defaults to console.log
+// ///
+// /// @return  Promise object, for result
+// function folderList(projectID, callback) {
+// 	return APIUtils.webstudioJsonRequest(
+// 		"GET",
+// 		"/api/studio/v1/projects/" + projectID + "/workspace/folders",
+// 		{},
+// 		callback
+// 	);
+// }
 
 /// Get a list of tests
 ///
@@ -374,24 +115,24 @@ function projects(callback) {
 	}).then(callback);
 }
 
-// List all the folders
-// silently terminates , with an error message if no project is present
-function folders(projectId, callback) {
-	return new Promise(function(good,bad) {
-		folderList(projectId, function(list) {
-			if(list != null) {
-				for(let i = 0; i < list.length; i++) {
-					let item = list[i];
-					console.log(" * " + item.name);
-				}
-				console.log("");
-			} else {
-				console.error("ERROR: No folder is present.");
-				process.exit(1);
-			}
-		});
-	}).then(callback);
-}
+// // List all the folders
+// // silently terminates , with an error message if no project is present
+// function folders(projectId, callback) {
+// 	return new Promise(function(good,bad) {
+// 		folderList(projectId, function(list) {
+// 			if(list != null) {
+// 				for(let i = 0; i < list.length; i++) {
+// 					let item = list[i];
+// 					console.log(" * " + item.name);
+// 				}
+// 				console.log("");
+// 			} else {
+// 				console.error("ERROR: No folder is present.");
+// 				process.exit(1);
+// 			}
+// 		});
+// 	}).then(callback);
+// }
 
 /// Check for duplicate Project name
 /// @param	Project Name
@@ -436,24 +177,24 @@ function checkTest(projID, filePathname, callback) {
 	}).then(callback);
 }
 
-/// Check for duplicate Folder name
-/// @param	Project ID
-/// @param	Folder Name
-function checkFolder(projID, folderName, callback) {
-	return new Promise(function(good, bad) {
-		folderList(projID, function(folders) {
-			for (let i = 0; i < folders.length; i++) {
-				let folder = folders[i];
-				if (folder.name == folderName) {
-					console.error(error_warning("ERROR: This folder '" + folderName + "' exists.\nPlease use another name!\n"));
-					process.exit(1);
-				}
-			}
-			good(folderName);
-			return;
-		});
-	}).then(callback);
-}
+// /// Check for duplicate Folder name
+// /// @param	Project ID
+// /// @param	Folder Name
+// function checkFolder(projID, folderName, callback) {
+// 	return new Promise(function(good, bad) {
+// 		folderList(projID, function(folders) {
+// 			for (let i = 0; i < folders.length; i++) {
+// 				let folder = folders[i];
+// 				if (folder.name == folderName) {
+// 					console.error(error_warning("ERROR: This folder '" + folderName + "' exists.\nPlease use another name!\n"));
+// 					process.exit(1);
+// 				}
+// 			}
+// 			good(folderName);
+// 			return;
+// 		});
+// 	}).then(callback);
+// }
 
 // Get script of test
 // @param		Project ID
@@ -783,61 +524,61 @@ function importTestUnderFolder(projectID, nodeID, testName, testContent, callbac
 	);
 }
 
-/// Create a new folder using projectName
-/// @param	Project ID from projectID()
-function createFolder(projectID, folderName, callback) {
-	return APIUtils.webstudioRawRequest(
-		"POST",
-		"/api/studio/v1/projects/" + projectID + "/workspace/folders/addAction",
-		{
-			name: folderName
-		},
-		callback
-	);
-}
+// /// Create a new folder using projectName
+// /// @param	Project ID from projectID()
+// function createFolder(projectID, folderName, callback) {
+// 	return APIUtils.webstudioRawRequest(
+// 		"POST",
+// 		"/api/studio/v1/projects/" + projectID + "/workspace/folders/addAction",
+// 		{
+// 			name: folderName
+// 		},
+// 		callback
+// 	);
+// }
 
-/// Create a new folder under another folder under the project using the nodeID and the projectName
-/// @param projectID
-/// @param nodeID
-function createFolderUnderFolder(projectID, nodeID, creatingfoldername, callback) {
-	return APIUtils.webstudioRawRequest(
-		"POST",
-		"/api/studio/v1/projects/" + projectID + "/workspace/folders/addAction",
-		{
-			name: creatingfoldername,
-			parentId: nodeID
-		},
-		callback
-	);
-}
+// /// Create a new folder under another folder under the project using the nodeID and the projectName
+// /// @param projectID
+// /// @param nodeID
+// function createFolderUnderFolder(projectID, nodeID, creatingfoldername, callback) {
+// 	return APIUtils.webstudioRawRequest(
+// 		"POST",
+// 		"/api/studio/v1/projects/" + projectID + "/workspace/folders/addAction",
+// 		{
+// 			name: creatingfoldername,
+// 			parentId: nodeID
+// 		},
+// 		callback
+// 	);
+// }
 
-/// Update a test/folder
-/// @param	Project ID from projectID()
-/// @param	Node ID from testID() or folderID()
-/// @param  [Optional] Callback to return result
-function updateTestFolder(projectID, nodeID, new_Name, callback) {
-	return APIUtils.webstudioRawRequest(
-		"POST",
-		"/api/studio/v1/projects/" + projectID + "/workspace/nodes/" + nodeID + "/renameAction",
-		{
-			name: new_Name
-		},
-		callback
-	);
-}
-
-/// Delete a test/folder
-/// @param	Project ID from projectID()
-/// @param	Node ID from testID() of folderID()
-/// @param  [Optional] Callback to return result
-function deleteTestFolder(projectID, nodeID, callback) {
-	return APIUtils.webstudioRawRequest(
-		"POST",
-		"/api/studio/v1/projects/" + projectID + "/workspace/nodes/" + nodeID + "/deleteAction",
-		{},
-		callback
-	);
-}
+// /// Update a test/folder
+// /// @param	Project ID from projectID()
+// /// @param	Node ID from testID() or folderID()
+// /// @param  [Optional] Callback to return result
+// function updateTestFolder(projectID, nodeID, new_Name, callback) {
+// 	return APIUtils.webstudioRawRequest(
+// 		"POST",
+// 		"/api/studio/v1/projects/" + projectID + "/workspace/nodes/" + nodeID + "/renameAction",
+// 		{
+// 			name: new_Name
+// 		},
+// 		callback
+// 	);
+// }
+//
+// /// Delete a test/folder
+// /// @param	Project ID from projectID()
+// /// @param	Node ID from testID() of folderID()
+// /// @param  [Optional] Callback to return result
+// function deleteTestFolder(projectID, nodeID, callback) {
+// 	return APIUtils.webstudioRawRequest(
+// 		"POST",
+// 		"/api/studio/v1/projects/" + projectID + "/workspace/nodes/" + nodeID + "/deleteAction",
+// 		{},
+// 		callback
+// 	);
+// }
 
 //------------------------------------------------------------------------------
 //	Main Functions
@@ -866,58 +607,58 @@ function projectID(projectName, callback) {
 	}).then(callback);
 }
 
-/// Returns the folder ID (if found), given the project ID AND folder webPath
-/// Also can be used to return node ID for folder
-///
-/// @param  Project ID
-/// @param  Folder Name
-/// @param  [Optional] Callback to return result
-///
-/// @return  Promise object, for result
-function folderID(projID, folderPath, callback) {
-	return new Promise(function(good, bad) {
-		APIUtils.webstudioJsonRequest(
-			"GET",
-			"/api/studio/v1/projects/" + projID + "/workspace/folders",
-			{ path : folderPath },
-			function(res) {
-				// Prevent
-				if (res.length > 1) {
-					console.error("ERROR: Multiple folders named '" + folderPath + "' found.\nPlease give the correct name!\n");
-					process.exit(1);
-				} else {
-					let id = res[0].id;
-					good(parseInt(id));
-					return;
-				}
-				console.error("ERROR: Unable to find folder: '" + folderPath + "'\n");
-				process.exit(1);
-			}
-		);
-	}).then(callback);
-}
+// /// Returns the folder ID (if found), given the project ID AND folder webPath
+// /// Also can be used to return node ID for folder
+// ///
+// /// @param  Project ID
+// /// @param  Folder Name
+// /// @param  [Optional] Callback to return result
+// ///
+// /// @return  Promise object, for result
+// function folderID(projID, folderPath, callback) {
+// 	return new Promise(function(good, bad) {
+// 		APIUtils.webstudioJsonRequest(
+// 			"GET",
+// 			"/api/studio/v1/projects/" + projID + "/workspace/folders",
+// 			{ path : folderPath },
+// 			function(res) {
+// 				// Prevent
+// 				if (res.length > 1) {
+// 					console.error("ERROR: Multiple folders named '" + folderPath + "' found.\nPlease give the correct name!\n");
+// 					process.exit(1);
+// 				} else {
+// 					let id = res[0].id;
+// 					good(parseInt(id));
+// 					return;
+// 				}
+// 				console.error("ERROR: Unable to find folder: '" + folderPath + "'\n");
+// 				process.exit(1);
+// 			}
+// 		);
+// 	}).then(callback);
+// }
 
-/// Returns the node ID (if found) , given the project ID and folderName
-///@param projectID
-///@param folderName
-///@param [optional] callback to return the result
-///
-/// return promise object , for result
-function nodeID(projectId, folderName, callback) {
-	return new Promise(function(good, bad) {
-		folderList(projectId, function(list) {
-			for(let i = 0; i<list.length; ++i) {
-				let item = list[i];
-				if(item.name == folderName) {
-					good(parseInt(item.id));
-					return;
-				}
-			}
-			console.error("ERROR: This folder <" + folderName + "> does not exist!");
-			process.exit(1);
-		});
-	}).then(callback);
-}
+// /// Returns the node ID (if found) , given the project ID and folderName
+// ///@param projectID
+// ///@param folderName
+// ///@param [optional] callback to return the result
+// ///
+// /// return promise object , for result
+// function nodeID(projectId, folderName, callback) {
+// 	return new Promise(function(good, bad) {
+// 		folderList(projectId, function(list) {
+// 			for(let i = 0; i<list.length; ++i) {
+// 				let item = list[i];
+// 				if(item.name == folderName) {
+// 					good(parseInt(item.id));
+// 					return;
+// 				}
+// 			}
+// 			console.error("ERROR: This folder <" + folderName + "> does not exist!");
+// 			process.exit(1);
+// 		});
+// 	}).then(callback);
+// }
 
 /// Returns the test ID (if found), given the project ID AND test webPath
 /// Also can be used to return node ID for test
@@ -1658,132 +1399,6 @@ function main(projname, scriptpath, options) {
 		});
 	}
 }
-
-//-----------------------------------------------------------------------------------------
-//
-// Parsing & running the command line
-//
-//------------------------------------------------------------------------------------------
-
-// Basic CLI parameters handling
-program
-	.version('1.3.12')
-	.option('-u, --user <required>', 'username')
-	.option('-p, --pass <required>', 'password')
-	// .option('-d, --directory <optional>', 'Output directory path to use')
-	.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
-	.option('-w, --width <optional>', 'width of browser')
-	.option('-hg, --height <optional>', 'height of browser');
-
-//List the projects
-program
-	.command('list-project')
-	.alias('list')
-	.description('List all projects.')
-	.action(getAllProjects);
-
-// List the folders under a project
-program
-	.command('list-folder <projname>')
-	.alias('lf')
-	.description('List all folders under a project.')
-	.action(getFolderListHelper);
-
-// -----------------------------
-// 	Commands for Project CRUD
-// -----------------------------
-
-// Create Project
-program
-	.command('create-project <projname>')
-	.alias('cp')
-	.description('Create a new project.')
-	.action(createProjectHelper);
-
-// Update Project
-program
-	.command('rename-project <projname> <new_projname>')
-	.alias('rp')
-	.description('Rename a project.')
-	.action(updateProjectHelper);
-
-// Delete Project
-program
-	.command('delete-project <projname>')
-	.alias('dp')
-	.description('Delete a project.')
-	.action(deleteProjectHelper);
-
-// -----------------------------
-// 	Commands for Test CRUD
-// -----------------------------
-
-// Create Test
-program
-	.command('create-test <projName> <test_name>')
-	.option('-f, --folder <folder>', 'Set the folder name.')
-	.alias('ct')
-	.description('Create a test.')
-	.action(function(projname, test_name, options) {
-		let folder_name = options.folder || null;
-		if (folder_name == null) {
-			createTestHelper(projname, test_name);
-		} else {
-			createTestUnderFolderHelper(projname, folder_name, test_name);
-		}
-	});
-
-// Read Test (Get contents of Test)
-program
-	.command('get-test <projname> <test_name>')
-	.alias('gt')
-	.description('Read a test.')
-	.action(readTestHelper);
-
-// Update Test
-program
-	.command('rename-test <projname> <test_name> <new_testname>')
-	.alias('rt')
-	.description('Rename a test.')
-	.action(updateTestHelper);
-
-// Delete Test
-program
-	.command('delete-test <projname> <test_name>')
-	.alias('dt')
-	.description('Delete a test.')
-	.action(deleteTestHelper);
-
-// Import Test
-program
-	.command('import-test <projname> <file_pathname>')
-	.option('-f, --folder <folder>', 'Set the folder path.')
-	.alias('it')
-	.description('Import a test.')
-	.action(function(projname, file_pathname, options) {
-		let folder_name = options.folder || null;
-		if (folder_name == null) {
-			importTestHelper(projname, file_pathname);
-		} else {
-			importTestUnderFolderHelper(projname, folder_name, file_pathname);
-		}
-	});
-
-// Export Test
-program
-	.command('export-test <projname> <test_name>')
-	.option('-d, --directory <directory>', 'Set the directory path.')
-	.alias('et')
-	.description('Export a test.')
-	.action(function(projname, test_name, options) {
-		let directory = options.directory || null;
-		if (directory == null) {
-			console.error(error_warning("The directory option is required!\nPlease use -d <directory> to set the directory path!\n"));
-			process.exit(1);
-		} else {
-			exportTestHelper(projname, test_name, options);
-		}
-	});
 
 // -----------------------------
 // 	Commands for Folder CRUD
