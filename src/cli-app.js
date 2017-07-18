@@ -230,8 +230,10 @@ function getDirectoryMapByID(projID, folderID, callback) {
 			for (var i = 0; i < rootDirMap.length; i++) {
 				let root_folder = rootDirMap[i];
 				if (root_folder.id == folderID) {
-					if( folderID != null ) {
+					if (folderID != null) {
 						good(findSubDirectoryByID(root_folder, folderID));
+					} else {
+						good(rootDirMap);
 					}
 				}
 			}
@@ -732,19 +734,19 @@ function makeDir(directory, callback) {
 }
 
 // Make folder for export
-function makeFolder(folderName, directory, callback) {
-	return new Promise(function(good, bad) {
-		let newDirectory = directory + "/" + folderName;
-		fs.mkdir(newDirectory, function(err) {
-			if (err === 'EEXIST') {
-				console.error("ERROR: This folder <"+ folderName +"> exists.\nPlease use another directory.\n");
-				process.exit(1);
-			}
-		});
-		good(newDirectory);
-		return;
-	}).then(callback);
-}
+// function makeFolder(folderName, directory, callback) {
+// 	return new Promise(function(good, bad) {
+// 		let newDirectory = directory + "/" + folderName;
+// 		fs.mkdir(newDirectory, function(err) {
+// 			if (err === 'EEXIST') {
+// 				console.error("ERROR: This folder <"+ folderName +"> exists.\nPlease use another directory.\n");
+// 				process.exit(1);
+// 			}
+// 		});
+// 		good(newDirectory);
+// 		return;
+// 	}).then(callback);
+// }
 
 //------------------------------------------------------------------------------
 //	Test Helper Functions
@@ -906,25 +908,15 @@ function importFolderUnderFolderHelper(projName, folderPath, folderName, options
 }
 
 // Export folder and its test scripts
-// @todo Call api /directory to find parent's folders and tests
 // function exportFolderHelper(projName, folderName, options) {
 // 	projectID(projName, function(projID) {
-// 		nodeID(projID, folderName, function(folderID) {
-// 			makeFolder(folderName, options, function(new_directory) {
-// 				exportTestDirectory(projID, folderID, new_directory);
+// 		folderCRUD.nodeID(projID, folderName, function(folderID) {
+// 			getDirectoryMapByID(projID, folderID, function(rootDirMap) {
+// 				exportDirectoryNodeToDirectoryPath(projID, rootDirMap, options.directory);
 // 			});
 // 		});
 // 	});
 // }
-function exportFolderHelper(projName, folderName, options) {
-	projectID(projName, function(projID) {
-		folderCRUD.nodeID(projID, folderName, function(folderID) {
-			getDirectoryMapByID(projID, folderID, function(rootDirMap) {
-				exportDirectoryNodeToDirectoryPath(projID, rootDirMap, options.directory);
-			});
-		});
-	});
-}
 
 //------------------------------------------------------------------------------
 //	Main Function to run test script
@@ -1116,7 +1108,7 @@ function CLIApp() {
 				console.error("The directory option is required!\nPlease use -d <directory> to set the directory path!\n");
 				process.exit(1);
 			} else {
-				exportFolderHelper(projname, folder_name, options);
+				ImportExport.exportFolderHelper(projname, folder_name, options);
 			}
 		});
 

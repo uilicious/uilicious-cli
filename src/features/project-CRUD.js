@@ -1,6 +1,13 @@
 const APIUtils = require('./../api-utils');
 
+const chalk = require('chalk');
+const error_warning = chalk.bold.red;
+const success_warning = chalk.bold.green;
+const error = chalk.red;
+const success = chalk.green;
+
 class ProjectCRUD {
+
   //------------------------------------------------------------------------------
   //	Project Helper Functions
   //------------------------------------------------------------------------------
@@ -50,17 +57,9 @@ class ProjectCRUD {
   	});
   }
 
-  /// Get a list of projects, in the following format [ { id, title, logoUrl }]
-  /// @param  [Optional] Callback to return result, defaults to console.log
-  /// @return  Promise object, for result
-  static projectList(callback) {
-  	return APIUtils.webstudioJsonRequest(
-  		"GET",
-  		"/api/studio/v1/projects",
-  		{},
-  		callback
-  	);
-  }
+  //------------------------------------------------------------------------------
+  //	Project Core Functions
+  //------------------------------------------------------------------------------
 
   /// List all projects,
   /// silently terminates, with an error message if no project present
@@ -121,6 +120,22 @@ class ProjectCRUD {
   	}).then(callback);
   }
 
+  //------------------------------------------------------------------------------
+  //	Project API Functions
+  //------------------------------------------------------------------------------
+
+  /// Get a list of projects, in the following format [ { id, title, logoUrl }]
+  /// @param  [Optional] Callback to return result, defaults to console.log
+  /// @return  Promise object, for result
+  static projectList(callback) {
+  	return APIUtils.webstudioJsonRequest(
+  		"GET",
+  		"/api/studio/v1/projects",
+  		{},
+  		callback
+  	);
+  }
+
   /// Create a new project using projectName
   /// @param	Project Name
   static createProject(projectName, callback) {
@@ -131,11 +146,6 @@ class ProjectCRUD {
   		callback
   	);
   }
-
-  /// Read a project and display its directory
-  // function getProj(projectID, callback) {
-  // 	return
-  // }
 
   /// Update a project
   static updateProject(projectID, newProjectName, callback) {
@@ -158,6 +168,7 @@ class ProjectCRUD {
   		callback
   	);
   }
+
 }
 
 module.exports = ProjectCRUD;

@@ -14,7 +14,6 @@ const success = chalk.green;
 const APIUtils = require('./../api-utils');
 const ProjectCRUD = require('./project-CRUD');
 
-
 class folderCRUD {
 
 	/// Get a list of folders
