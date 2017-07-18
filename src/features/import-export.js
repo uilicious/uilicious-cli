@@ -25,7 +25,7 @@ class ImportExport {
   static exportTestHelper(projname, testname, options) {
   	ProjectCRUD.projectID(projname, function(projID) {
   		testCRUD.testID(projID, testname, function(testID) {
-  			testCRUD.getScript(projID, testID, function(fileContent) {
+  			ImportExport.getScript(projID, testID, function(fileContent) {
   				ImportExport.exportTestFile(options.directory, testname, fileContent);
   			});
   		});

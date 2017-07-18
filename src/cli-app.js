@@ -28,7 +28,7 @@ const APIUtils = require("./api-utils");
 const ProjectCRUD = require('./features/project-CRUD');
 const folderCRUD = require('./features/folder-CRUD');
 const testCRUD = require('./features/test-CRUD');
-const ImportExport = require('./features/ImportExport');
+const ImportExport = require('./features/import-export');
 
 
 //------------------------------------------------------------------------------------------
@@ -285,7 +285,7 @@ function CLIApp() {
 		.option('-hg, --height <optional>', 'height of browser');
 
 	//----------------------------
-	// Project Commands
+	// Project CRUD Commands
 	//----------------------------
 
 	//List the projects
@@ -323,11 +323,11 @@ function CLIApp() {
 		.description('Delete a project.')
 		.action(ProjectCRUD.deleteProjectHelper);
 
-	// -----------------------------
-    // 	Commands for Test CRUD
-    // -----------------------------
+	//-----------------------------
+  // 	Test CRUD Commands
+  //-----------------------------
 
-// Create Test
+	// Create Test
 	program
 		.command('create-test <projName> <test_name>')
 		.option('-f, --folder <folder>', 'Set the folder name.')
@@ -342,28 +342,28 @@ function CLIApp() {
 			}
 		});
 
-// Read Test (Get contents of Test)
+	// Read Test (Get contents of Test)
 	program
 		.command('get-test <projname> <test_name>')
 		.alias('gt')
 		.description('Read a test.')
 		.action(testCRUD.readTestHelper);
 
-// Update Test
+	// Update Test
 	program
 		.command('rename-test <projname> <test_name> <new_testname>')
 		.alias('rt')
 		.description('Rename a test.')
 		.action(testCRUD.updateTestHelper);
 
-// Delete Test
+	// Delete Test
 	program
 		.command('delete-test <projname> <test_name>')
 		.alias('dt')
 		.description('Delete a test.')
 		.action(testCRUD.deleteTestHelper);
 
-// Import Test
+	// Import Test
 	program
 		.command('import-test <projname> <file_pathname>')
 		.option('-f, --folder <folder>', 'Set the folder path.')
@@ -378,7 +378,7 @@ function CLIApp() {
 			}
 		});
 
-// Export Test
+	// Export Test
 	program
 		.command('export-test <projname> <test_name>')
 		.option('-d, --directory <directory>', 'Set the directory path.')
@@ -395,9 +395,9 @@ function CLIApp() {
 		});
 
 
-		//----------------------------
-		// Folder Commands
-		//----------------------------
+	//----------------------------
+	// Folder CRUD Commands
+	//----------------------------
 
 	// Create Folder
 	program
