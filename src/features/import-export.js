@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 const APIUtils = require('./../api-utils');
 const ProjectCRUD = require('./project-CRUD');
 const folderCRUD = require('./folder-CRUD');
@@ -16,9 +19,7 @@ class ImportExport {
   static exportFolderHelper(projName, folderName, options) {
   	ProjectCRUD.projectID(projName, function(projID) {
   		folderCRUD.nodeID(projID, folderName, function(folderID) {
-  			ImportExport.getDirectoryMapByID(projID, folderID, function(rootDirMap) {
-  				ImportExport.exportDirectoryNodeToDirectoryPath(projID, rootDirMap, options.directory);
-  			});
+        ImportExport.exportTestDirectory(projID, folderID, options.directory);
   		});
   	});
   }
@@ -26,6 +27,25 @@ class ImportExport {
   //----------------------------------------------------------------------------
   // Export Core Functions
   //----------------------------------------------------------------------------
+
+  /// Export children(tests) of folder
+  ///
+  /// @param   Project ID
+  /// @param   Folder ID
+  /// @param   local system file path, to export tests into
+  ///
+  static exportTestDirectory(projID, folderID, directory, callback) {
+  	return new Promise(function(good, bad) {
+  		ImportExport.getDirectoryMapByID(projID, folderID, function(dirNode) {
+  			if (dirNode) {
+  				ImportExport.exportDirectoryNodeToDirectoryPath(projID, dirNode, directory);
+  				good(true);
+  			} else {
+  				bad(false);
+  			}
+  		});
+  	}).then(callback);
+  }
 
   /// Recursively scans the directory node, and export the folders / files when needed
   /// @param  The directory node to use

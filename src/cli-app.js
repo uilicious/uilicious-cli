@@ -28,7 +28,7 @@ const APIUtils = require("./api-utils");
 const ProjectCRUD = require('./features/project-CRUD');
 const folderCRUD = require('./features/folder-CRUD');
 const testCRUD = require('./features/test-CRUD');
-//const ImportExport = require('./features/ImportExport');
+const ImportExport = require('./features/import-export');
 
 
 //------------------------------------------------------------------------------------------
@@ -36,108 +36,6 @@ const testCRUD = require('./features/test-CRUD');
 // API request handling
 //
 //------------------------------------------------------------------------------------------
-
-/// Get the directory of a project
-///
-/// @param  [Optional] Callback to return result, defaults to console.log
-///
-/// @return  Promise object, for result
-function directoryList(projectID, callback) {
-	return new Promise(function(good, bad) {
-		APIUtils.webstudioJsonRequest(
-			"GET",
-			"/api/studio/v1/projects/" + projectID + "/workspace/directory",
-			{},
-			function(project) {
-				good(project.children);
-				return;
-			}
-		);
-	}).then(callback);
-}
-
-// Export a test
-// @param directory to export test
-// @param test_name (name of test)
-function exportTestFile(directory, test_name, file_content) {
-	let filePathName = path.resolve(directory) + "/" + test_name + ".js";
-	let fileName = test_name + ".js";
-	fs.writeFile(filePathName, file_content, function(err) {
-		if (err) {
-			throw err;
-		}
-		console.log("File <" + fileName + "> successfully saved in " + directory);
-	});
-}
-
-/// Export children(tests) of folder
-///
-/// @param   Project ID
-/// @param   Folder ID
-/// @param   local system file path, to export tests into
-///
-function exportTestDirectory(projID, folderID, directory, callback) {
-	return new Promise(function(good, bad) {
-		getDirectoryMapByID(projID, folderID, function(dirNode) {
-			if( dirNode ) {
-				exportDirectoryNodeToDirectoryPath(projID, dirNode, directory);
-				good(true);
-			} else {
-				bad(false);
-			}
-		});
-	}).then(callback);
-}
-
-/// Recursively scans the directory node, and export the folders / files when needed
-///
-/// @param  The directory node to use
-/// @param  local directory path to export into
-function exportDirectoryNodeToDirectoryPath(projID, dirNode, localDirPath) {
-	if( dirNode == null ) {
-		return;
-	}
-	if (dirNode.typeName == "FOLDER") {
-		// makeSureDirectoryExists(localDirPath);
-		makeFolder(dirNode.name, localDirPath);
-		var nextPath = localDirPath+"/"+dirNode.name;
-		let folder_children = dirNode.children;
-		for (var i = 0; i < folder_children.length; i++) {
-			let folder_child = folder_children[i];
-			exportDirectoryNodeToDirectoryPath(projID, folder_child, nextPath);
-		}
-	} else if (dirNode.typeName == "TEST") {
-		testCRUD.getScript(projID, dirNode.id, function(fileContent) {
-			exportTestFile(localDirPath, dirNode.name, fileContent);
-		});
-	}
-}
-
-/// Does a recursive search on the parentDir object, and its children
-/// For the target folderID, if not found, returns a null
-///
-/// @param  parentDir object, an example would be the return from "api/studio/v1/projects/:projid/workspace/directory"
-/// @param  folderID to find, not folder path.
-///
-/// @return  The directory node, that matches the ID
-function findSubDirectoryByID(parentDir, folderID) {
-	if( parentDir.typeName == "FOLDER" ) {
-		if( parentDir.id == folderID ) {
-			// console.log(parentDir);
-			return parentDir;
-		}
-		// childrenList (children of directory)
-		var childrenList = parentDir.children;
-		for (var i = 0; i < childrenList.length; i++) {
-			var validatedChildNode = findSubDirectoryByID(childrenList[i], folderID);
-			if (validatedChildNode != null) {
-				// return folder
-				return validatedChildNode;
-			}
-		}
-	}
-	return null;
-}
 
 /// Does a recursive search on the parentDir object, and its children
 /// For the target folderID, if not found, returns a null
@@ -166,35 +64,6 @@ function findSubDirectoryByID(parentDir, folderID) {
 /// Get the directory map, using the projectID and folderID
 ///
 /// @param  projectID to export from
-/// @param  folderID to export from
-/// @param  callback to call with result
-///
-/// @return  Promise object that returns the directory map
-function getDirectoryMapByID(projID, folderID, callback) {
-	return new Promise(function(good, bad) {
-		directoryList(projID, function(rootDirMap) {
-			for (var i = 0; i < rootDirMap.length; i++) {
-				let root_folder = rootDirMap[i];
-				if (root_folder.id == folderID) {
-					if (folderID != null) {
-						good(findSubDirectoryByID(root_folder, folderID));
-					} else {
-						good(rootDirMap);
-					}
-				}
-			}
-			// if( folderID != null ) {
-			// 	good(findSubDirectoryByID(rootDirMap, folderID));
-			// } else {
-			// 	good( rootDirMap );
-			// }
-		});
-	}).then(callback);
-}
-
-/// Get the directory map, using the projectID and folderID
-///
-/// @param  projectID to export from
 /// @param  folderPath to export from
 /// @param  callback to call with result
 ///
@@ -211,56 +80,9 @@ function getDirectoryMapByID(projID, folderID, callback) {
 // 	}).then(callback);
 // }
 
-// Get children of folder
-// function getChildren(projID, folderID, directory, callback) {
-// 	return new Promise(function(good, bad) {
-// 		// Get children of project
-// 		directoryList(projID, function(project_children) {
-// 			for (var i = 0; i < project_children.length; i++) {
-// 				let project_child = project_children[i];
-// 				if (project_child.id == folderID) {
-// 					let main_folder = project_child.children;
-// 					for (var i = 0; i < main_folder.length; i++) {
-// 						let child = main_folder[i];
-// 						// Export test
-// 						if (child.typeName == 'TEST') {
-// 							// console.log(child.name);
-// 							getScript(projID, child.id, function(fileContent) {
-// 								exportTestFile(directory, child.name, fileContent);
-// 							});
-// 						}
-//
-// 						// Export folder
-// 						if (child.typeName == 'FOLDER') {
-// 							makeFolder(child.name, directory, function(new_directory) {
-// 								exportTestDirectory(projID, child.id, new_directory);
-// 							});
-// 						}
-// 					}
-// 				}
-// 			}
-// 		});
-// 	}).then(callback);
-// }
-
-// Find children if type is folder
-// function findChildren(parent) {
-// 	return new Promise(function(good, bad) {
-// 		if (parent.children != null) {
-// 			let children = parent.children;
-// 			for (var i = 0; i < children.length; i++) {
-// 				let child = children[i];
-// 			}
-// 		}
-// 		return;
-// 	}).then(callback);
-// }
-
 //------------------------------------------------------------------------------
 //	Folder & Test Functions
 //------------------------------------------------------------------------------
-
-
 
 /// Create a new test using projectName
 /// @param	Project ID from projectID()
@@ -357,23 +179,6 @@ function checkFolderContents(folder_pathname, callback) {
 	}).then(callback);
 }
 
-
-
-// Make folder for export
-// function makeFolder(folderName, directory, callback) {
-// 	return new Promise(function(good, bad) {
-// 		let newDirectory = directory + "/" + folderName;
-// 		fs.mkdir(newDirectory, function(err) {
-// 			if (err === 'EEXIST') {
-// 				console.error("ERROR: This folder <"+ folderName +"> exists.\nPlease use another directory.\n");
-// 				process.exit(1);
-// 			}
-// 		});
-// 		good(newDirectory);
-// 		return;
-// 	}).then(callback);
-// }
-
 //------------------------------------------------------------------------------
 //	Test Helper Functions
 //------------------------------------------------------------------------------
@@ -461,18 +266,6 @@ function importFolderUnderFolderHelper(projName, folderPath, folderName, options
 		});
 	});
 }
-
-// Export folder and its test scripts
-// function exportFolderHelper(projName, folderName, options) {
-// 	projectID(projName, function(projID) {
-// 		folderCRUD.nodeID(projID, folderName, function(folderID) {
-// 			getDirectoryMapByID(projID, folderID, function(rootDirMap) {
-// 				exportDirectoryNodeToDirectoryPath(projID, rootDirMap, options.directory);
-// 			});
-// 		});
-// 	});
-// }
-
 
 
 function CLIApp() {
