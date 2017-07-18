@@ -68,43 +68,6 @@ function testList(projectID, callback) {
 	);
 }
 
-/// List all projects,
-/// silently terminates, with an error message if no project present
-function projects(callback) {
-	return new Promise(function(good, bad) {
-		projectList(function(list) {
-			if (list != null) {
-				for (let i = 0; i < list.length; i++) {
-					let item = list[i];
-					console.log(" * " + item.title);
-				}
-				console.log("");
-			} else {
-				console.error("ERROR: No project present.");
-				process.exit(1);
-			}
-		});
-	}).then(callback);
-}
-
-/// Check for duplicate Project name
-/// @param	Project Name
-function checkProject(projname, callback) {
-	return new Promise(function(good, bad) {
-		projectList(function(list) {
-			for (let i = 0; i < list.length; i++) {
-				let item = list[i];
-				if (item.title == projname) {
-					console.error("ERROR: This project '" + projname + "' exists.\nPlease use another name!\n");
-					process.exit(1);
-				}
-			}
-			good();
-			return;
-		});
-	}).then(callback);
-}
-
 /// Check for duplicate Test name
 /// @param	Project ID
 /// @param	Test Name
@@ -129,8 +92,6 @@ function checkTest(projID, filePathname, callback) {
 		);
 	}).then(callback);
 }
-
-
 
 // @param		Project ID
 //@param		Test ID
@@ -420,30 +381,6 @@ function importTestUnderFolder(projectID, nodeID, testName, testContent, callbac
 //------------------------------------------------------------------------------
 //	Main Functions
 //------------------------------------------------------------------------------
-
-/// Fetch the project ID for a project,
-/// silently terminates, with an error message if it fails
-///
-/// @param  Project Name to fetch ID
-/// @param  [Optional] Callback to return result
-///
-/// @return  Promise object, for result
-function projectID(projectName, callback) {
-	return new Promise(function(good, bad) {
-		projectList(function(list) {
-			for (let i=0; i<list.length; ++i) {
-				let item = list[i];
-				if (item.title == projectName) {
-					good(parseInt(item.id));
-					return;
-				}
-			}
-			console.error("ERROR: Project Name not found: " + projectName);
-			process.exit(1);
-		});
-	}).then(callback);
-}
-
 
 /// Returns the test ID (if found), given the project ID AND test webPath
 /// Also can be used to return node ID for test
