@@ -23,6 +23,7 @@ const success_warning = chalk.bold.green;
 const error = chalk.red;
 const success = chalk.green;
 
+// Module Dependencies (non-npm)
 const CLIUtils = require("./cli-utils");
 const APIUtils = require("./api-utils");
 const ProjectCRUD = require('./features/project-CRUD');
@@ -30,249 +31,11 @@ const folderCRUD = require('./features/folder-CRUD');
 const testCRUD = require('./features/test-CRUD');
 const ImportExport = require('./features/import-export');
 
-
-//------------------------------------------------------------------------------------------
-//
-// API request handling
-//
-//------------------------------------------------------------------------------------------
-
-/// Does a recursive search on the parentDir object, and its children
-/// For the target folderID, if not found, returns a null
-///
-/// @param  parentDir object, an example would be the return from "api/studio/v1/projects/:projid/workspace/directory"
-/// @param  folderID to find, not folder path.
-///
-/// @return  The directory node, that matches the ID
-// function findSubDirectoryByPath(parentDir, fullPath) {
-// 	if( parentDir.typeName == "FOLDER" ) {
-// 		if( parentDir.path == fullPath ) {
-// 			return parentDir;
-// 		}
-//
-// 		var childrenList = parentDir.children;
-// 		for( var i = 0; i < childrenList.length; ++i ) {
-// 			var validatedChildNode = findSubDirectoryByPath( childrenList[i], fullPath );
-// 			if( validatedChildNode != null ) {
-// 				return validatedChildNode;
-// 			}
-// 		}
-// 	}
-// 	return null;
-// }
-
-/// Get the directory map, using the projectID and folderID
-///
-/// @param  projectID to export from
-/// @param  folderPath to export from
-/// @param  callback to call with result
-///
-/// @return  Promise object that returns the directory map
-// function getDirectoryMapByPath(projID, folderPath, callback) {
-// 	return new Promise(function(good,bad) {
-// 		directoryList(projID, function(rootDirMap) {
-// 			if( folderPath != null ) {
-// 				good(findSubDirectoryByPath(rootDirMap, folderPath));
-// 			} else {
-// 				good( rootDirMap );
-// 			}
-// 		});
-// 	}).then(callback);
-// }
-
 //------------------------------------------------------------------------------
-//	Folder & Test Functions
+//	Main Function
 //------------------------------------------------------------------------------
-
-/// Create a new test using projectName
-/// @param	Project ID from projectID()
-function importTest(projectID, testName, testContent, callback) {
-	return APIUtils.webstudioRawRequest(
-		"POST",
-		"/api/studio/v1/projects/" + projectID + "/workspace/tests/addAction",
-		{
-			name: testName,
-			script: testContent
-		},
-		callback
-	);
-}
-
-// Create a new test by importing it under a folder in a project
-//@param Project ID from projectID()
-//@param nodeID from nodeID()
-function importTestUnderFolder(projectID, nodeID, testName, testContent, callback) {
-	return APIUtils.webstudioRawRequest(
-		"POST",
-		"/api/studio/v1/projects/" + projectID + "/workspace/tests/addAction",
-		{
-			name: testName,
-			parentId: nodeID,
-			script: testContent
-		},
-		callback
-	);
-}
-
-//------------------------------------------------------------------------------
-//	Main Functions
-//------------------------------------------------------------------------------
-
-// Read file contents
-// @param   File Pathname
-function readFileContents(file_pathname, callback) {
-	return new Promise(function(good, bad) {
-		let fileLocation = path.resolve(file_pathname);
-		let fileContent = fs.readFileSync(fileLocation, 'utf-8');
-		if (fileContent != null) {
-			good(fileContent);
-		} else {
-			console.error("ERROR: There is nothing in this file!\n");
-			process.exit(1);
-		}
-	}).then(callback);
-}
-
-// Import folder contents
-function importFolderContents(projname, foldername, folder_pathname, callback) {
-	return new Promise(function(good, bad) {
-		let folderLocation = path.resolve(folder_pathname);
-		let folderContents = fs.readdir(folder_pathname, function(err, files) {
-			for (var i = 0; i < files.length; i++) {
-				let file = files[i];
-				let fileName = path.parse(file).name;
-				let fileLocation = folderLocation + "/" + file;
-				importTestUnderFolderHelper(projname, foldername, fileLocation);
-			}
-		})
-	}).then(callback);
-}
-
-// Check path and return path location if valid
-function checkPath(path_name, callback) {
-	return new Promise(function(good, bad) {
-		let pathLocation = path.resolve(path_name);
-		let folderName = path.basename(path_name);
-		if (!fs.existsSync(pathLocation)) {
-			console.error("This path does not exist!\n");
-			process.exit(1);
-		} else {
-			good(pathLocation);
-			return;
-		}
-	}).then(callback);
-}
-
-// Check folder contents and return folder name if folder is not empty
-function checkFolderContents(folder_pathname, callback) {
-	return new Promise(function(good, bad) {
-		let folderName = path.basename(folder_pathname);
-		let folderContents = fs.readdir(folder_pathname, function(err, files) {
-			if (err || files.length == 0) {
-				console.error("This folder is empty!\n");
-				process.exit(1);
-			} else {
-				good(folderName);
-				return;
-			}
-		})
-	}).then(callback);
-}
-
-//------------------------------------------------------------------------------
-//	Test Helper Functions
-//------------------------------------------------------------------------------
-
-// Import test script
-// @param		Project Name
-// @param		Test Name
-// @param		File Path Name
-function importTestHelper(projname, file_pathname, options) {
-	readFileContents(file_pathname, function(file_content) {
-		ProjectCRUD.projectID(projname, function(projID) {
-			testCRUD.checkTest(projID, file_pathname, function(testname) {
-				importTest(projID, testname, file_content, function(res) {
-					console.log(success("Import successful!\nNew test '"+testname+"' created in Project '"+projname+"'\n"));
-				});
-			});
-		});
-	});
-}
-
-// Import test script under a folder
-// @param Project Name
-// @param folder Name
-// @param File Path Name
-function importTestUnderFolderHelper(projname, foldername, file_pathname, options) {
-	readFileContents(file_pathname, function(file_content) {
-		ProjectCRUD.projectID(projname, function(projID) {
-			folderCRUD.nodeID(projID, foldername, function(nodeId) {
-				testCRUD.checkTest(projID, file_pathname, function(testname) {
-					importTestUnderFolder(projID, nodeId, testname, file_content, function(res) {
-						console.log(success("Import successful!\nNew test '"+testname+"' created under Folder '"+foldername+"' under Project '"+projname+"'.\n"));
-					});
-				});
-			});
-		});
-	});
-}
-
-// function exportTestHelper(projname, testname, options) {
-// 	ProjectCRUD.projectID(projname, function(projID) {
-// 		testCRUD.testID(projID, testname, function(testID) {
-// 			testCRUD.getScript(projID, testID, function(fileContent) {
-// 				exportTestFile(options.directory, testname, fileContent);
-// 			});
-// 		});
-// 	});
-// }
-
-//------------------------------------------------------------------------------
-//	Folder Helper Functions
-//------------------------------------------------------------------------------
-
-// Import folder and its contents
-function importFolderHelper(projName, folderPath, options) {
-	checkPath(folderPath, function(folder_pathname) {
-		checkFolderContents(folder_pathname, function(folder_name) {
-			ProjectCRUD.projectID(projName, function(projID) {
-				folderCRUD.checkFolder(projID, folder_name, function(folder_name) {
-					folderCRUD.createFolder(projID, folder_name, function(res) {
-						importFolderContents(projName, folder_name, folder_pathname, function(res) {
-							console.log("");
-						});
-					});
-				});
-			});
-		});
-	});
-}
-
-//Import folder under another folder that is present in the project along with its contents
-function importFolderUnderFolderHelper(projName, folderPath, folderName, options) {
-	checkPath(folderPath, function(folder_pathname) {
-		checkFolderContents(folder_pathname, function(folder_name) {
-			ProjectCRUD.projectID(projName, function(projID) {
-				folderCRUD.nodeID(projID, folderName, function(nodeId) {
-					folderCRUD.checkFolder(projID, folder_name, function(folder_name) {
-						folderCRUD.createFolderUnderFolder(projID, nodeId, folder_name, function(res) {
-							importFolderContents(projName, folder_name, folder_pathname, function(res) {
-								console.log("");
-							});
-						});
-					});
-				});
-			});
-		});
-	});
-}
-
 
 function CLIApp() {
-
-	// const importExportSetup = require("./features/import-export-commands");
-	// importExportSetup(program);
-
 
 	// Basic CLI parameters handling
 	program
@@ -372,9 +135,9 @@ function CLIApp() {
 		.action(function(projname, file_pathname, options) {
 			let folder_name = options.folder || null;
 			if (folder_name == null) {
-				importTestHelper(projname, file_pathname);
+				ImportExport.importTestHelper(projname, file_pathname);
 			} else {
-				importTestUnderFolderHelper(projname, folder_name, file_pathname);
+				ImportExport.importTestUnderFolderHelper(projname, folder_name, file_pathname);
 			}
 		});
 
@@ -387,7 +150,7 @@ function CLIApp() {
 		.action(function(projname, test_name, options) {
 			let directory = options.directory || null;
 			if (directory == null) {
-				console.error(error_warning("The directory option is required!\nPlease use -d <directory> to set the directory path!\n"));
+				console.error(error("The directory option is required!\nPlease use -d <directory> to set the directory path!\n"));
 				process.exit(1);
 			} else {
 				ImportExport.exportTestHelper(projname, test_name, options);
@@ -437,9 +200,9 @@ function CLIApp() {
 		.action(function(projname, folder_path, options) {
 			let foldername = options.folder || null;
 			if(foldername == null) {
-				importFolderHelper(projname, folder_path);
+				ImportExport.importFolderHelper(projname, folder_path);
 			} else {
-				importFolderUnderFolderHelper(projname, folder_path, foldername);
+				ImportExport.importFolderUnderFolderHelper(projname, folder_path, foldername);
 			}
 		});
 

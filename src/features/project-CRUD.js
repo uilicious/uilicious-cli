@@ -1,10 +1,17 @@
-const APIUtils = require('./../api-utils');
+/*
+* projectCRUD class that provides functionality for CRUD operations
+* to be performed by the folder
+*/
 
+// Chalk (color) messages for success/error
 const chalk = require('chalk');
 const error_warning = chalk.bold.red;
 const success_warning = chalk.bold.green;
 const error = chalk.red;
 const success = chalk.green;
+
+// Module Dependencies (non-npm)
+const APIUtils = require('./../api-utils');
 
 class ProjectCRUD {
 
@@ -148,6 +155,8 @@ class ProjectCRUD {
   }
 
   /// Update a project
+  /// @param  Project ID from projectID()
+  /// @param  New project name
   static updateProject(projectID, newProjectName, callback) {
   	return APIUtils.webstudioRawRequest(
   		"POST",
