@@ -27,6 +27,7 @@ const CLIUtils = require("./cli-utils");
 const APIUtils = require("./api-utils");
 const ProjectCRUD = require('./features/project-CRUD');
 const folderCRUD = require('./features/folder-CRUD');
+const testCRUD = require('./features/test-CRUD');
 const ImportExport = require('./features/ImportExport');
 
 
@@ -1026,6 +1027,13 @@ function CLIApp() {
 		.alias('list')
 		.description('List all projects.')
 		.action(ProjectCRUD.getAllProjects);
+
+	//List the folders
+	program
+		.command('list-folder <projname>')
+		.alias('listfolder')
+		.description('list all folders')
+		.action(folderCRUD.getFolderListHelper);
 
 	// Create Project
 	program
