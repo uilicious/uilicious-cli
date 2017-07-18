@@ -21,12 +21,12 @@ const CLIUtils = require("./../cli-utils");
 
 class testCRUD {
 
-	/// Get a list of tests
-    ///
-    /// @param  [Optional] Callback to return result, defaults to console.log
-    ///
-    /// @return  Promise object, for result
-	static testList(projectID, callback) {
+/// Get a list of tests
+///
+/// @param  [Optional] Callback to return result, defaults to console.log
+///
+/// @return  Promise object, for result
+static testList(projectID, callback) {
 	return APIUtils.webstudioJsonRequest(
 		"GET",
 		"/api/studio/v1/projects/" + projectID + "/workspace/tests",
@@ -35,10 +35,10 @@ class testCRUD {
 	);
 }
 
-     /// Check for duplicate Test name
-     /// @param	Project ID
-     /// @param	Test Name
-	static checkTest(projID, filePathname, callback) {
+/// Check for duplicate Test name
+/// @param	Project ID
+/// @param	Test Name
+static checkTest(projID, filePathname, callback) {
 	return new Promise(function(good, bad) {
 		let testName = path.parse(filePathname).name;
 		APIUtils.webstudioJsonRequest(
@@ -60,9 +60,9 @@ class testCRUD {
 	}).then(callback);
 }
 
-// @param		Project ID
-//@param		Test ID
-	static getScript(projectID, testID, callback) {
+// @param Project ID
+// @param Test ID
+static getScript(projectID, testID, callback) {
 	return new Promise(function(good, bad) {
 		APIUtils.webstudioRawRequest(
 			"GET",
@@ -81,6 +81,8 @@ class testCRUD {
 
 /// Create a new test under a project using the projectName
 /// @param	Project ID from projectID()
+/// @param testName - name given to create a new test
+/// @param [Optional] Callback to return result
 	static createTest(projectID, testName, callback) {
 	return APIUtils.webstudioRawRequest(
 		"POST",
@@ -94,7 +96,9 @@ class testCRUD {
 
 /// Create a new test under a folder using the folderID and projectName
 /// @param	Project ID from projectID()
-/// @param Node ID from the nodeID()
+/// @param Node ID from the nodeID() - taken as parentId
+/// @param testName - name of the new folder that is created under the folder with the parentId
+/// @param [Optional] Callback to return result
 	static createTestUnderFolder(projectID, nodeID, testName, callback) {
 	return APIUtils.webstudioRawRequest(
 		"POST",
@@ -108,6 +112,9 @@ class testCRUD {
 }
 
 /// Read a test and display its directory
+/// @param projectID
+/// @param testID
+/// @param [Optional] Callback to return result
 	static readTest(projectID, testID, callback) {
 	return APIUtils.webstudioRawRequest(
 		"GET",
@@ -186,7 +193,10 @@ class testCRUD {
 	}).then(callback);
 }
 
-// Get result based on runTestID
+// Get result from the ID which is generated when a new test is ran
+// that ID id is called the runTestID
+// @param runTestID
+// @param [Optional] Callback to return result
 	static getResult(runTestID, callback) {
 	return APIUtils.webstudioJsonRequest(
 		"GET",
@@ -196,10 +206,9 @@ class testCRUD {
 	);
 }
 
-
-
-
 // Get result from API and return results
+// @param runTestID
+// @param [Optional] Callback to return result
 	static pollForResult(runTestID, callback) {
 
 		// Call API every 2500ms
@@ -224,6 +233,8 @@ class testCRUD {
 }
 
 // Get result from API and return errors
+//@param runTestID
+// @param [Optional] Callback to return result
 	static pollForError(runTestID, callback) {
 
 		// Call API every 2500ms
@@ -248,6 +259,8 @@ class testCRUD {
 }
 
 // Get result from API and return images
+//@param runTestID
+// @param [Optional] Callback to return result
 	static pollForImg(runTestID, directory, callback) {
 
 		// Call API every 2500ms
