@@ -17,7 +17,7 @@ const ProjectCRUD = require('./project-CRUD');
 
 class folderCRUD {
 
-	/// Get a list of folders
+/// Get a list of folders
 ///
 /// @param  [Optional] Callback to return result, defaults to console.log
 ///
