@@ -217,15 +217,15 @@ function importTestUnderFolderHelper(projname, foldername, file_pathname, option
 	});
 }
 
-function exportTestHelper(projname, testname, options) {
-	ProjectCRUD.projectID(projname, function(projID) {
-		testCRUD.testID(projID, testname, function(testID) {
-			testCRUD.getScript(projID, testID, function(fileContent) {
-				exportTestFile(options.directory, testname, fileContent);
-			});
-		});
-	});
-}
+// function exportTestHelper(projname, testname, options) {
+// 	ProjectCRUD.projectID(projname, function(projID) {
+// 		testCRUD.testID(projID, testname, function(testID) {
+// 			testCRUD.getScript(projID, testID, function(fileContent) {
+// 				exportTestFile(options.directory, testname, fileContent);
+// 			});
+// 		});
+// 	});
+// }
 
 //------------------------------------------------------------------------------
 //	Folder Helper Functions
@@ -390,7 +390,7 @@ function CLIApp() {
 				console.error(error_warning("The directory option is required!\nPlease use -d <directory> to set the directory path!\n"));
 				process.exit(1);
 			} else {
-				exportTestHelper(projname, test_name, options);
+				ImportExport.exportTestHelper(projname, test_name, options);
 			}
 		});
 

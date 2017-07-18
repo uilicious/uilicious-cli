@@ -8,6 +8,7 @@ const success = chalk.green;
 const APIUtils = require('./../api-utils');
 const ProjectCRUD = require('./project-CRUD');
 const folderCRUD = require('./folder-CRUD');
+const testCRUD = require('./test-CRUD');
 
 class ImportExport {
 
@@ -15,9 +16,21 @@ class ImportExport {
   // Import Utilities
   //----------------------------------------------------------------------------
 
+
+
   //----------------------------------------------------------------------------
   // Export Helper Functions
   //----------------------------------------------------------------------------
+
+  static exportTestHelper(projname, testname, options) {
+  	ProjectCRUD.projectID(projname, function(projID) {
+  		testCRUD.testID(projID, testname, function(testID) {
+  			testCRUD.getScript(projID, testID, function(fileContent) {
+  				ImportExport.exportTestFile(options.directory, testname, fileContent);
+  			});
+  		});
+  	});
+  }
 
   // Export folder and its test scripts
   static exportFolderHelper(projName, folderName, options) {
