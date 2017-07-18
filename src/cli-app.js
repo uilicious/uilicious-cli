@@ -27,6 +27,7 @@ const CLIUtils = require("./cli-utils");
 const APIUtils = require("./api-utils");
 const ProjectCRUD = require('./features/project-CRUD');
 const folderCRUD = require('./features/folder-CRUD');
+const ImportExport = require('./features/ImportExport');
 
 
 //------------------------------------------------------------------------------------------
