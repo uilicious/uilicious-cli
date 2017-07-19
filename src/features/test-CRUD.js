@@ -9,8 +9,6 @@ const program = require('commander');
 
 // Chalk (color) messages for success/error
 const chalk = require('chalk');
-const error_warning = chalk.bold.red;
-const success_warning = chalk.bold.green;
 const error = chalk.red;
 const success = chalk.green;
 

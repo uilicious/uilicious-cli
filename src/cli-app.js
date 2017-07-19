@@ -17,15 +17,7 @@ const url = require('url');
 const path = require('path');
 const util = require('util');
 
-// Chalk messages
-const error_warning = chalk.bold.red;
-const success_warning = chalk.bold.green;
-const error = chalk.red;
-const success = chalk.green;
-
 // Module Dependencies (non-npm)
-const CLIUtils = require("./cli-utils");
-const APIUtils = require("./api-utils");
 const ProjectCRUD = require('./features/project-CRUD');
 const folderCRUD = require('./features/folder-CRUD');
 const testCRUD = require('./features/test-CRUD');
