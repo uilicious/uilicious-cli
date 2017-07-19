@@ -563,6 +563,8 @@ class testCRUD {
 			console.log("# Script Path : " + scriptpath);
 			console.log("#");
 
+			var errorCount = 0;
+
 			ProjectCRUD.projectID(projname, function(projID) {
 				console.log("# Project ID : "+projID);
 				testCRUD.testID(projID, scriptpath, function(scriptID) {
