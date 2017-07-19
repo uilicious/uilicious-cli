@@ -77,7 +77,7 @@ class testCRUD {
 			testCRUD.testID(projID, testname, function(nodeID) {
 				testCRUD.checkTest(projID, new_testname, function(res) {
 					folderCRUD.updateTestFolder(projID, nodeID, new_testname, function(res) {
-						console.log(success("Test '"+testname+"' from Project '"+projname+"' renamed to '"+new_testname+"'\n"));
+						console.log(success("Test '"+testname+"' from Project '"+projname+"' renamed to '"+new_testname+"'.\n"));
 					});
 				});
 			});
@@ -91,7 +91,7 @@ class testCRUD {
 		ProjectCRUD.projectID(projname, function(projID) {
 			testCRUD.testID(projID, testname, function(nodeID) {
 				folderCRUD.deleteTestFolder(projID, nodeID, function(res) {
-					console.log(error("Test '"+testname+"' deleted from Project '"+projname+"'\n"));
+					console.log(error("Test '"+testname+"' deleted from Project '"+projname+"'.\n"));
 				});
 			});
 		});
