@@ -62,7 +62,12 @@ class testCRUD {
 		ProjectCRUD.projectID(projname, function(projID) {
 			testCRUD.testID(projID, testname, function(testID) {
 				testCRUD.readTest(projID, testID, function(res) {
-					console.log(res);
+					if (res == null) {
+						console.error(error("ERROR: There is no script!\n"));
+					} else {
+						console.log(res);
+					}
+					// console.log(res);
 				});
 			});
 		});
@@ -433,26 +438,24 @@ class testCRUD {
 	/// Returns the test ID (if found), given the project ID AND test webPath
 	/// Also can be used to return node ID for test
 	/// @param  Project ID
-	/// @param  Test Path
+	/// @param  Test Name
 	/// @param  [Optional] Callback to return result
 	/// @return  Promise object, for result
-	static testID(projID, testPath, callback) {
+	static testID(projID, testName, callback) {
 		return new Promise(function(good, bad) {
 			APIUtils.webstudioJsonRequest(
 				"GET",
 				"/api/studio/v1/projects/" + projID + "/workspace/tests",
-				{ path : testPath },
-				function(res) {
-					// Prevent
-					if (res.length > 1) {
-						console.error("ERROR: Multiple scripts named '" + testPath + "' found.\nPlease give the correct path!\n");
-						process.exit(1);
-					} else {
-						let id = res[0].id;
-						good(parseInt(id));
-						return;
+				{ name : testName },
+				function(tests) {
+					for (var i = 0; i < tests.length; i++) {
+						let single_test = tests[i];
+						if (single_test.name == testName) {
+							good(parseInt(single_test.id));
+							return;
+						}
 					}
-					console.error("ERROR: Unable to find test script: '" + testPath + "'\n");
+					console.error(error("ERROR: Unable to find test script: '" + testName + "'\n"));
 					process.exit(1);
 				}
 			);
