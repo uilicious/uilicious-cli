@@ -27,7 +27,7 @@ class folderCRUD {
 		ProjectCRUD.projectID(projName, function(projID) {
 			folderCRUD.checkFolder(projID, folderName, function(res) {
 				folderCRUD.createFolder(projID, folderName, function(res) {
-					console.log(success("New folder '"+folderName+"' created in Project '"+projName+"'\n"));
+					console.log(success("New folder '" + folderName + "' created in Project '" + projName + "'.\n"));
 				});
 			});
 		});
@@ -42,7 +42,7 @@ class folderCRUD {
 			folderCRUD.nodeID(projID, foldername, function(nodeId) {
 				folderCRUD.checkFolder(projID, creatingfoldername, function(res) {
 					folderCRUD.createFolderUnderFolder(projID, nodeId, creatingfoldername, function(res) {
-						console.log(success("New folder '" + creatingfoldername + "' created under Folder '" + foldername + "' under Project '" + projname));
+						console.log(success("New folder '" + creatingfoldername + "' created under Folder '" + foldername + "' under Project '" + projname + "'.\n"));
 					});
 				});
 			});
@@ -68,7 +68,7 @@ class folderCRUD {
 			folderCRUD.folderID(projID, folderName, function(nodeID) {
 				folderCRUD.checkFolder(projID, new_folderName, function(res) {
 					folderCRUD.updateTestFolder(projID, nodeID, new_folderName, function(res) {
-						console.log(success("Folder '"+folderName+"' from Project '"+projName+"' renamed to '"+new_folderName+"'\n"));
+						console.log(success("Folder '" + folderName + "' from Project '" + projName + "' renamed to '" + new_folderName + "'.\n"));
 					});
 				});
 			});
@@ -78,11 +78,11 @@ class folderCRUD {
 	// Delete folder
 	// @param		Project Name
 	// @param		Folder Name
-	static deleteFolderHelper(projName, folderPath, options) {
+	static deleteFolderHelper(projName, folderName, options) {
 		ProjectCRUD.projectID(projName, function(projID) {
-			folderCRUD.folderID(projID, folderPath, function(nodeID) {
+			folderCRUD.folderID(projID, folderName, function(nodeID) {
 				folderCRUD.deleteTestFolder(projID, nodeID, function(res) {
-					console.log(error_warning("Folder '"+folderPath+"' deleted from Project '"+projName+"'\n"));
+					console.log(error_warning("Folder '" + folderName + "' deleted from Project '" + projName + "'.\n"));
 				});
 			});
 		});
@@ -104,7 +104,7 @@ class folderCRUD {
 					}
 					console.log("");
 				} else {
-					console.error(error("ERROR: No folder is present."));
+					console.error(error("ERROR: No folder is present.\n"));
 					process.exit(1);
 				}
 			});
@@ -145,7 +145,7 @@ class folderCRUD {
 						return;
 					}
 				}
-				console.error(error("ERROR: This folder <" + folderName + "> does not exist!"));
+				console.error(error("ERROR: This folder <" + folderName + "> does not exist!\n"));
 				process.exit(1);
 			});
 		}).then(callback);
@@ -223,29 +223,27 @@ class folderCRUD {
 		);
 	}
 
-	/// Returns the folder ID (if found), given the project ID AND folder webPath
+	/// Returns the folder ID (if found), given the project ID AND folder name
 	/// Also can be used to return node ID for folder
 	/// @param  Project ID
 	/// @param  Folder Name
 	/// @param  [Optional] Callback to return result
 	/// @return  Promise object, for result
-	static folderID(projID, folderPath, callback) {
+	static folderID(projID, folderName, callback) {
 		return new Promise(function(good, bad) {
 			APIUtils.webstudioJsonRequest(
 				"GET",
 				"/api/studio/v1/projects/" + projID + "/workspace/folders",
-				{ path : folderPath },
-				function(res) {
-					// Prevent
-					if (res.length > 1) {
-						console.error(error("ERROR: Multiple folders named '" + folderPath + "' found.\nPlease give the correct name!\n"));
-						process.exit(1);
-					} else {
-						let id = res[0].id;
-						good(parseInt(id));
-						return;
+				{ name : folderName },
+				function(folders) {
+					for (var i = 0; i < folders.length; i++) {
+						let folder = folders[i];
+						if (folder.name == folderName) {
+							good(parseInt(folder.id));
+							return;
+						}
 					}
-					console.error(error("ERROR: Unable to find folder: '" + folderPath + "'\n"));
+					console.error(error("ERROR: Unable to find folder: '" + folderName + "'\n"));
 					process.exit(1);
 				}
 			);
