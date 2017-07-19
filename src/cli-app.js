@@ -143,19 +143,10 @@ function CLIApp() {
 
 	// Export Test
 	program
-		.command('export-test <projname> <test_name>')
-		.option('-d, --directory <directory>', 'Set the directory path.')
+		.command('export-test <projname> <test_name> <directory>')
 		.alias('et')
 		.description('Export a test.')
-		.action(function(projname, test_name, options) {
-			let directory = options.directory || null;
-			if (directory == null) {
-				console.error(error("The directory option is required!\nPlease use -d <directory> to set the directory path!\n"));
-				process.exit(1);
-			} else {
-				ImportExport.exportTestHelper(projname, test_name, options);
-			}
-		});
+		.action(ImportExport.exportTestHelper);
 
 
 	//----------------------------
@@ -208,19 +199,10 @@ function CLIApp() {
 
 	// Export Folder
 	program
-		.command('export-folder <projname> <folder_name>')
-		.option('-d, --directory <directory>', 'Set the directory path.')
+		.command('export-folder <projname> <folder_name> <directory>')
 		.alias('ef')
 		.description('Export a folder.')
-		.action(function(projname, folder_name, options) {
-			let directory = options.directory || null;
-			if (directory == null) {
-				console.error("The directory option is required!\nPlease use -d <directory> to set the directory path!\n");
-				process.exit(1);
-			} else {
-				ImportExport.exportFolderHelper(projname, folder_name, options);
-			}
-		});
+		.action(ImportExport.exportFolderHelper);
 
 	// -----------------------------
 	// 	Commands for running tests

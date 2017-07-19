@@ -202,21 +202,21 @@ class ImportExport {
   // Export Helper Functions
   //----------------------------------------------------------------------------
 
-  static exportTestHelper(projname, testname, options) {
+  static exportTestHelper(projname, testname, directory) {
   	ProjectCRUD.projectID(projname, function(projID) {
   		testCRUD.testID(projID, testname, function(testID) {
   			ImportExport.getScript(projID, testID, function(fileContent) {
-  				ImportExport.exportTestFile(options.directory, testname, fileContent);
+  				ImportExport.exportTestFile(directory, testname, fileContent);
   			});
   		});
   	});
   }
 
   // Export folder and its test scripts
-  static exportFolderHelper(projName, folderName, options) {
+  static exportFolderHelper(projName, folderName, directory) {
   	ProjectCRUD.projectID(projName, function(projID) {
   		folderCRUD.nodeID(projID, folderName, function(folderID) {
-        ImportExport.exportTestDirectory(projID, folderID, options.directory);
+        ImportExport.exportTestDirectory(projID, folderID, directory);
   		});
   	});
   }
