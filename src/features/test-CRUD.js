@@ -461,12 +461,24 @@ class testCRUD {
 		}).then(callback);
 	}
 
+	// Get data parameters and pass them
+	static sendDataParams(dataParams, callback) {
+		return new Promise(function(good, bad) {
+			APIUtils.webstudioJsonRequest(
+				"POST",
+				"/api/v0/test/start",
+				dataParams,
+				callback
+			);
+		}).then(callback);
+	}
+
 	/// Runs a test, and returns the run GUID
 	/// @param   Project ID to use
 	/// @param   Test ID to use
 	/// @param   [optional] callback to return run GUID
 	/// @return   Promise object for result run GUID
-	static runTest(projID, testID, data, callback) {
+	static runTest(projID, testID, callback) {
 		// Get the browser config
 		let form = {};
 		if (program.browser != null) {
@@ -569,36 +581,18 @@ class testCRUD {
 
 			var errorCount = 0;
 
-			// ProjectCRUD.projectID(projname, function(projID) {
-			// 	console.log("# Project ID : "+projID);
-			// 	testCRUD.testID(projID, scriptpath, function(scriptID) {
-			// 		console.log("# Script ID  : "+scriptID);
-			// 		testCRUD.runTest(projID, scriptID, function(postID) {
-			// 			console.log("# Test run ID: "+postID);
-			// 			console.log("#");
-			// 			console.log("");
-			// 			testCRUD.pollForResult(postID, function(finalRes) {
-			// 				console.log("");
-			// 				testCRUD.outputStatus(errorCount);
-			// 				testCRUD.pollForError(postID);
-			// 			});
-			// 		});
-			// 	});
-			// });
 			ProjectCRUD.projectID(projname, function(projID) {
 				console.log("# Project ID : "+projID);
 				testCRUD.testID(projID, scriptpath, function(scriptID) {
 					console.log("# Script ID  : "+scriptID);
-					getData.getDataHelper(options, function(dataParams) {
-						testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
-							console.log("# Test run ID: "+postID);
-							console.log("#");
+					testCRUD.runTest(projID, scriptID, function(postID) {
+						console.log("# Test run ID: "+postID);
+						console.log("#");
+						console.log("");
+						testCRUD.pollForResult(postID, function(finalRes) {
 							console.log("");
-							testCRUD.pollForResult(postID, function(finalRes) {
-								console.log("");
-								testCRUD.outputStatus(errorCount);
-								testCRUD.pollForError(postID);
-							});
+							testCRUD.outputStatus(errorCount);
+							testCRUD.pollForError(postID);
 						});
 					});
 				});
