@@ -207,12 +207,6 @@ function CLIApp() {
 		.description('Run a test from a project.')
 		.action(testCRUD.main);
 
-	program
-	.command('get')
-	.option('-D, --data <data>', 'Set the directory path of the data parameters.')
-	.description('Get data parameters.')
-	.action(getData.getDataHelper);
-
 	// end with parse to parse through the input.txt
 	program.parse(process.argv);
 

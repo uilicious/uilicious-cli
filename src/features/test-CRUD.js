@@ -62,11 +62,11 @@ class testCRUD {
 			testCRUD.testID(projID, testname, function(testID) {
 				testCRUD.readTest(projID, testID, function(res) {
 					if (res == null) {
+						// @TODO - Check error handling
 						console.error(error("ERROR: There is no script!\n"));
 					} else {
 						console.log(res);
 					}
-					// console.log(res);
 				});
 			});
 		});

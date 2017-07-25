@@ -326,15 +326,14 @@ class ImportExport {
   static findSubDirectoryByID(parentDir, folderID) {
   	if( parentDir.typeName == "FOLDER" ) {
   		if( parentDir.id == folderID ) {
-  			// console.log(parentDir);
   			return parentDir;
   		}
-  		// childrenList (children of directory)
+  		// @childrenList (children of directory)
   		var childrenList = parentDir.children;
   		for (var i = 0; i < childrenList.length; i++) {
   			var validatedChildNode = ImportExport.findSubDirectoryByID(childrenList[i], folderID);
   			if (validatedChildNode != null) {
-  				// return folder
+  				// @return folder
   				return validatedChildNode;
   			}
   		}
