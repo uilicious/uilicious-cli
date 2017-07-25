@@ -16,7 +16,8 @@ const success = chalk.green;
 const APIUtils = require('./../api-utils');
 const ProjectCRUD = require('./project-CRUD');
 const folderCRUD = require('./folder-CRUD');
-const CLIUtils = require("./../cli-utils");
+const CLIUtils = require('./../cli-utils');
+const getData = require('./get-data');
 
 class testCRUD {
 

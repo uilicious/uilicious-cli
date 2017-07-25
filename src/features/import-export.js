@@ -105,12 +105,12 @@ class ImportExport {
   	return new Promise(function(good, bad) {
   		let fileLocation = path.resolve(file_pathname);
   		let fileContent = fs.readFileSync(fileLocation, 'utf-8');
-  		if (fileContent != null) {
-  			good(fileContent);
-  		} else {
-  			console.error(error("ERROR: There is nothing in this file!\n"));
+      if (fileLocation.indexOf(fileContent) > -1) {
+        console.error(error("ERROR: There is nothing in this file!\n"));
   			process.exit(1);
-  		}
+      } else {
+        good(fileContent);
+      }
   	}).then(callback);
   }
 
@@ -122,7 +122,7 @@ class ImportExport {
   		let pathLocation = path.resolve(path_name);
   		let folderName = path.basename(path_name);
   		if (!fs.existsSync(pathLocation)) {
-  			console.error(error("This path does not exist!\n"));
+  			console.error(error("ERROR: This path does not exist!\n"));
   			process.exit(1);
   		} else {
   			good(pathLocation);
@@ -139,7 +139,7 @@ class ImportExport {
   		let folderName = path.basename(folder_pathname);
   		let folderContents = fs.readdir(folder_pathname, function(err, files) {
   			if (err || files.length == 0) {
-  				console.error(error("This folder is empty!\n"));
+  				console.error(error("ERROR: This folder is empty!\n"));
   				process.exit(1);
   			} else {
   				good(folderName);

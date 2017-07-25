@@ -22,6 +22,7 @@ const ProjectCRUD = require('./features/project-CRUD');
 const folderCRUD = require('./features/folder-CRUD');
 const testCRUD = require('./features/test-CRUD');
 const ImportExport = require('./features/import-export');
+const getData = require('./features/get-data');
 
 //------------------------------------------------------------------------------
 //	Main Function
@@ -202,8 +203,15 @@ function CLIApp() {
 	program
 		.command('run <projname> <scriptpath>')
 		.option('-d, --directory <directory>', 'Set the directory path.')
+		.option('-D, --data <data>', 'Set the directory path of the data parameters.')
 		.description('Run a test from a project.')
 		.action(testCRUD.main);
+
+	program
+	.command('get')
+	.option('-D, --data <data>', 'Set the directory path of the data parameters.')
+	.description('Get data parameters.')
+	.action(getData.getDataHelper);
 
 	// end with parse to parse through the input.txt
 	program.parse(process.argv);
