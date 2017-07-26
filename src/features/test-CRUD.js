@@ -522,16 +522,14 @@ class testCRUD {
 		if (program.width != null) {
 			form.width = program.width;
 		}
+		form.data = dataParams;
 
 		// Return promise obj
 		return new Promise(function(good, bad) {
 			APIUtils.webstudioJsonRequest(
 				"POST",
 				"/api/studio/v1/projects/" + projID + "/workspace/tests/" + testID + "/runAction?cli=true",
-				{
-					formData: form,
-					data: dataParams
-				},
+				form,
 				function(res) {
 					if ( res.id != null ) {
 						good(res.id);
