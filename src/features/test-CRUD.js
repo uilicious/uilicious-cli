@@ -111,7 +111,7 @@ class testCRUD {
 	static pollForResult(runTestID, callback) {
 
 		// Call API every 2500ms
-		let pollInterval = 2500;
+		let pollInterval = 25000;
 
 		return new Promise(function(good, bad) {
 			function actualPoll() {
@@ -183,6 +183,56 @@ class testCRUD {
 		}).then(callback);
 	}
 
+	// Get result from API and return status with errors
+	// @param runTestID
+	// @param [Optional] Callback to return result
+	static pollForStatus(runTestID, callback) {
+
+		// Call API every 2500ms
+		let pollInterval = 500;
+
+		return new Promise(function(good, bad) {
+			function actualPoll() {
+				setTimeout(function() {
+					testCRUD.getResult(runTestID, function(res) {
+						testCRUD.outputStatus(res.outputPath, res.steps);
+						if ( res.status == 'success' || res.status == 'failure') {
+							good(res);
+							return;
+						} else {
+							actualPoll();
+						}
+					})
+				}, pollInterval);
+			}
+			actualPoll();
+		}).then(callback);
+	}
+
+	// Output log for test status and errors after completion
+	static outputStatus(remoteOutputPath, stepArr) {
+		let errorCount = 0;
+		if (stepArr == null) {
+			return;
+		}
+		for ( let idx = 0; idx < stepArr.length; idx++ ) {
+			let step = stepArr[idx];
+			if ( step.status == 'failure' ) {
+				errorCount++;
+			}
+		}
+		// Display this log if no errors
+		if (errorCount == 0) {
+			console.log("Test successful: No errors.");
+		}
+		// Display this log if there are errors
+		if (errorCount == 1) {
+			console.log("Test failed with " + errorCount + " error.");
+		} else if (errorCount > 1) {
+			console.log("Test failed with " + errorCount + " errors.");
+		}
+	}
+
 	// Cycle through every step and output those steps with 'success/failure'
 	static processResultSteps(remoteOutputPath, stepArr) {
 		if (stepArr == null) {
@@ -211,11 +261,6 @@ class testCRUD {
 		for ( let idx = 0; idx < stepArr.length; idx++ ) {
 			let step = stepArr[idx];
 			if ( step.status == 'success' || step.status == 'failure' ) {
-				// outputImgPathInfo(remoteOutputPath, idx, step);
-				// @TODO : Support actual file path parameter,
-				// @TODO : This function should be skipped if not directory
-				//         Perhaps comment on this in the output
-				//         "To download the images with the CLI call, use the -d parameter"
 				// @TODO : (low priority), download the image after a step completes, instead of the very end
 				//         Due to the async nature of the image from the test run, this will prevent very large tests
 				//         from going through a very large download phase
@@ -244,7 +289,7 @@ class testCRUD {
 
 		// Output each step
 		var outputStepCache = [];
-		var errorCount = 0;
+		// var errorCount = 0;
 
 		if ( outputStepCache[idx] == null ) {
 			outputStepCache[idx] = step;
@@ -252,7 +297,7 @@ class testCRUD {
 			if ( step.status == 'success' ) {
 				console.log(stepMsg);
 			} else if ( step.status == 'failure' ) {
-				errorCount++;
+				// errorCount++;
 				console.error(stepMsg);
 			}
 		}
@@ -284,20 +329,6 @@ class testCRUD {
 			if ( step.status == 'failure' || step.status == 'success' ) {
 				console.log(remoteOutputPath+stepImg);
 			}
-		}
-	}
-
-	// Output log for test status and errors after completion
-	static outputStatus(errorCount) {
-		// Display this log if no errors
-		if (errorCount == 0) {
-			console.log("Test successful: No errors.");
-		}
-		// Display this log if there are errors
-		if (errorCount == 1) {
-			console.log("Test failed with " + errorCount + " error.");
-		} else if (errorCount > 1) {
-			console.log("Test failed with " + errorCount + " errors.");
 		}
 	}
 
@@ -461,12 +492,24 @@ class testCRUD {
 		}).then(callback);
 	}
 
+	// Get data parameters and pass them
+	static sendDataParams(dataParams, callback) {
+		return new Promise(function(good, bad) {
+			APIUtils.webstudioJsonRequest(
+				"POST",
+				"/api/v0/test/start",
+				dataParams,
+				callback
+			);
+		}).then(callback);
+	}
+
 	/// Runs a test, and returns the run GUID
 	/// @param   Project ID to use
 	/// @param   Test ID to use
 	/// @param   [optional] callback to return run GUID
 	/// @return   Promise object for result run GUID
-	static runTest(projID, testID, data, callback) {
+	static runTest(projID, testID, callback) {
 		// Get the browser config
 		let form = {};
 		if (program.browser != null) {
@@ -537,7 +580,7 @@ class testCRUD {
 				console.log("# Script Path : " + scriptpath);
 				console.log("#");
 
-				var errorCount = 0;
+				// var errorCount = 0;
 
 				ProjectCRUD.projectID(projname, function(projID) {
 					console.log("# Project ID : "+projID);
@@ -549,7 +592,7 @@ class testCRUD {
 							console.log("");
 							testCRUD.pollForResult(postID, function(finalRes) {
 								console.log("");
-								testCRUD.outputStatus(errorCount);
+								// testCRUD.outputStatus(errorCount);
 								testCRUD.pollForError(postID);
 								testCRUD.pollForImg(postID, testDirectory);
 								console.log("Test Info saved in "+testDirectory+"\n");
@@ -567,38 +610,20 @@ class testCRUD {
 			console.log("# Script Path : " + scriptpath);
 			console.log("#");
 
-			var errorCount = 0;
+			// var errorCount = 0;
 
-			// ProjectCRUD.projectID(projname, function(projID) {
-			// 	console.log("# Project ID : "+projID);
-			// 	testCRUD.testID(projID, scriptpath, function(scriptID) {
-			// 		console.log("# Script ID  : "+scriptID);
-			// 		testCRUD.runTest(projID, scriptID, function(postID) {
-			// 			console.log("# Test run ID: "+postID);
-			// 			console.log("#");
-			// 			console.log("");
-			// 			testCRUD.pollForResult(postID, function(finalRes) {
-			// 				console.log("");
-			// 				testCRUD.outputStatus(errorCount);
-			// 				testCRUD.pollForError(postID);
-			// 			});
-			// 		});
-			// 	});
-			// });
 			ProjectCRUD.projectID(projname, function(projID) {
 				console.log("# Project ID : "+projID);
 				testCRUD.testID(projID, scriptpath, function(scriptID) {
 					console.log("# Script ID  : "+scriptID);
-					getData.getDataHelper(options, function(dataParams) {
-						testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
-							console.log("# Test run ID: "+postID);
-							console.log("#");
+					testCRUD.runTest(projID, scriptID, function(postID) {
+						console.log("# Test run ID: "+postID);
+						console.log("#");
+						console.log("");
+						testCRUD.pollForResult(postID, function(finalRes) {
 							console.log("");
-							testCRUD.pollForResult(postID, function(finalRes) {
-								console.log("");
-								testCRUD.outputStatus(errorCount);
-								testCRUD.pollForError(postID);
-							});
+							testCRUD.pollForStatus(postID);
+							testCRUD.pollForError(postID);
 						});
 					});
 				});
