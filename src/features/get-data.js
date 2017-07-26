@@ -21,13 +21,6 @@ const ImportExport = require('./import-export');
 
 class getData {
 
-  // Check path of file and pass data parameters if file path is valid
-  static getDataHelper(options, callback) {
-    ImportExport.checkPath(options.data, function(res) {
-      getData.readDataContents(options);
-    });
-  }
-
   // Read data parameters from file in local directory
   // @param   File Pathname
   // @return  Promise object that returns the data parameters from file in local directory

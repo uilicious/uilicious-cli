@@ -6,6 +6,8 @@
 // npm Dependencies
 const path = require('path');
 const program = require('commander');
+const fs = require('fs');
+const util = require('util');
 
 // Chalk (color) messages for success/error
 const chalk = require('chalk');
@@ -14,9 +16,10 @@ const success = chalk.green;
 
 // Module Dependencies (non-npm)
 const APIUtils = require('./../api-utils');
+const CLIUtils = require('./../cli-utils');
 const ProjectCRUD = require('./project-CRUD');
 const folderCRUD = require('./folder-CRUD');
-const CLIUtils = require('./../cli-utils');
+const ImportExport = require('./import-export');
 const getData = require('./get-data');
 
 class testCRUD {
@@ -111,7 +114,7 @@ class testCRUD {
 	static pollForResult(runTestID, callback) {
 
 		// Call API every 2500ms
-		let pollInterval = 25000;
+		let pollInterval = 5000;
 
 		return new Promise(function(good, bad) {
 			function actualPoll() {
@@ -137,7 +140,7 @@ class testCRUD {
 	static pollForError(runTestID, callback) {
 
 		// Call API every 2500ms
-		let pollInterval = 2500;
+		let pollInterval = 500;
 
 		return new Promise(function(good, bad) {
 			function actualPoll() {
@@ -289,7 +292,6 @@ class testCRUD {
 
 		// Output each step
 		var outputStepCache = [];
-		// var errorCount = 0;
 
 		if ( outputStepCache[idx] == null ) {
 			outputStepCache[idx] = step;
@@ -297,7 +299,6 @@ class testCRUD {
 			if ( step.status == 'success' ) {
 				console.log(stepMsg);
 			} else if ( step.status == 'failure' ) {
-				// errorCount++;
 				console.error(stepMsg);
 			}
 		}
@@ -509,7 +510,7 @@ class testCRUD {
 	/// @param   Test ID to use
 	/// @param   [optional] callback to return run GUID
 	/// @return   Promise object for result run GUID
-	static runTest(projID, testID, callback) {
+	static runTest(projID, testID, dataParams, callback) {
 		// Get the browser config
 		let form = {};
 		if (program.browser != null) {
@@ -527,7 +528,10 @@ class testCRUD {
 			APIUtils.webstudioJsonRequest(
 				"POST",
 				"/api/studio/v1/projects/" + projID + "/workspace/tests/" + testID + "/runAction?cli=true",
-				form,
+				{
+					formData: form,
+					data: dataParams
+				},
 				function(res) {
 					if ( res.id != null ) {
 						good(res.id);
@@ -592,7 +596,7 @@ class testCRUD {
 							console.log("");
 							testCRUD.pollForResult(postID, function(finalRes) {
 								console.log("");
-								// testCRUD.outputStatus(errorCount);
+								testCRUD.pollForStatus(postID);
 								testCRUD.pollForError(postID);
 								testCRUD.pollForImg(postID, testDirectory);
 								console.log("Test Info saved in "+testDirectory+"\n");
@@ -616,18 +620,38 @@ class testCRUD {
 				console.log("# Project ID : "+projID);
 				testCRUD.testID(projID, scriptpath, function(scriptID) {
 					console.log("# Script ID  : "+scriptID);
-					testCRUD.runTest(projID, scriptID, function(postID) {
-						console.log("# Test run ID: "+postID);
-						console.log("#");
-						console.log("");
-						testCRUD.pollForResult(postID, function(finalRes) {
-							console.log("");
-							testCRUD.pollForStatus(postID);
-							testCRUD.pollForError(postID);
+					ImportExport.checkPath(options.data, function(dataDirectory) {
+						getData.readDataContents(options, function(dataParams) {
+							testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
+								console.log("# Test run ID: "+postID);
+								console.log("#");
+								console.log("");
+								testCRUD.pollForResult(postID, function(finalRes) {
+									console.log("");
+									testCRUD.pollForStatus(postID);
+									testCRUD.pollForError(postID);
+								});
+							});
 						});
 					});
 				});
 			});
+			// ProjectCRUD.projectID(projname, function(projID) {
+			// 	console.log("# Project ID : "+projID);
+			// 	testCRUD.testID(projID, scriptpath, function(scriptID) {
+			// 		console.log("# Script ID  : "+scriptID);
+			// 		testCRUD.runTest(projID, scriptID, function(postID) {
+			// 			console.log("# Test run ID: "+postID);
+			// 			console.log("#");
+			// 			console.log("");
+			// 			testCRUD.pollForResult(postID, function(finalRes) {
+			// 				console.log("");
+			// 				testCRUD.pollForStatus(postID);
+			// 				testCRUD.pollForError(postID);
+			// 			});
+			// 		});
+			// 	});
+			// });
 		}
 	}
 
