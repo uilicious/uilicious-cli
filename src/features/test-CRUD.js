@@ -493,18 +493,6 @@ class testCRUD {
 		}).then(callback);
 	}
 
-	// Get data parameters and pass them
-	static sendDataParams(dataParams, callback) {
-		return new Promise(function(good, bad) {
-			APIUtils.webstudioJsonRequest(
-				"POST",
-				"/api/v0/test/start",
-				dataParams,
-				callback
-			);
-		}).then(callback);
-	}
-
 	/// Runs a test, and returns the run GUID
 	/// @param   Project ID to use
 	/// @param   Test ID to use
@@ -552,6 +540,12 @@ class testCRUD {
 			{ id : runTestID },
 			callback
 		);
+	}
+
+	static check(options, callback) {
+		return new Promise(function(good, bad) {
+			console.log(typeof options.data);
+		}).then(callback);
 	}
 
 //------------------------------------------------------------------------------
