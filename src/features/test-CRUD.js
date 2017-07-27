@@ -522,11 +522,7 @@ class testCRUD {
 		if (program.width != null) {
 			form.width = program.width;
 		}
-		if (dataParams != null) {
-			form.data = dataParams;
-		} else {
-			form.data = null;
-		}
+		form.data = dataParams;
 
 		// Return promise obj
 		return new Promise(function(good, bad) {
@@ -539,7 +535,7 @@ class testCRUD {
 						good(res.id);
 						return;
 					}
-					throw new Error("Missing test run ID -> " + res.id);
+					throw new Error("Missing Test Run ID/Invalid JSON format");
 				}
 			);
 		}).then(callback);
@@ -627,8 +623,9 @@ class testCRUD {
 									console.log("");
 									testCRUD.pollForResult(postID, function(finalRes) {
 										console.log("");
-										testCRUD.pollForStatus(postID);
-										testCRUD.pollForError(postID);
+										testCRUD.pollForStatus(postID, function(res) {
+											testCRUD.pollForError(postID);
+										});
 									});
 								});
 							});
@@ -641,8 +638,9 @@ class testCRUD {
 							console.log("");
 							testCRUD.pollForResult(postID, function(finalRes) {
 								console.log("");
-								testCRUD.pollForStatus(postID);
-								testCRUD.pollForError(postID);
+								testCRUD.pollForStatus(postID, function(res) {
+									testCRUD.pollForError(postID);
+								});
 							});
 						});
 					}
