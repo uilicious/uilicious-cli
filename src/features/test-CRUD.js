@@ -114,7 +114,7 @@ class testCRUD {
 	static pollForResult(runTestID, callback) {
 
 		// Call API every 2500ms
-		let pollInterval = 5000;
+		let pollInterval = 10000;
 
 		return new Promise(function(good, bad) {
 			function actualPoll() {
@@ -522,7 +522,11 @@ class testCRUD {
 		if (program.width != null) {
 			form.width = program.width;
 		}
-		form.data = dataParams;
+		if (dataParams != null) {
+			form.data = dataParams;
+		} else {
+			form.data = null;
+		}
 
 		// Return promise obj
 		return new Promise(function(good, bad) {
@@ -582,8 +586,6 @@ class testCRUD {
 				console.log("# Script Path : " + scriptpath);
 				console.log("#");
 
-				// var errorCount = 0;
-
 				ProjectCRUD.projectID(projname, function(projID) {
 					console.log("# Project ID : "+projID);
 					testCRUD.testID(projID, scriptpath, function(scriptID) {
@@ -612,44 +614,40 @@ class testCRUD {
 			console.log("# Script Path : " + scriptpath);
 			console.log("#");
 
-			// var errorCount = 0;
-
 			ProjectCRUD.projectID(projname, function(projID) {
 				console.log("# Project ID : "+projID);
 				testCRUD.testID(projID, scriptpath, function(scriptID) {
 					console.log("# Script ID  : "+scriptID);
-					ImportExport.checkPath(options.data, function(dataDirectory) {
-						getData.readDataContents(options, function(dataParams) {
-							testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
-								console.log("# Test run ID: "+postID);
-								console.log("#");
-								console.log("");
-								testCRUD.pollForResult(postID, function(finalRes) {
+					if (options.data != null) {
+						ImportExport.checkPath(options.data, function(dataDirectory) {
+							getData.readDataContents(options, function(dataParams) {
+								testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
+									console.log("# Test run ID: "+postID);
+									console.log("#");
 									console.log("");
-									testCRUD.pollForStatus(postID);
-									testCRUD.pollForError(postID);
+									testCRUD.pollForResult(postID, function(finalRes) {
+										console.log("");
+										testCRUD.pollForStatus(postID);
+										testCRUD.pollForError(postID);
+									});
 								});
 							});
 						});
-					});
+					} else {
+						let dataParams = null;
+						testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
+							console.log("# Test run ID: "+postID);
+							console.log("#");
+							console.log("");
+							testCRUD.pollForResult(postID, function(finalRes) {
+								console.log("");
+								testCRUD.pollForStatus(postID);
+								testCRUD.pollForError(postID);
+							});
+						});
+					}
 				});
 			});
-			// ProjectCRUD.projectID(projname, function(projID) {
-			// 	console.log("# Project ID : "+projID);
-			// 	testCRUD.testID(projID, scriptpath, function(scriptID) {
-			// 		console.log("# Script ID  : "+scriptID);
-			// 		testCRUD.runTest(projID, scriptID, function(postID) {
-			// 			console.log("# Test run ID: "+postID);
-			// 			console.log("#");
-			// 			console.log("");
-			// 			testCRUD.pollForResult(postID, function(finalRes) {
-			// 				console.log("");
-			// 				testCRUD.pollForStatus(postID);
-			// 				testCRUD.pollForError(postID);
-			// 			});
-			// 		});
-			// 	});
-			// });
 		}
 	}
 
