@@ -643,20 +643,66 @@ class testCRUD {
 		}
 	}
 	static main(projname, scriptpath, options) {
+
 		// Exit CLI if both '-d' & '-ds' are used
 		if (options.data && options.datafile != null) {
 			console.error(error("ERROR: Unable to accept both '-d' & '-df' options!\nPlease use either 1 option only!\n"));
 			process.exit(1);
 		}
+
 		if (options.directory != null) {
-			if (options.datafile != null) {
 
-			} else if (options.data != null) {
+			testCRUD.makeDir(options.directory, function(testDirectory) {
+				// Test log functionality
+				let testLog = testDirectory + '/log.txt';
+				const logFile = fs.createWriteStream(testLog, {
+					flags: 'a'
+				});
+				const logStdout = process.stdout;
+				console.log = function() {
+					logFile.write(util.format.apply(null, arguments) + '\n');
+					logStdout.write(util.format.apply(null, arguments) + '\n');
+				};
+				console.error = console.log;
 
-			} else {
+				CLIUtils.consoleLogTestDate();
 
-			}
+				console.log("#");
+				console.log("# Uilicious CLI - Runner");
+				console.log("# Project Name: " + projname);
+				console.log("# Script Path : " + scriptpath);
+				console.log("#");
+
+				ProjectCRUD.projectID(projname, function(projID) {
+					console.log("# Project ID : "+projID);
+					testCRUD.testID(projID, scriptpath, function(scriptID) {
+						console.log("# Script ID  : "+scriptID);
+						if (options.datafile != null) {
+
+						} else if (options.data != null) {
+
+						} else {
+							let dataParams = null;
+							testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
+								console.log("# Test run ID: "+postID);
+								console.log("#");
+								console.log("");
+								testCRUD.pollForResult(postID, function(finalRes) {
+									console.log("");
+									testCRUD.pollForStatus(postID, function(res) {
+										testCRUD.pollForError(postID, function(res) {
+											testCRUD.pollForImg(postID, testDirectory);
+										});
+									});
+								});
+							});
+						}
+					});
+				});
+			});
+
 		} else {
+
 			CLIUtils.consoleLogTestDate();
 
 			console.log("#");
@@ -715,6 +761,7 @@ class testCRUD {
 					}
 				});
 			});
+
 		}
 	}
 
