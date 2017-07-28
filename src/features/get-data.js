@@ -24,12 +24,27 @@ class getData {
   // Read data parameters from file in local directory
   // @param   File Pathname
   // @return  Promise object that returns the data parameters from file in local directory
-  static readDataContents(options, callback) {
+  static readDataFile(options, callback) {
     return new Promise(function(good, bad) {
-      let dataDirectory = path.resolve(options.data);
+      let dataDirectory = path.resolve(options.dataFile);
       let dataParams = fs.readFileSync(dataDirectory, 'utf-8');
       if (dataDirectory.indexOf(dataParams) > -1) {
         console.error(error("ERROR: There is nothing in this file!\n"));
+  			process.exit(1);
+      } else {
+        good(dataParams);
+      }
+    }).then(callback);
+  }
+
+  // Read data parameters from object in CLI
+  // @param   File Pathname
+  // @return  Promise object that returns the data parameters from file in local directory
+  static readDataObj(options, callback) {
+    return new Promise(function(good, bad) {
+      let dataParams = options.dataObj;
+      if (dataParams == null) {
+        console.error(error("ERROR: There is no data parameters!\n"));
   			process.exit(1);
       } else {
         good(dataParams);

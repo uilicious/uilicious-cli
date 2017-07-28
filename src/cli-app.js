@@ -202,16 +202,11 @@ function CLIApp() {
 	// -----------------------------
 	program
 		.command('run <projname> <scriptpath>')
-		.option('-d, --directory <directory>', 'Set the directory path.')
-		.option('-D, --data <data>', 'Set the directory path of the data parameters.')
+		.option('-s, --save <directory>', 'Set the directory path to save test log.')
+		.option('-d, --data <dataObj>', 'Set the data parameters in an object.')
+		.option('-df, --datafile <dataFile>', 'Set the local path for the data file.')
 		.description('Run a test from a project.')
 		.action(testCRUD.main);
-
-		program
-			.command('check')
-			.option('-D, --data <data>', 'Set the directory path of the data parameters.')
-			.description('Check')
-			.action(testCRUD.check);
 
 	// end with parse to parse through the input.txt
 	program.parse(process.argv);

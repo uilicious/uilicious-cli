@@ -642,6 +642,81 @@ class testCRUD {
 			});
 		}
 	}
+	static main(projname, scriptpath, options) {
+		// Exit CLI if both '-d' & '-ds' are used
+		if (options.data && options.datafile != null) {
+			console.error(error("ERROR: Unable to accept both '-d' & '-df' options!\nPlease use either 1 option only!\n"));
+			process.exit(1);
+		}
+		if (options.directory != null) {
+			if (options.datafile != null) {
+
+			} else if (options.data != null) {
+
+			} else {
+
+			}
+		} else {
+			CLIUtils.consoleLogTestDate();
+
+			console.log("#");
+			console.log("# Uilicious CLI - Runner");
+			console.log("# Project Name: " + projname);
+			console.log("# Script Path : " + scriptpath);
+			console.log("#");
+
+			ProjectCRUD.projectID(projname, function(projID) {
+				console.log("# Project ID : "+projID);
+				testCRUD.testID(projID, scriptpath, function(scriptID) {
+					console.log("# Script ID  : "+scriptID);
+					if (options.dataFile != null) {
+						ImportExport.checkPath(options.dataFile, function(dataDirectory) {
+							getData.readDataFile(options, function(dataParams) {
+								testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
+									console.log("# Test run ID: "+postID);
+									console.log("#");
+									console.log("");
+									testCRUD.pollForResult(postID, function(finalRes) {
+										console.log("");
+										testCRUD.pollForStatus(postID, function(res) {
+											testCRUD.pollForError(postID);
+										});
+									});
+								});
+							});
+						});
+					} else if (options.dataObj != null) {
+						getData.readDataObj(options, function(dataParams) {
+							testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
+								console.log("# Test run ID: "+postID);
+								console.log("#");
+								console.log("");
+								testCRUD.pollForResult(postID, function(finalRes) {
+									console.log("");
+									testCRUD.pollForStatus(postID, function(res) {
+										testCRUD.pollForError(postID);
+									});
+								});
+							});
+						});
+					} else {
+						let dataParams = null;
+						testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
+							console.log("# Test run ID: "+postID);
+							console.log("#");
+							console.log("");
+							testCRUD.pollForResult(postID, function(finalRes) {
+								console.log("");
+								testCRUD.pollForStatus(postID, function(res) {
+									testCRUD.pollForError(postID);
+								});
+							});
+						});
+					}
+				});
+			});
+		}
+	}
 
 }
 
