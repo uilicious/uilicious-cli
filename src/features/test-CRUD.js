@@ -400,7 +400,6 @@ class testCRUD {
 						}
 					}
 					good(testName);
-					return;
 				}
 			);
 		}).then(callback);
@@ -540,12 +539,6 @@ class testCRUD {
 			{ id : runTestID },
 			callback
 		);
-	}
-
-	static check(options, callback) {
-		return new Promise(function(good, bad) {
-			console.log(typeof options.data);
-		}).then(callback);
 	}
 
 //------------------------------------------------------------------------------
@@ -708,10 +701,8 @@ class testCRUD {
 					}
 				});
 			});
-
 		}
 	}
-
 }
 
 module.exports = testCRUD;

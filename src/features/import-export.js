@@ -31,7 +31,7 @@ class ImportExport {
   static importTestHelper(projname, file_pathname, options) {
   	ImportExport.readFileContents(file_pathname, function(file_content) {
   		ProjectCRUD.projectID(projname, function(projID) {
-  			testCRUD.checkTest(projID, file_pathname, function(testname) {
+  			ImportExport.checkTest(projID, file_pathname, function(testname) {
   				ImportExport.importTest(projID, testname, file_content, function(res) {
   					console.log(success("Import successful!\nNew test '"+testname+"' created in Project '"+projname+"'\n"));
   				});
@@ -44,11 +44,11 @@ class ImportExport {
   // @param Project Name
   // @param folder Name
   // @param File Path Name
-  static importTestUnderFolderHelper(projname, foldername, file_pathname, options) {
+  static importTestUnderFolderHelper(projname, file_pathname, foldername, options) {
   	ImportExport.readFileContents(file_pathname, function(file_content) {
   		ProjectCRUD.projectID(projname, function(projID) {
   			folderCRUD.nodeID(projID, foldername, function(nodeId) {
-  				testCRUD.checkTest(projID, file_pathname, function(testname) {
+  				ImportExport.checkTest(projID, file_pathname, function(testname) {
   					ImportExport.importTestUnderFolder(projID, nodeId, testname, file_content, function(res) {
   						console.log(success("Import successful!\nNew test '"+testname+"' created under Folder '"+foldername+"' under Project '"+projname+"'.\n"));
   					});
@@ -65,7 +65,7 @@ class ImportExport {
   			ProjectCRUD.projectID(projName, function(projID) {
   				folderCRUD.checkFolder(projID, folder_name, function(folder_name) {
   					folderCRUD.createFolder(projID, folder_name, function(res) {
-  						importFolderContents(projName, folder_name, folder_pathname, function(res) {
+  						ImportExport.importFolderContents(projName, folder_name, folder_pathname, function(res) {
   							console.log("");
   						});
   					});
@@ -83,7 +83,7 @@ class ImportExport {
   				folderCRUD.nodeID(projID, folderName, function(nodeId) {
   					folderCRUD.checkFolder(projID, folder_name, function(folder_name) {
   						folderCRUD.createFolderUnderFolder(projID, nodeId, folder_name, function(res) {
-  							importFolderContents(projName, folder_name, folder_pathname, function(res) {
+  							ImportExport.importFolderContents(projName, folder_name, folder_pathname, function(res) {
   								console.log("");
   							});
   						});
@@ -130,6 +130,30 @@ class ImportExport {
   		}
   	}).then(callback);
   }
+
+  /// Check for duplicate Test name
+	/// @param	Project ID
+	/// @param	Test Name
+	static checkTest(projID, filePathname, callback) {
+		return new Promise(function(good, bad) {
+			let testName = path.parse(filePathname).name;
+			APIUtils.webstudioJsonRequest(
+				"GET",
+				"/api/studio/v1/projects/" + projID + "/workspace/tests",
+				{ name: testName },
+				function (list) {
+					for (let i = 0; i < list.length; i++) {
+						let item = list[i];
+						if (item.name == testName) {
+							console.error(error("ERROR: This test '" + testName + "' exists.\nPlease use another name!\n"));
+							process.exit(1);
+						}
+					}
+					good(testName);
+				}
+			);
+		}).then(callback);
+	}
 
   // Check folder contents and return folder name if folder is not empty
   // @param   Folder Path Name

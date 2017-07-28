@@ -122,7 +122,7 @@ function CLIApp() {
 	// Import Test
 	program
 		.command('import-test <projname> <file_pathname>')
-		.option('-f, --folder <folder>', 'Set the folder path.')
+		.option('-f, --folder <folder>', 'Set the folder path to save to.')
 		.alias('it')
 		.description('Import a test.')
 		.action(function(projname, file_pathname, options) {
@@ -130,7 +130,7 @@ function CLIApp() {
 			if (folder_name == null) {
 				ImportExport.importTestHelper(projname, file_pathname);
 			} else {
-				ImportExport.importTestUnderFolderHelper(projname, folder_name, file_pathname);
+				ImportExport.importTestUnderFolderHelper(projname, file_pathname, folder_name);
 			}
 		});
 
