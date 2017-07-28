@@ -554,95 +554,6 @@ class testCRUD {
 
 	// Run test script from project
 	static main(projname, scriptpath, options) {
-		if (options.directory != null) {
-			testCRUD.makeDir(options.directory, function(testDirectory) {
-				// Test log functionality
-				let testLog = testDirectory + '/log.txt';
-				const logFile = fs.createWriteStream(testLog, {
-					flags: 'a'
-				});
-				const logStdout = process.stdout;
-				console.log = function() {
-					logFile.write(util.format.apply(null, arguments) + '\n');
-					logStdout.write(util.format.apply(null, arguments) + '\n');
-				};
-				console.error = console.log;
-
-				CLIUtils.consoleLogTestDate();
-
-				console.log("#");
-				console.log("# Uilicious CLI - Runner");
-				console.log("# Project Name: " + projname);
-				console.log("# Script Path : " + scriptpath);
-				console.log("#");
-
-				ProjectCRUD.projectID(projname, function(projID) {
-					console.log("# Project ID : "+projID);
-					testCRUD.testID(projID, scriptpath, function(scriptID) {
-						console.log("# Script ID  : "+scriptID);
-						testCRUD.runTest(projID, scriptID, function(postID) {
-							console.log("# Test run ID: "+postID);
-							console.log("#");
-							console.log("");
-							testCRUD.pollForResult(postID, function(finalRes) {
-								console.log("");
-								testCRUD.pollForStatus(postID);
-								testCRUD.pollForError(postID);
-								testCRUD.pollForImg(postID, testDirectory);
-								console.log("Test Info saved in "+testDirectory+"\n");
-							});
-						});
-					});
-				});
-			});
-		} else {
-			CLIUtils.consoleLogTestDate();
-
-			console.log("#");
-			console.log("# Uilicious CLI - Runner");
-			console.log("# Project Name: " + projname);
-			console.log("# Script Path : " + scriptpath);
-			console.log("#");
-
-			ProjectCRUD.projectID(projname, function(projID) {
-				console.log("# Project ID : "+projID);
-				testCRUD.testID(projID, scriptpath, function(scriptID) {
-					console.log("# Script ID  : "+scriptID);
-					if (options.data != null) {
-						ImportExport.checkPath(options.data, function(dataDirectory) {
-							getData.readDataContents(options, function(dataParams) {
-								testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
-									console.log("# Test run ID: "+postID);
-									console.log("#");
-									console.log("");
-									testCRUD.pollForResult(postID, function(finalRes) {
-										console.log("");
-										testCRUD.pollForStatus(postID, function(res) {
-											testCRUD.pollForError(postID);
-										});
-									});
-								});
-							});
-						});
-					} else {
-						let dataParams = null;
-						testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
-							console.log("# Test run ID: "+postID);
-							console.log("#");
-							console.log("");
-							testCRUD.pollForResult(postID, function(finalRes) {
-								console.log("");
-								testCRUD.pollForStatus(postID, function(res) {
-									testCRUD.pollForError(postID);
-								});
-							});
-						});
-					}
-				});
-			});
-		}
-	}
-	static main(projname, scriptpath, options) {
 
 		// Exit CLI if both '-d' & '-ds' are used
 		if (options.data && options.datafile != null) {
@@ -678,9 +589,43 @@ class testCRUD {
 					testCRUD.testID(projID, scriptpath, function(scriptID) {
 						console.log("# Script ID  : "+scriptID);
 						if (options.datafile != null) {
-
+							ImportExport.checkPath(options.datafile, function(dataDirectory) {
+								getData.readDataFile(options, function(dataParams) {
+									testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
+										console.log("# Test run ID: "+postID);
+										console.log("#");
+										console.log("");
+										testCRUD.pollForResult(postID, function(finalRes) {
+											console.log("");
+											testCRUD.pollForStatus(postID, function(res) {
+												testCRUD.pollForError(postID, function(res) {
+													testCRUD.pollForImg(postID, testDirectory, function(res) {
+														console.log("Test Info saved in "+testDirectory+"\n");
+													});
+												});
+											});
+										});
+									});
+								});
+							});
 						} else if (options.data != null) {
-
+							getData.readDataObj(options, function(dataParams) {
+								testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
+									console.log("# Test run ID: "+postID);
+									console.log("#");
+									console.log("");
+									testCRUD.pollForResult(postID, function(finalRes) {
+										console.log("");
+										testCRUD.pollForStatus(postID, function(res) {
+											testCRUD.pollForError(postID, function(res) {
+												testCRUD.pollForImg(postID, testDirectory, function(res) {
+													console.log("Test Info saved in "+testDirectory+"\n");
+												});
+											});
+										});
+									});
+								});
+							});
 						} else {
 							let dataParams = null;
 							testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
@@ -691,7 +636,9 @@ class testCRUD {
 									console.log("");
 									testCRUD.pollForStatus(postID, function(res) {
 										testCRUD.pollForError(postID, function(res) {
-											testCRUD.pollForImg(postID, testDirectory);
+											testCRUD.pollForImg(postID, testDirectory, function(res) {
+												console.log("Test Info saved in "+testDirectory+"\n");
+											});
 										});
 									});
 								});
@@ -715,8 +662,8 @@ class testCRUD {
 				console.log("# Project ID : "+projID);
 				testCRUD.testID(projID, scriptpath, function(scriptID) {
 					console.log("# Script ID  : "+scriptID);
-					if (options.dataFile != null) {
-						ImportExport.checkPath(options.dataFile, function(dataDirectory) {
+					if (options.datafile != null) {
+						ImportExport.checkPath(options.datafile, function(dataDirectory) {
 							getData.readDataFile(options, function(dataParams) {
 								testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
 									console.log("# Test run ID: "+postID);
@@ -731,7 +678,7 @@ class testCRUD {
 								});
 							});
 						});
-					} else if (options.dataObj != null) {
+					} else if (options.data != null) {
 						getData.readDataObj(options, function(dataParams) {
 							testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
 								console.log("# Test run ID: "+postID);

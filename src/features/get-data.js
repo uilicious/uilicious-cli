@@ -26,7 +26,7 @@ class getData {
   // @return  Promise object that returns the data parameters from file in local directory
   static readDataFile(options, callback) {
     return new Promise(function(good, bad) {
-      let dataDirectory = path.resolve(options.dataFile);
+      let dataDirectory = path.resolve(options.datafile);
       let dataParams = fs.readFileSync(dataDirectory, 'utf-8');
       if (dataDirectory.indexOf(dataParams) > -1) {
         console.error(error("ERROR: There is nothing in this file!\n"));
@@ -42,7 +42,7 @@ class getData {
   // @return  Promise object that returns the data parameters from file in local directory
   static readDataObj(options, callback) {
     return new Promise(function(good, bad) {
-      let dataParams = options.dataObj;
+      let dataParams = options.data;
       if (dataParams == null) {
         console.error(error("ERROR: There is no data parameters!\n"));
   			process.exit(1);
