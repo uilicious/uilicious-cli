@@ -122,7 +122,7 @@ function CLIApp() {
 	// Import Test
 	program
 		.command('import-test <projname> <file_pathname>')
-		.option('-f, --folder <folder>', 'Set the folder path.')
+		.option('-f, --folder <folder>', 'Set the folder path to save to.')
 		.alias('it')
 		.description('Import a test.')
 		.action(function(projname, file_pathname, options) {
@@ -130,7 +130,7 @@ function CLIApp() {
 			if (folder_name == null) {
 				ImportExport.importTestHelper(projname, file_pathname);
 			} else {
-				ImportExport.importTestUnderFolderHelper(projname, folder_name, file_pathname);
+				ImportExport.importTestUnderFolderHelper(projname, file_pathname, folder_name);
 			}
 		});
 
@@ -202,8 +202,9 @@ function CLIApp() {
 	// -----------------------------
 	program
 		.command('run <projname> <scriptpath>')
-		.option('-d, --directory <directory>', 'Set the directory path.')
-		.option('-D, --data <data>', 'Set the directory path of the data parameters.')
+		.option('-s, --save <directory>', 'Set the directory path to save test log.')
+		.option('--data <dataObj>', 'Set the data parameters in an object.')
+		.option('--datafile <dataFile>', 'Set the local path for the data file.')
 		.description('Run a test from a project.')
 		.action(testCRUD.main);
 

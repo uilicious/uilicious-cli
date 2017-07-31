@@ -114,14 +114,16 @@ class testCRUD {
 	static pollForResult(runTestID, callback) {
 
 		// Call API every 2500ms
-		let pollInterval = 10000;
+		let pollInterval = 2000;
 
 		return new Promise(function(good, bad) {
 			function actualPoll() {
 				setTimeout(function() {
 					testCRUD.getResult(runTestID, function(res) {
-						testCRUD.processResultSteps(res.outputPath, res.steps);
-						if ( res.status == 'success' || res.status == 'failure') {
+						// testCRUD.processResultSteps(res.outputPath, res.steps);
+						// Wait for test status (success/failure) and then output steps
+						if (res.status == 'success' || res.status == 'failure') {
+							testCRUD.processResultSteps(res.outputPath, res.steps);
 							good(res);
 							return;
 						} else {
@@ -147,7 +149,7 @@ class testCRUD {
 				setTimeout(function() {
 					testCRUD.getResult(runTestID, function(res) {
 						testCRUD.processErrors(res.outputPath, res.steps);
-						if ( res.status == 'success' || res.status == 'failure') {
+						if (res.status == 'success' || res.status == 'failure') {
 							good(res);
 							return;
 						} else {
@@ -173,7 +175,7 @@ class testCRUD {
 				setTimeout(function() {
 					testCRUD.getResult(runTestID, function(res) {
 						testCRUD.processImages(res.outputPath, res.steps, directory);
-						if ( res.status == 'success' || res.status == 'failure') {
+						if (res.status == 'success' || res.status == 'failure') {
 							good(res);
 							return;
 						} else {
@@ -199,7 +201,7 @@ class testCRUD {
 				setTimeout(function() {
 					testCRUD.getResult(runTestID, function(res) {
 						testCRUD.outputStatus(res.outputPath, res.steps);
-						if ( res.status == 'success' || res.status == 'failure') {
+						if (res.status == 'success' || res.status == 'failure') {
 							good(res);
 							return;
 						} else {
@@ -218,9 +220,9 @@ class testCRUD {
 		if (stepArr == null) {
 			return;
 		}
-		for ( let idx = 0; idx < stepArr.length; idx++ ) {
+		for (let idx = 0; idx < stepArr.length; idx++) {
 			let step = stepArr[idx];
-			if ( step.status == 'failure' ) {
+			if (step.status == 'failure') {
 				errorCount++;
 			}
 		}
@@ -241,9 +243,9 @@ class testCRUD {
 		if (stepArr == null) {
 			return;
 		}
-		for ( let idx = 0; idx < stepArr.length; idx++ ) {
+		for (let idx = 0; idx < stepArr.length; idx++) {
 			let step = stepArr[idx];
-			if ( step.status == 'success' || step.status == 'failure' ) {
+			if (step.status == 'success' || step.status == 'failure') {
 				testCRUD.outputStep(remoteOutputPath, idx, step);
 			}
 		}
@@ -251,9 +253,9 @@ class testCRUD {
 
 	// Cycle through every step and output errors
 	static processErrors(remoteOutputPath, stepArr) {
-		for ( let idx = 0; idx < stepArr.length; idx++ ) {
+		for (let idx = 0; idx < stepArr.length; idx++) {
 			let step = stepArr[idx];
-			if ( step.status == 'failure' ) {
+			if (step.status == 'failure') {
 				testCRUD.outputError(remoteOutputPath, idx, step);
 			}
 		}
@@ -261,9 +263,9 @@ class testCRUD {
 
 	// Cycle through every step and output images
 	static processImages(remoteOutputPath, stepArr, directory) {
-		for ( let idx = 0; idx < stepArr.length; idx++ ) {
+		for (let idx = 0; idx < stepArr.length; idx++) {
 			let step = stepArr[idx];
-			if ( step.status == 'success' || step.status == 'failure' ) {
+			if (step.status == 'success' || step.status == 'failure') {
 				// @TODO : (low priority), download the image after a step completes, instead of the very end
 				//         Due to the async nature of the image from the test run, this will prevent very large tests
 				//         from going through a very large download phase
@@ -416,6 +418,7 @@ class testCRUD {
 				{},
 				function(res) {
 					good(res);
+					return;
 				}
 			);
 		}).then(callback);
@@ -493,18 +496,6 @@ class testCRUD {
 		}).then(callback);
 	}
 
-	// Get data parameters and pass them
-	static sendDataParams(dataParams, callback) {
-		return new Promise(function(good, bad) {
-			APIUtils.webstudioJsonRequest(
-				"POST",
-				"/api/v0/test/start",
-				dataParams,
-				callback
-			);
-		}).then(callback);
-	}
-
 	/// Runs a test, and returns the run GUID
 	/// @param   Project ID to use
 	/// @param   Test ID to use
@@ -522,11 +513,7 @@ class testCRUD {
 		if (program.width != null) {
 			form.width = program.width;
 		}
-		if (dataParams != null) {
-			form.data = dataParams;
-		} else {
-			form.data = null;
-		}
+		form.data = dataParams;
 
 		// Return promise obj
 		return new Promise(function(good, bad) {
@@ -539,7 +526,7 @@ class testCRUD {
 						good(res.id);
 						return;
 					}
-					throw new Error("Missing test run ID -> " + res.id);
+					throw new Error("Missing Test Run ID/Invalid JSON format");
 				}
 			);
 		}).then(callback);
@@ -564,7 +551,15 @@ class testCRUD {
 
 	// Run test script from project
 	static main(projname, scriptpath, options) {
+
+		// Exit CLI if both '-d' & '-ds' are used
+		if (options.data && options.datafile != null) {
+			console.error(error("ERROR: Unable to accept both '-d' & '-df' options!\nPlease use either 1 option only!\n"));
+			process.exit(1);
+		}
+
 		if (options.directory != null) {
+
 			testCRUD.makeDir(options.directory, function(testDirectory) {
 				// Test log functionality
 				let testLog = testDirectory + '/log.txt';
@@ -590,22 +585,68 @@ class testCRUD {
 					console.log("# Project ID : "+projID);
 					testCRUD.testID(projID, scriptpath, function(scriptID) {
 						console.log("# Script ID  : "+scriptID);
-						testCRUD.runTest(projID, scriptID, function(postID) {
-							console.log("# Test run ID: "+postID);
-							console.log("#");
-							console.log("");
-							testCRUD.pollForResult(postID, function(finalRes) {
-								console.log("");
-								testCRUD.pollForStatus(postID);
-								testCRUD.pollForError(postID);
-								testCRUD.pollForImg(postID, testDirectory);
-								console.log("Test Info saved in "+testDirectory+"\n");
+						if (options.datafile != null) {
+							ImportExport.checkPath(options.datafile, function(dataDirectory) {
+								getData.readDataFile(options, function(dataParams) {
+									testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
+										console.log("# Test run ID: "+postID);
+										console.log("#");
+										console.log("");
+										testCRUD.pollForResult(postID, function(finalRes) {
+											console.log("");
+											testCRUD.pollForStatus(postID, function(res) {
+												testCRUD.pollForError(postID, function(res) {
+													testCRUD.pollForImg(postID, testDirectory, function(res) {
+														console.log("Test Info saved in "+testDirectory+"\n");
+													});
+												});
+											});
+										});
+									});
+								});
 							});
-						});
+						} else if (options.data != null) {
+							getData.readDataObj(options, function(dataParams) {
+								testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
+									console.log("# Test run ID: "+postID);
+									console.log("#");
+									console.log("");
+									testCRUD.pollForResult(postID, function(finalRes) {
+										console.log("");
+										testCRUD.pollForStatus(postID, function(res) {
+											testCRUD.pollForError(postID, function(res) {
+												testCRUD.pollForImg(postID, testDirectory, function(res) {
+													console.log("Test Info saved in "+testDirectory+"\n");
+												});
+											});
+										});
+									});
+								});
+							});
+						} else {
+							let dataParams = null;
+							testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
+								console.log("# Test run ID: "+postID);
+								console.log("#");
+								console.log("");
+								testCRUD.pollForResult(postID, function(finalRes) {
+									console.log("");
+									testCRUD.pollForStatus(postID, function(res) {
+										testCRUD.pollForError(postID, function(res) {
+											testCRUD.pollForImg(postID, testDirectory, function(res) {
+												console.log("Test Info saved in "+testDirectory+"\n");
+											});
+										});
+									});
+								});
+							});
+						}
 					});
 				});
 			});
+
 		} else {
+
 			CLIUtils.consoleLogTestDate();
 
 			console.log("#");
@@ -618,16 +659,31 @@ class testCRUD {
 				console.log("# Project ID : "+projID);
 				testCRUD.testID(projID, scriptpath, function(scriptID) {
 					console.log("# Script ID  : "+scriptID);
-					if (options.data != null) {
-						ImportExport.checkPath(options.data, function(dataDirectory) {
-							getData.readDataContents(options, function(dataParams) {
+					if (options.datafile != null) {
+						ImportExport.checkPath(options.datafile, function(dataDirectory) {
+							getData.readDataFile(options, function(dataParams) {
 								testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
 									console.log("# Test run ID: "+postID);
 									console.log("#");
 									console.log("");
 									testCRUD.pollForResult(postID, function(finalRes) {
 										console.log("");
-										testCRUD.pollForStatus(postID);
+										testCRUD.pollForStatus(postID, function(res) {
+											testCRUD.pollForError(postID);
+										});
+									});
+								});
+							});
+						});
+					} else if (options.data != null) {
+						getData.readDataObj(options, function(dataParams) {
+							testCRUD.runTest(projID, scriptID, dataParams, function(postID) {
+								console.log("# Test run ID: "+postID);
+								console.log("#");
+								console.log("");
+								testCRUD.pollForResult(postID, function(finalRes) {
+									console.log("");
+									testCRUD.pollForStatus(postID, function(res) {
 										testCRUD.pollForError(postID);
 									});
 								});
@@ -641,8 +697,9 @@ class testCRUD {
 							console.log("");
 							testCRUD.pollForResult(postID, function(finalRes) {
 								console.log("");
-								testCRUD.pollForStatus(postID);
-								testCRUD.pollForError(postID);
+								testCRUD.pollForStatus(postID, function(res) {
+									testCRUD.pollForError(postID);
+								});
 							});
 						});
 					}
@@ -650,7 +707,6 @@ class testCRUD {
 			});
 		}
 	}
-
 }
 
 module.exports = testCRUD;
