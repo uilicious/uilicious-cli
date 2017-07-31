@@ -1,14 +1,18 @@
 /**
  * Created by tadapatrisonika on 11/7/17.
  */
-
+const path = require('path');
 
 var projectName = "uilicious-cli-test-"+randomString(6);
 var importFilePath = "/Users/tadapatrisonika/Documents/ExpressMelody-login.txt";
 var importFilePath1 = "/Users/tadapatrisonika/Documents/Amazon-login.txt";
+// var importFilePath = path.resolve("./test/import-export-test-folder/ExpressMelody-login.js");
+// var importFilePath1 = path.resolve("./test/import-export-test-folder/Amazon-login.js");
 var folderName = "uilicious-cli-test-"+randomString(5);
 var importFolderPath = "/Users/tadapatrisonika/Documents/folder-test";
 var importFolderPath1 = "/Users/tadapatrisonika/Documents/folder";
+// var importFolderPath = "/Users/tadapatrisonika/Documents/folder-test";
+// var importFolderPath1 = "/Users/tadapatrisonika/Documents/folder";
 var exportTestName = "ExpressMelody-login";
 var exportPath = "/Users/tadapatrisonika/Downloads";
 var exportFolderName = "folder-test";
@@ -97,4 +101,3 @@ assert.containsAllValues(
 	],
 	"EXPORT FOLDER"
 );
-

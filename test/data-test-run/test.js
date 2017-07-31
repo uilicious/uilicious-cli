@@ -1,12 +1,12 @@
 // /**
 //  * Created by tadapatrisonika on 6/7/17.
 //  */
-
+const path = require('path');
 
 var projectName = "uilicious-cli-test-"+randomString(6);
-var file_pathName = "/Users/tadapatrisonika/Documents/test1.js";
-var data_pathName = "/Users/tadapatrisonika/Documents/data.json";
-var testName = "test1.js";
+var file_pathName = path.resolve("./test/data-test-run/test123.js");
+var data_pathName = path.resolve("./test/data-test-run/data.json");
+var testName = "test123";
 //var testLogPath = "/Users/tadapatrisonika/Documents";
 
 
@@ -29,10 +29,10 @@ assert.containsAllValues(
 );
 
 //Import a data-test that contains the data object to help run the test script
-// assert.containsAllValues(
-// 	runUiliciousCli("run", projectName, testName, "--data", data_pathName),
-// 	[
-//
-// 	],
-// 	"RUN the test"
-// );
+assert.containsAllValues(
+	runUiliciousCli("run", projectName, testName, "--datafile", data_pathName),
+	[
+
+	],
+	"RUN the test"
+);

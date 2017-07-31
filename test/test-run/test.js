@@ -1,6 +1,7 @@
 // /**
 //  * Created by tadapatrisonika on 6/7/17.
 //  */
+const path = require('path');
 
 var projectname = "uilicious-cli-test-"+randomString(6);
 var file_pathname2 = "/Users/tadapatrisonika/Documents/Amazon-login.txt";
@@ -35,5 +36,3 @@ assert.containsAllValues(
 	],
 	"RUN the test"
 );
-
-
