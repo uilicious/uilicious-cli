@@ -7,7 +7,6 @@ var projectName = "uilicious-cli-test-"+randomString(6);
 var file_pathName = path.resolve("./test/data-test-run/components/test123.js");
 var data_pathName = path.resolve("./test/data-test-run/components/data.json");
 var testName = "test123";
-//var testLogPath = "/Users/tadapatrisonika/Documents";
 
 
 //Create a project

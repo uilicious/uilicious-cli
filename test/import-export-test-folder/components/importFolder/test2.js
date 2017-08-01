@@ -1,16 +1,20 @@
-// Go to honestbee website
-I.goTo("https://honestbee.sg/en/");
+// Go to google com
+I.goTo("https://www.google.com");
 
-// See and click login
-I.see("Log In");
-I.click("Log In");
+// Try searching for something
+I.fillField("Search", "lolcats");
 
-// Fill login fields
-I.fill("Email", 'uilicious@mailinator.com');
-I.fill("Password","uiliciousR0cks");
+// Find an expected result
+I.see("Cheezburger");
 
-// Log in
-I.click("Log In");
+// Results that I don't expect to see
+I.dontSee("flying pigs");
 
-// See username
-I.see("The email address and password you entered did not match our records");
+// images loading
+I.click("images");
+
+// Loading all
+I.click("All");
+
+// click on a link
+I.click("Lolcats - Funny cat pictures");

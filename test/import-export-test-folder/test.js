@@ -4,8 +4,8 @@
 const path = require('path');
 
 var projectName = "uilicious-cli-test-"+randomString(6);
-var importFilePath = path.resolve("./test/import-export-test-folder/components/ExpressMelody-login.js");
-var importFilePath1 = path.resolve("./test/import-export-test-folder/components/Amazon-login.js");
+var importFilePath = path.resolve("./test/import-export-test-folder/components/demo1.js");
+var importFilePath1 = path.resolve("./test/import-export-test-folder/components/demo2.js");
 var folderName = "uilicious-cli-test-"+randomString(5);
 var importFolderPath = path.resolve("./test/import-export-test-folder/components/importFolder");
 var importFolderPath1 = path.resolve("./test/import-export-test-folder/components/importFolder1");
