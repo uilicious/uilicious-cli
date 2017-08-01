@@ -120,10 +120,10 @@ class testCRUD {
 			function actualPoll() {
 				setTimeout(function() {
 					testCRUD.getResult(runTestID, function(res) {
-						// testCRUD.processResultSteps(res.outputPath, res.steps);
+						testCRUD.processResultSteps(res.outputPath, res.steps);
 						// Wait for test status (success/failure) and then output steps
 						if (res.status == 'success' || res.status == 'failure') {
-							testCRUD.processResultSteps(res.outputPath, res.steps);
+							// testCRUD.processResultSteps(res.outputPath, res.steps);
 							good(res);
 							return;
 						} else {
