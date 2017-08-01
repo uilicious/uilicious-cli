@@ -182,7 +182,7 @@ class ImportExport {
   				let file = files[i];
   				let fileName = path.parse(file).name;
   				let fileLocation = folderLocation + "/" + file;
-  				importTestUnderFolderHelper(projname, foldername, fileLocation);
+  				ImportExport.importTestUnderFolderHelper(projname, foldername, fileLocation);
   			}
   		})
   	}).then(callback);
