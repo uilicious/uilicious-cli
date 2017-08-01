@@ -9,9 +9,9 @@ var importFilePath1 = path.resolve("./test/import-export-test-folder/components/
 var folderName = "uilicious-cli-test-"+randomString(5);
 var importFolderPath = path.resolve("./test/import-export-test-folder/components/importFolder");
 var importFolderPath1 = path.resolve("./test/import-export-test-folder/components/importFolder1");
-var exportTestName = "ExpressMelody-login";
-var exportPath = "/Users/tadapatrisonika/Downloads";
-var exportFolderName = "folder-test";
+var exportTestName = "demo1";
+var exportPath = path.resolve("./test/import-export-test-folder/output");
+var exportFolderName = "importFolder";
 var exportFolderName2 = folderName;
 
 // CREATE a project
@@ -48,11 +48,12 @@ assert.containsAllValues(
 	[
 
 	],
-	"IMPORT TEST SCRIPT UNDER THE FOLDER"
+	"IMPORT TEST SCRIPT TO NEW CREATED FOLDER"
 );
 
 //IMPORT a folder under the project
 //which contains test files
+// @todo check bug
 assert.containsAllValues(
 	runUiliciousCli("import-folder", projectName, importFolderPath),
 	[
@@ -63,37 +64,37 @@ assert.containsAllValues(
 
 //IMPORT folder under another folder which is created under the project
 //which contains test files and test scripts
-// assert.containsAllValues(
-// 	runUiliciousCli("import-folder", projectName, importFolderPath1, "--folder", folderName),
-// 	[
-//
-// 	],
-// 	"IMPORT FOLDER UNDER A FOLDER"
-// );
+assert.containsAllValues(
+	runUiliciousCli("import-folder", projectName, importFolderPath1, "--folder", folderName),
+	[
+
+	],
+	"IMPORT FOLDER UNDER A FOLDER"
+);
 
 // EXPORT a test from under the project to a location on the system
-// assert.containsAllValues(
-// 	runUiliciousCli("export-test", projectName, exportTestName, exportPath),
-// 	[
-//
-// 	],
-// 	"EXPORT TEST"
-// );
+assert.containsAllValues(
+	runUiliciousCli("export-test", projectName, exportTestName, exportPath),
+	[
+
+	],
+	"EXPORT TEST"
+);
 
 //EXPORT folder from under the project to a location on the system
-// assert.containsAllValues(
-// 	runUiliciousCli("export-folder", projectName, exportFolderName, exportPath),
-// 	[
-//
-// 	],
-// 	"EXPORT FOLDER"
-// );
+assert.containsAllValues(
+	runUiliciousCli("export-folder", projectName, exportFolderName, exportPath),
+	[
+
+	],
+	"EXPORT FOLDER"
+);
 
 //EXPORT folder which contains folder and test under it
-// assert.containsAllValues(
-// 	runUiliciousCli("export-folder", projectName, exportFolderName2, exportPath),
-// 	[
-//
-// 	],
-// 	"EXPORT FOLDER"
-// );
+assert.containsAllValues(
+	runUiliciousCli("export-folder", projectName, exportFolderName2, exportPath),
+	[
+
+	],
+	"EXPORT FOLDER"
+);
