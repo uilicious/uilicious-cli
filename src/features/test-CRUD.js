@@ -22,6 +22,13 @@ const folderCRUD = require('./folder-CRUD');
 const ImportExport = require('./import-export');
 const getData = require('./get-data');
 
+/// Output test caching, this is to prevent duplicates
+/// in test steps from appearing on screen
+///
+/// Test steps found in this array cache is not shown on the screen on Calls
+/// to ouputStep repeatingly
+var outputStepCache = [];
+
 class testCRUD {
 
 	//------------------------------------------------------------------------------
@@ -120,10 +127,13 @@ class testCRUD {
 			function actualPoll() {
 				setTimeout(function() {
 					testCRUD.getResult(runTestID, function(res) {
+						// Everytime the result is received,
+						// Update the screen for the latest status updates
 						testCRUD.processResultSteps(res.outputPath, res.steps);
-						// Wait for test status (success/failure) and then output steps
+
+						// Wait for test status (success/failure) and
+						// then return the full results
 						if (res.status == 'success' || res.status == 'failure') {
-							// testCRUD.processResultSteps(res.outputPath, res.steps);
 							good(res);
 							return;
 						} else {
@@ -142,7 +152,7 @@ class testCRUD {
 	static pollForError(runTestID, callback) {
 
 		// Call API every 2500ms
-		let pollInterval = 500;
+		let pollInterval = 100;
 
 		return new Promise(function(good, bad) {
 			function actualPoll() {
@@ -194,7 +204,7 @@ class testCRUD {
 	static pollForStatus(runTestID, callback) {
 
 		// Call API every 2500ms
-		let pollInterval = 500;
+		let pollInterval = 100;
 
 		return new Promise(function(good, bad) {
 			function actualPoll() {
@@ -229,7 +239,6 @@ class testCRUD {
 		// Display this log if no errors
 		if (errorCount == 0) {
 			console.log("Test successful: No errors.");
-			process.exit(0);
 		}
 		// Display this log if there are errors
 		if (errorCount == 1) {
@@ -293,16 +302,14 @@ class testCRUD {
 	// Output each step
 	static outputStep(remoteOutputPath, idx, step) {
 
-		// Output each step
-		var outputStepCache = [];
-
+		// Output each step, if its in cache, ignore duplicates
 		if ( outputStepCache[idx] == null ) {
 			outputStepCache[idx] = step;
 			let stepMsg = testCRUD.formatStepOutputMsg(step);
 			if ( step.status == 'success' ) {
-				console.log(stepMsg);
+				console.log(success(stepMsg));
 			} else if ( step.status == 'failure' ) {
-				console.error(stepMsg);
+				console.error(error(stepMsg));
 			}
 		}
 	}
@@ -360,7 +367,7 @@ class testCRUD {
 			fs.mkdir(testDirectory, function(err) {
 				if (err) {
 					throw err;
-					//process.exit(1);
+					process.exit(1);
 				}
 			});
 			good(testDirectory);
@@ -473,25 +480,24 @@ class testCRUD {
 	/// Returns the test ID (if found), given the project ID AND test webPath
 	/// Also can be used to return node ID for test
 	/// @param  Project ID
-	/// @param  Test scriptpath
+	/// @param  Test Name
 	/// @param  [Optional] Callback to return result
 	/// @return  Promise object, for result
-	static testID(projID, testPath, callback) {
+	static testID(projID, testName, callback) {
 		return new Promise(function(good, bad) {
 			APIUtils.webstudioJsonRequest(
 				"GET",
 				"/api/studio/v1/projects/" + projID + "/workspace/tests",
-				{ path : testPath },
+				{ name : testName },
 				function(tests) {
 					for (var i = 0; i < tests.length; i++) {
 						let single_test = tests[i];
-						let resolved_testPath = '/' + testPath;
-						if (single_test.path == resolved_testPath) {
+						if (single_test.name == testName) {
 							good(parseInt(single_test.id));
 							return;
 						}
 					}
-					console.error(error("ERROR: Unable to find Path: '" + resolved_testPath + "'\n"));
+					console.error(error("ERROR: Unable to find test script: '" + testName + "'\n"));
 					process.exit(1);
 				}
 			);
@@ -528,7 +534,7 @@ class testCRUD {
 						good(res.id);
 						return;
 					}
-					throw new Error("Missing Test Run ID/Invalid JSON format");
+					throw new Error(error("Missing Test Run ID/Invalid JSON format"));
 				}
 			);
 		}).then(callback);
@@ -566,7 +572,8 @@ class testCRUD {
 				// Test log functionality
 				let testLog = testDirectory + '/log.txt';
 				const logFile = fs.createWriteStream(testLog, {
-					flags: 'a'
+					flags: 'a',
+					defaultEncoding: 'utf8'
 				});
 				const logStdout = process.stdout;
 				console.log = function() {
