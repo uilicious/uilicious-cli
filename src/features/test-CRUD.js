@@ -22,6 +22,13 @@ const folderCRUD = require('./folder-CRUD');
 const ImportExport = require('./import-export');
 const getData = require('./get-data');
 
+/// Output test caching, this is to prevent duplicates
+/// in test steps from appearing on screen
+///
+/// Test steps found in this array cache is not shown on the screen on Calls
+/// to ouputStep repeatingly
+var outputStepCache = [];
+
 class testCRUD {
 
 	//------------------------------------------------------------------------------
@@ -113,17 +120,20 @@ class testCRUD {
 	// @param [Optional] Callback to return result
 	static pollForResult(runTestID, callback) {
 
-		// Call API every 2500ms
+		// Call API every 2000ms
 		let pollInterval = 2000;
 
 		return new Promise(function(good, bad) {
 			function actualPoll() {
 				setTimeout(function() {
 					testCRUD.getResult(runTestID, function(res) {
-						// testCRUD.processResultSteps(res.outputPath, res.steps);
-						// Wait for test status (success/failure) and then output steps
+						// Everytime the result is received,
+						// Update the screen for the latest status updates
+						testCRUD.processResultSteps(res.outputPath, res.steps);
+
+						// Wait for test status (success/failure) and
+						// then return the full results
 						if (res.status == 'success' || res.status == 'failure') {
-							testCRUD.processResultSteps(res.outputPath, res.steps);
 							good(res);
 							return;
 						} else {
@@ -142,7 +152,7 @@ class testCRUD {
 	static pollForError(runTestID, callback) {
 
 		// Call API every 2500ms
-		let pollInterval = 500;
+		let pollInterval = 100;
 
 		return new Promise(function(good, bad) {
 			function actualPoll() {
@@ -194,7 +204,7 @@ class testCRUD {
 	static pollForStatus(runTestID, callback) {
 
 		// Call API every 2500ms
-		let pollInterval = 500;
+		let pollInterval = 100;
 
 		return new Promise(function(good, bad) {
 			function actualPoll() {
@@ -293,9 +303,7 @@ class testCRUD {
 	// Output each step
 	static outputStep(remoteOutputPath, idx, step) {
 
-		// Output each step
-		var outputStepCache = [];
-
+		// Output each step, if its in cache, ignore duplicates
 		if ( outputStepCache[idx] == null ) {
 			outputStepCache[idx] = step;
 			let stepMsg = testCRUD.formatStepOutputMsg(step);
@@ -360,7 +368,7 @@ class testCRUD {
 			fs.mkdir(testDirectory, function(err) {
 				if (err) {
 					throw err;
-					//process.exit(1);
+					process.exit(1);
 				}
 			});
 			good(testDirectory);
@@ -473,7 +481,7 @@ class testCRUD {
 	/// Returns the test ID (if found), given the project ID AND test webPath
 	/// Also can be used to return node ID for test
 	/// @param  Project ID
-	/// @param  Test scriptpath
+	/// @param  Test Path
 	/// @param  [Optional] Callback to return result
 	/// @return  Promise object, for result
 	static testID(projID, testPath, callback) {
@@ -491,7 +499,7 @@ class testCRUD {
 							return;
 						}
 					}
-					console.error(error("ERROR: Unable to find Path: '" + resolved_testPath + "'\n"));
+					console.error(error("ERROR: Unable to find test script: '" + testPath + "'\n"));
 					process.exit(1);
 				}
 			);
@@ -528,7 +536,7 @@ class testCRUD {
 						good(res.id);
 						return;
 					}
-					throw new Error("Missing Test Run ID/Invalid JSON format");
+					throw new Error(error("Missing Test Run ID/Invalid JSON format"));
 				}
 			);
 		}).then(callback);
@@ -560,13 +568,14 @@ class testCRUD {
 			process.exit(1);
 		}
 
-		if (options.directory != null) {
+		if (options.save != null) {
 
-			testCRUD.makeDir(options.directory, function(testDirectory) {
+			testCRUD.makeDir(options.save, function(testDirectory) {
 				// Test log functionality
 				let testLog = testDirectory + '/log.txt';
 				const logFile = fs.createWriteStream(testLog, {
-					flags: 'a'
+					flags: 'a',
+					defaultEncoding: 'utf8'
 				});
 				const logStdout = process.stdout;
 				console.log = function() {
