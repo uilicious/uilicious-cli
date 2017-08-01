@@ -120,7 +120,7 @@ class testCRUD {
 	// @param [Optional] Callback to return result
 	static pollForResult(runTestID, callback) {
 
-		// Call API every 2500ms
+		// Call API every 2000ms
 		let pollInterval = 2000;
 
 		return new Promise(function(good, bad) {
@@ -239,6 +239,7 @@ class testCRUD {
 		// Display this log if no errors
 		if (errorCount == 0) {
 			console.log("Test successful: No errors.");
+			process.exit(0);
 		}
 		// Display this log if there are errors
 		if (errorCount == 1) {
@@ -307,9 +308,9 @@ class testCRUD {
 			outputStepCache[idx] = step;
 			let stepMsg = testCRUD.formatStepOutputMsg(step);
 			if ( step.status == 'success' ) {
-				console.log(success(stepMsg));
+				console.log(stepMsg);
 			} else if ( step.status == 'failure' ) {
-				console.error(error(stepMsg));
+				console.error(stepMsg);
 			}
 		}
 	}
@@ -480,24 +481,25 @@ class testCRUD {
 	/// Returns the test ID (if found), given the project ID AND test webPath
 	/// Also can be used to return node ID for test
 	/// @param  Project ID
-	/// @param  Test Name
+	/// @param  Test Path
 	/// @param  [Optional] Callback to return result
 	/// @return  Promise object, for result
-	static testID(projID, testName, callback) {
+	static testID(projID, testPath, callback) {
 		return new Promise(function(good, bad) {
 			APIUtils.webstudioJsonRequest(
 				"GET",
 				"/api/studio/v1/projects/" + projID + "/workspace/tests",
-				{ name : testName },
+				{ path : testPath },
 				function(tests) {
 					for (var i = 0; i < tests.length; i++) {
 						let single_test = tests[i];
-						if (single_test.name == testName) {
+						let resolved_testPath = '/' + testPath;
+						if (single_test.path == resolved_testPath) {
 							good(parseInt(single_test.id));
 							return;
 						}
 					}
-					console.error(error("ERROR: Unable to find test script: '" + testName + "'\n"));
+					console.error(error("ERROR: Unable to find test script: '" + testPath + "'\n"));
 					process.exit(1);
 				}
 			);
@@ -566,9 +568,9 @@ class testCRUD {
 			process.exit(1);
 		}
 
-		if (options.directory != null) {
+		if (options.save != null) {
 
-			testCRUD.makeDir(options.directory, function(testDirectory) {
+			testCRUD.makeDir(options.save, function(testDirectory) {
 				// Test log functionality
 				let testLog = testDirectory + '/log.txt';
 				const logFile = fs.createWriteStream(testLog, {
