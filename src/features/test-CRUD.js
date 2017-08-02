@@ -239,7 +239,6 @@ class testCRUD {
 		// Display this log if no errors
 		if (errorCount == 0) {
 			console.log("Test successful with no errors.");
-			process.exit(0);
 		}
 		// Display this log if there are errors
 		if (errorCount == 1) {
