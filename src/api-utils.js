@@ -23,7 +23,7 @@ class APIUtils {
 	/// @param  [OPTIONAL] Callback parameter, to attach to promise
 	///
 	/// @return The promise object, with the attached callback
-	static  rawRequestData(method, url, data, callback) {
+	static rawRequestData(method, url, data, callback) {
 
 		// Option / parameter parsing
 		var option = {
@@ -32,6 +32,44 @@ class APIUtils {
 		};
 		if ( method == "GET" ) {
 			option.qs = data;
+		} else {
+			option.form = data;
+		}
+
+		// The actual API call, with promise object
+		return new Promise(function(good, bad) {
+			request(option, function( err, res, body ) {
+				if (err) {
+					throw new Error("Unexpected error for URL request : " + url + " -> " + err);
+				} else {
+					try {
+						good(body);
+					} catch(err) {
+						throw new Error("Invalid data (JSON) format for URL request : " + url + " -> " + body);
+					}
+				}
+			});
+		}).then(callback);
+	}
+
+	/// Makes a POST or GET request, with the given form object (strictly for test requests)
+	/// and return its JSON result in a promise
+	///
+	/// @param  "POST" or "GET" method
+	/// @param  FULL URL to make the request
+	/// @param  [OPTIONAL] Query / Form parameter to pass as an object
+	/// @param  [OPTIONAL] Callback parameter, to attach to promise
+	///
+	/// @return The promise object, with the attached callback
+	static TestRequestData(method, url, data, callback) {
+
+		// Option / parameter parsing
+		var option = {
+			url : url,
+			method : method
+		};
+		if ( method == "GET" ) {
+			option.form = data;
 		} else {
 			option.form = data;
 		}
@@ -118,6 +156,28 @@ class APIUtils {
 		}).then(callback);
 	}
 
+	static TestRequest(method, url, inData, callback) {
+		// Calling rawRequest, and parsing the good result as JSON
+		return new Promise(function(good, bad) {
+			APIUtils.TestRequestData(method, url, inData).then(function(data) {
+				try {
+					good(JSON.parse(data));
+				} catch(err) {
+					console.error("---- Error trace ----");
+					console.error(err);
+					console.error("---- HTTP response data ----");
+					console.error(data);
+					console.error("---- HTTP request URL ----");
+					console.error(url);
+					console.error("---- HTTP request data ----");
+					console.error(inData);
+					console.error("---- End of error report ----");
+					process.exit(1);
+				}
+			},bad);
+		}).then(callback);
+	}
+
 	/// Does a login check, and provides the actual server URL to call API
 	/// silently terminates, with an error message if it fails
 	///
@@ -166,6 +226,13 @@ class APIUtils {
 		}).then(callback);
 	}
 
+	static webstudioTestRequest(method, webPath, params, callback) {
+		return new Promise(function(good, bad) {
+			APIUtils.getFullHostURL(function(hostURL) {
+				APIUtils.TestRequest(method, hostURL+webPath, params).then(good, bad);
+			});
+		}).then(callback);
+	}
 
 	/// Does a RAW request to web-studio instance of the client
 	///

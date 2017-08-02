@@ -238,7 +238,7 @@ class testCRUD {
 		}
 		// Display this log if no errors
 		if (errorCount == 0) {
-			console.log("Test successful: No errors.");
+			console.log("Test successful with no errors.");
 			process.exit(0);
 		}
 		// Display this log if there are errors
@@ -486,7 +486,7 @@ class testCRUD {
 	/// @return  Promise object, for result
 	static testID(projID, testPath, callback) {
 		return new Promise(function(good, bad) {
-			APIUtils.webstudioJsonRequest(
+			APIUtils.webstudioTestRequest(
 				"GET",
 				"/api/studio/v1/projects/" + projID + "/workspace/tests",
 				{ path : testPath },
