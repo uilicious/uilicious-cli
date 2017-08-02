@@ -52,10 +52,10 @@ class APIUtils {
 		}).then(callback);
 	}
 
-	/// Makes a POST or GET request, with the given form object (strictly for test requests)
+	/// Makes a GET request for test requests, with the given form object (strictly for test requests)
 	/// and return its JSON result in a promise
 	///
-	/// @param  "POST" or "GET" method
+	/// @param  "GET" method
 	/// @param  FULL URL to make the request
 	/// @param  [OPTIONAL] Query / Form parameter to pass as an object
 	/// @param  [OPTIONAL] Callback parameter, to attach to promise
@@ -69,8 +69,6 @@ class APIUtils {
 			method : method
 		};
 		if ( method == "GET" ) {
-			option.form = data;
-		} else {
 			option.form = data;
 		}
 
