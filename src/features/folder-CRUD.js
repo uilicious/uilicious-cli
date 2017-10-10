@@ -140,7 +140,7 @@ class folderCRUD {
 				for(let i = 0; i<list.length; ++i) {
 					let item = list[i];
 					if(item.name == folderName) {
-						good(parseInt(item.id));
+						good(item.id);
 						return;
 					}
 				}
@@ -238,7 +238,7 @@ class folderCRUD {
 					for (var i = 0; i < folders.length; i++) {
 						let folder = folders[i];
 						if (folder.name == folderName) {
-							good(parseInt(folder.id));
+							good(folder.id);
 							return;
 						}
 					}

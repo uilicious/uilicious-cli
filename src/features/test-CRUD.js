@@ -484,17 +484,21 @@ class testCRUD {
 	/// @param  [Optional] Callback to return result
 	/// @return  Promise object, for result
 	static testID(projID, testPath, callback) {
-		return new Promise(function(good, bad) {
+		return new Promise(function (good, bad) {
+
+			while (testPath.startsWith("/")) {
+				testPath = testPath.substr(1);
+			}
+
 			APIUtils.webstudioTestRequest(
 				"GET",
 				"/api/studio/v1/projects/" + projID + "/workspace/tests",
-				{ path : testPath },
-				function(tests) {
+				{path: testPath},
+				function (tests) {
 					for (var i = 0; i < tests.length; i++) {
-						let single_test = tests[i];
-						let resolved_testPath = '/' + testPath;
-						if (single_test.path == resolved_testPath) {
-							good(parseInt(single_test.id));
+						let test = tests[i];
+						if (test.path === testPath) {
+							good(test.id);
 							return;
 						}
 					}
