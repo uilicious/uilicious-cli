@@ -95,9 +95,9 @@ class ProjectCRUD {
   	return new Promise(function(good, bad) {
   		ProjectCRUD.projectList(function(list) {
   			for (let i=0; i<list.length; ++i) {
-  				let item = list[i];
-  				if (item.title == projectName) {
-  					good(parseInt(item.id));
+  				let project = list[i];
+  				if (project.title == projectName) {
+  					good(project.id);
   					return;
   				}
   			}
