@@ -13,10 +13,10 @@ const error = chalk.red;
 const success = chalk.green;
 
 // Module Dependencies
-const APIUtils = require('../utils/api-utils');
-const CLIUtils = require("../utils/cli-utils");
-const ProjectCRUD = require('../service/project-CRUD');
-const folderCRUD = require('../service/folder-CRUD');
+const APIUtils = require('../utils/ApiUtils');
+const CLIUtils = require("../utils/CliUtils");
+const ProjectCRUD = require('../service/ProjectService');
+const folderCRUD = require('../service/FolderService');
 const ImportExport = require('./ImportExportController');
 
 class getData {

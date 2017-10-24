@@ -10,8 +10,8 @@ const error_warning = chalk.bold.red;
 const error = chalk.red;
 const success = chalk.green;
 
-const APIUtils = require('../utils/api-utils');
-const ProjectCRUD = require('./project-CRUD');
+const APIUtils = require('../utils/ApiUtils');
+const ProjectCRUD = require('./ProjectService');
 
 class folderCRUD {
 

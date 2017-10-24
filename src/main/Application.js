@@ -22,7 +22,7 @@ function CLIApp() {
 
 	// Basic CLI parameters handling
 	program
-		.version('1.3.12')
+		.version('1.3.13')
 		.option('-u, --user <required>', 'username')
 		.option('-p, --pass <required>', 'password')
 		// .option('-d, --directory <optional>', 'Output directory path to use')
@@ -80,8 +80,6 @@ function CLIApp() {
 	program
 		.command('run <projname> <scriptpath>')
 		.option('-s, --save <directory>', 'Set the directory path to save test log.')
-		.option('--data <dataObj>', 'Set the data parameters in an object.')
-		.option('--datafile <dataFile>', 'Set the local path for the data file.')
 		.description('Run a test from a project.')
 		.action(TestRunnerController.main);
 

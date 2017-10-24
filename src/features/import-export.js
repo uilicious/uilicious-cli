@@ -13,10 +13,10 @@ const error = chalk.red;
 const success = chalk.green;
 
 // Module Dependencies (non-npm)
-const APIUtils = require('../utils/api-utils');
-const ProjectCRUD = require('../service/project-CRUD');
-const folderCRUD = require('../service/folder-CRUD');
-const testCRUD = require('../service/test-CRUD');
+const APIUtils = require('../utils/ApiUtils');
+const ProjectCRUD = require('../service/ProjectService');
+const folderCRUD = require('../service/FolderService');
+const testCRUD = require('../service/TestService');
 
 class ImportExport {
 

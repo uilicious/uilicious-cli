@@ -9,7 +9,7 @@ const error = chalk.red;
 const success = chalk.green;
 
 // Module Dependencies (non-npm)
-const APIUtils = require('../utils/api-utils');
+const APIUtils = require('../utils/ApiUtils');
 
 class ProjectCRUD {
 
@@ -101,7 +101,7 @@ class ProjectCRUD {
   					return;
   				}
   			}
-  			console.error("ERROR: Project Name not found: " + projectName);
+  			console.error(error("ERROR: Project Name not found: " + projectName));
   			process.exit(1);
   		});
   	});
