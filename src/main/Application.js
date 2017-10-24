@@ -12,7 +12,7 @@ const program = require('commander');
 
 // Module Dependencies (non-npm)
 const TestRunnerController = require('../controller/TestRunnerController');
-const ImportExport = require('../controller/ImportExportController');
+const ImportExportController = require('../controller/ImportExportController');
 
 //------------------------------------------------------------------------------
 //	Main Function
@@ -39,9 +39,9 @@ function CLIApp() {
 		.action(function(projname, file_pathname, options) {
 			let folder_name = options.folder || null;
 			if (folder_name == null) {
-				ImportExport.importTestHelper(projname, file_pathname);
+				ImportExportController.importTestHelper(projname, file_pathname);
 			} else {
-				ImportExport.importTestUnderFolderHelper(projname, file_pathname, folder_name);
+				ImportExportController.importTestUnderFolderHelper(projname, file_pathname, folder_name);
 			}
 		});
 
@@ -50,7 +50,7 @@ function CLIApp() {
 		.command('export-test <projname> <test_name> <directory>')
 		.alias('et')
 		.description('Export a test.')
-		.action(ImportExport.exportTestHelper);
+		.action(ImportExportController.exportTestHelper);
 
 	// Import Folder
 	program
@@ -61,9 +61,9 @@ function CLIApp() {
 		.action(function(projname, folder_path, options) {
 			let foldername = options.folder || null;
 			if(foldername == null) {
-				ImportExport.importFolderHelper(projname, folder_path);
+				ImportExportController.importFolderHelper(projname, folder_path);
 			} else {
-				ImportExport.importFolderUnderFolderHelper(projname, folder_path, foldername);
+				ImportExportController.importFolderUnderFolderHelper(projname, folder_path, foldername);
 			}
 		});
 
@@ -72,7 +72,7 @@ function CLIApp() {
 		.command('export-folder <projname> <folder_name> <directory>')
 		.alias('ef')
 		.description('Export a folder.')
-		.action(ImportExport.exportFolderHelper);
+		.action(ImportExportController.exportFolderHelper);
 
 	// -----------------------------
 	// 	Commands for running tests

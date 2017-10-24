@@ -17,6 +17,7 @@ const APIUtils = require('../utils/ApiUtils');
 const ProjectCRUD = require('../service/ProjectService');
 const folderCRUD = require('../service/FolderService');
 const testCRUD = require('../service/TestService');
+const ImportExportService = require('../service/ImportExportService');
 
 class ImportExport {
 
@@ -227,13 +228,16 @@ class ImportExport {
   //----------------------------------------------------------------------------
 
   static exportTestHelper(projname, testname, directory) {
-  	ProjectCRUD.projectID(projname, function(projID) {
-  		testCRUD.testID(projID, testname, function(testID) {
-  			ImportExport.getScript(projID, testID, function(fileContent) {
-  				ImportExport.exportTestFile(directory, testname, fileContent);
-  			});
-  		});
-  	});
+  	let copyProjectId;
+  	ProjectCRUD.projectID(projname)
+		.then(projID => {
+			copyProjectId = projID;
+			return testCRUD.testID(projID, testname)
+		})
+		.then(testID => ImportExportService.getScript(copyProjectId, testID))
+		.then(fileContent=> {
+            ImportExportService.exportTestFile(directory, testname, fileContent);
+		});
   }
 
   // Export folder and its test scripts
