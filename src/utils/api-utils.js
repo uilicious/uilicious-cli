@@ -5,7 +5,7 @@
 const request = require('request');
 const url = require('url');
 const program = require('commander');
-
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // this shall be removed later
 class APIUtils {
 
 	static requestErrorHandler(err) {

@@ -9,7 +9,7 @@ const error = chalk.red;
 const success = chalk.green;
 
 // Module Dependencies (non-npm)
-const APIUtils = require('./../api-utils');
+const APIUtils = require('../utils/api-utils');
 
 class ProjectCRUD {
 
@@ -91,7 +91,7 @@ class ProjectCRUD {
   /// @param  Project Name to fetch ID
   /// @param  [Optional] Callback to return result
   /// @return  Promise object, for result
-  static projectID(projectName, callback) {
+  static projectID(projectName) {
   	return new Promise(function(good, bad) {
   		ProjectCRUD.projectList(function(list) {
   			for (let i=0; i<list.length; ++i) {
@@ -104,7 +104,7 @@ class ProjectCRUD {
   			console.error("ERROR: Project Name not found: " + projectName);
   			process.exit(1);
   		});
-  	}).then(callback);
+  	});
   }
 
   /// Check for duplicate Project name

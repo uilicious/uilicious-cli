@@ -15,12 +15,12 @@ const error = chalk.red;
 const success = chalk.green;
 
 // Module Dependencies (non-npm)
-const APIUtils = require('./../api-utils');
-const CLIUtils = require('./../cli-utils');
-const ProjectCRUD = require('./project-CRUD');
-const folderCRUD = require('./folder-CRUD');
-const ImportExport = require('./import-export');
-const getData = require('./get-data');
+const APIUtils = require('../utils/api-utils');
+const CLIUtils = require('../utils/cli-utils');
+const ProjectCRUD = require('../service/project-CRUD');
+const folderCRUD = require('../service/folder-CRUD');
+const ImportExport = require('../controller/ImportExportController');
+const getData = require('../features/get-data');
 
 /// Output test caching, this is to prevent duplicates
 /// in test steps from appearing on screen
@@ -201,7 +201,7 @@ class testCRUD {
 	// Get result from API and return status with errors
 	// @param runTestID
 	// @param [Optional] Callback to return result
-	static pollForStatus(runTestID, callback) {
+	static pollForStatus(runTestID) {
 
 		// Call API every 2500ms
 		let pollInterval = 100;
@@ -221,7 +221,7 @@ class testCRUD {
 				}, pollInterval);
 			}
 			actualPoll();
-		}).then(callback);
+		});
 	}
 
 	// Output log for test status and errors after completion
@@ -483,7 +483,7 @@ class testCRUD {
 	/// @param  Test Path
 	/// @param  [Optional] Callback to return result
 	/// @return  Promise object, for result
-	static testID(projID, testPath, callback) {
+	static testID(projID, testPath) {
 		return new Promise(function (good, bad) {
 
 			while (testPath.startsWith("/")) {
@@ -506,7 +506,7 @@ class testCRUD {
 					process.exit(1);
 				}
 			);
-		}).then(callback);
+		});
 	}
 
 	/// Runs a test, and returns the run GUID
@@ -514,7 +514,7 @@ class testCRUD {
 	/// @param   Test ID to use
 	/// @param   [optional] callback to return run GUID
 	/// @return   Promise object for result run GUID
-	static runTest(projID, testID, dataParams, callback) {
+	static runTest(projID, testID, dataParams) {
 		// Get the browser config
 		let form = {};
 		if (program.browser != null) {
@@ -542,7 +542,7 @@ class testCRUD {
 					throw new Error(error("Missing Test Run ID/Invalid JSON format"));
 				}
 			);
-		}).then(callback);
+		});
 	}
 
 	// Get result from the ID which is generated when a new test is ran
@@ -721,6 +721,38 @@ class testCRUD {
 			});
 		}
 	}
+
+    // Check path and return path location if valid
+    // @param   Path Name
+    // @return  Promise object that returns the path location
+    static checkPath(path_name) {
+        return new Promise(function(good, bad) {
+            let pathLocation = path.resolve(path_name);
+            let folderName = path.basename(path_name);
+            if (!fs.existsSync(pathLocation)) {
+                console.error(error("ERROR: This path does not exist!\n"));         // To:DO use true or false later
+                process.exit(1);
+            } else {
+                good(pathLocation);
+                return;
+            }
+        });
+    }
+    // Read data parameters from file in local directory
+    // @param   File Pathname
+    // @return  Promise object that returns the data parameters from file in local directory
+    static readDataFile(options) {
+        return new Promise(function(good, bad) {
+            let dataDirectory = path.resolve(options.datafile);
+            let dataParams = fs.readFileSync(dataDirectory, 'utf-8');
+            if (dataDirectory.indexOf(dataParams) > -1) {
+                console.error(error("ERROR: There is nothing in this file!\n"));
+                process.exit(1);
+            } else {
+                good(dataParams);
+            }
+        });
+    }
 }
 
 module.exports = testCRUD;

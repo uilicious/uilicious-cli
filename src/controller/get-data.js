@@ -17,7 +17,7 @@ const APIUtils = require('../utils/api-utils');
 const CLIUtils = require("../utils/cli-utils");
 const ProjectCRUD = require('../service/project-CRUD');
 const folderCRUD = require('../service/folder-CRUD');
-const ImportExport = require('./import-export');
+const ImportExport = require('./ImportExportController');
 
 class getData {
 
@@ -40,7 +40,7 @@ class getData {
   // Read data parameters from object in CLI
   // @param   File Pathname
   // @return  Promise object that returns the data parameters from file in local directory
-  static readDataObj(options) {
+  static readDataObj(options, callback) {
     return new Promise(function(good, bad) {
       let dataParams = options.data;
       if (dataParams == null) {
@@ -49,7 +49,7 @@ class getData {
       } else {
         good(dataParams);
       }
-    });
+    }).then(callback);
   }
 
 }

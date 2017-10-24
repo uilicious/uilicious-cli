@@ -8,21 +8,11 @@
 // Dependencies
 //
 //------------------------------------------------------------------------------------------
-const fs = require('fs');
-const chalk = require('chalk');
 const program = require('commander');
-const request = require('request');
-const http = require('http');
-const url = require('url');
-const path = require('path');
-const util = require('util');
 
 // Module Dependencies (non-npm)
-const ProjectCRUD = require('./features/project-CRUD');
-const folderCRUD = require('./features/folder-CRUD');
-const testCRUD = require('./features/test-CRUD');
-const ImportExport = require('./features/import-export');
-const getData = require('./features/get-data');
+const TestRunnerController = require('../controller/TestRunnerController');
+const ImportExport = require('../controller/ImportExportController');
 
 //------------------------------------------------------------------------------
 //	Main Function
@@ -38,86 +28,7 @@ function CLIApp() {
 		// .option('-d, --directory <optional>', 'Output directory path to use')
 		.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
 		.option('-w, --width <optional>', 'width of browser')
-		.option('-hg, --height <optional>', 'height of browser');
-
-	//----------------------------
-	// Project CRUD Commands
-	//----------------------------
-
-	//List the projects
-	program
-		.command('list-project')
-		.alias('list')
-		.description('List all projects.')
-		.action(ProjectCRUD.getAllProjects);
-
-	//List the folders
-	program
-		.command('list-folder <projname>')
-		.alias('listfolder')
-		.description('list all folders')
-		.action(folderCRUD.getFolderListHelper);
-
-	// Create Project
-	program
-		.command('create-project <projname>')
-		.alias('cp')
-		.description('Create a new project.')
-		.action(ProjectCRUD.createProjectHelper);
-
-	// Update Project
-	program
-		.command('rename-project <projname> <new_projname>')
-		.alias('rp')
-		.description('Rename a project.')
-		.action(ProjectCRUD.updateProjectHelper);
-
-	// Delete Project
-	program
-		.command('delete-project <projname>')
-		.alias('dp')
-		.description('Delete a project.')
-		.action(ProjectCRUD.deleteProjectHelper);
-
-	//-----------------------------
-  // 	Test CRUD Commands
-  //-----------------------------
-
-	// Create Test
-	program
-		.command('create-test <projName> <test_name>')
-		.option('-f, --folder <folder>', 'Set the folder name.')
-		.alias('ct')
-		.description('Create a test.')
-		.action(function(projname, test_name, options) {
-			let folder_name = options.folder || null;
-			if (folder_name == null) {
-				testCRUD.createTestHelper(projname, test_name);
-			} else {
-				testCRUD.createTestUnderFolderHelper(projname, folder_name, test_name);
-			}
-		});
-
-	// Read Test (Get contents of Test)
-	program
-		.command('get-test <projname> <test_name>')
-		.alias('gt')
-		.description('Read a test.')
-		.action(testCRUD.readTestHelper);
-
-	// Update Test
-	program
-		.command('rename-test <projname> <test_name> <new_testname>')
-		.alias('rt')
-		.description('Rename a test.')
-		.action(testCRUD.updateTestHelper);
-
-	// Delete Test
-	program
-		.command('delete-test <projname> <test_name>')
-		.alias('dt')
-		.description('Delete a test.')
-		.action(testCRUD.deleteTestHelper);
+		.option('-h, --height <optional>', 'height of browser');
 
 	// Import Test
 	program
@@ -140,40 +51,6 @@ function CLIApp() {
 		.alias('et')
 		.description('Export a test.')
 		.action(ImportExport.exportTestHelper);
-
-
-	//----------------------------
-	// Folder CRUD Commands
-	//----------------------------
-
-	// Create Folder
-	program
-		.command('create-folder <projname> <folder_name>')
-		.option('-f, --folder <folder>', 'Set the folder name')
-		.alias('cf')
-		.description('Create a folder.')
-		.action(function(projname, folder_name, options) {
-			let folder  = options.folder || null;
-			if(folder == null) {
-				folderCRUD.createFolderHelper(projname, folder_name);
-			} else {
-				folderCRUD.createFolderUnderFolderHelper(projname, folder, folder_name);
-			}
-		});
-
-	// Update Folder
-	program
-		.command('rename-folder <projname> <folder_name> <new_folder_name>')
-		.alias('rf')
-		.description('Rename a folder')
-		.action(folderCRUD.updateFolderHelper);
-
-	// Delete Folder
-	program
-		.command('delete-folder <projname> <folder_name>')
-		.alias('df')
-		.description('Delete a folder.')
-		.action(folderCRUD.deleteFolderHelper);
 
 	// Import Folder
 	program
@@ -206,7 +83,7 @@ function CLIApp() {
 		.option('--data <dataObj>', 'Set the data parameters in an object.')
 		.option('--datafile <dataFile>', 'Set the local path for the data file.')
 		.description('Run a test from a project.')
-		.action(testCRUD.main);
+		.action(TestRunnerController.main);
 
 	// end with parse to parse through the input.txt
 	program.parse(process.argv);
