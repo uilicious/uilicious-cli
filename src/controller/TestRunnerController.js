@@ -418,7 +418,7 @@ class testCRUD {
                                                     });
                                                 });
                                             });
-                                    });
+                                        });
                                 });
                             });
                         } else if (options.data != null) {
@@ -438,7 +438,7 @@ class testCRUD {
                                                 });
                                             });
                                         });
-                                });
+                                    });
                             });
                         } else {
                             let dataParams = null;
@@ -448,16 +448,16 @@ class testCRUD {
                                     console.log("#");
                                     console.log("");
                                     TestService.pollForResult(postID, function(finalRes) {
-                                    console.log("");
-                                    testCRUD.pollForStatus(postID, function(res) {
-                                        testCRUD.pollForError(postID, function(res) {
-                                            testCRUD.pollForImg(postID, testDirectory, function(res) {
-                                                console.log("Test Info saved in "+testDirectory+"\n");
+                                        console.log("");
+                                        testCRUD.pollForStatus(postID, function(res) {
+                                            testCRUD.pollForError(postID, function(res) {
+                                                testCRUD.pollForImg(postID, testDirectory, function(res) {
+                                                    console.log("Test Info saved in "+testDirectory+"\n");
+                                                });
                                             });
                                         });
                                     });
                                 });
-                            });
                         }
                     });
                 });
@@ -473,11 +473,12 @@ class testCRUD {
             console.log("# Script Path : " + scriptpath);
             console.log("#");
 
-            ProjectService.projectID(projname).then(projID => {
-                console.log("# Project ID : "+projID);
-                TestService.testID(projID, scriptpath).then(scriptID =>  {
-                    console.log("# Script ID  : "+scriptID);
-                    if (options.datafile != null) {
+            if (options.datafile != null) {
+                ProjectService.projectID(projname).then(projID => {
+                    console.log("# Project ID : "+projID);
+                    TestService.testID(projID, scriptpath).then(scriptID =>  {
+                        console.log("# Script ID  : "+scriptID);
+
                         TestService.checkPath(options.datafile).then(dataDirectory => {
                             TestService.readDataFile(options).then(dataParams => {
                                 TestService.runTest(projID, scriptID, dataParams).then(postID => {
@@ -493,8 +494,17 @@ class testCRUD {
                                 });
                             });
                         });
-                    } else if (options.data != null) {
-                        getData.readDataObj(options).then(dataParams => {
+                    });
+                });
+            } else if (options.data != null) {
+                ProjectService.projectID(projname)
+                    .then(projID => {
+                        console.log("# Project ID : "+projID);
+                        return TestService.testID(projID, scriptpath)})
+                    .then(scriptID =>  {
+                        console.log("# Script ID  : "+scriptID);
+                        return getData.readDataObj(options) })
+                    .then(dataParams => {
                             TestService.runTest(projID, scriptID, dataParams).then(postID => {
                                 console.log("# Test run ID: "+postID);
                                 console.log("#");
@@ -507,12 +517,17 @@ class testCRUD {
                                 });
                             });
                         });
-                    } else {
+            } else {
+                ProjectService.projectID(projname).then(projID => {
+                    console.log("# Project ID : "+projID);
+                    TestService.testID(projID, scriptpath).then(scriptID =>  {
+                        console.log("# Script ID  : "+scriptID);
+
                         let dataParams = null;
                         TestService.runTest(projID, scriptID, dataParams).then(postID => {
                             console.log("# Test run ID: "+postID);
                             console.log("#");
-                            console.log("");
+                            console.log("hello");
                             TestService.pollForResult(postID, function(finalRes) {
                                 console.log("");
                                 TestService.pollForStatus(postID, function(res) {
@@ -520,9 +535,10 @@ class testCRUD {
                                 });
                             });
                         });
-                    }
+                    });
                 });
-            });
+            }
+
         }
     }
 }
