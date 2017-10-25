@@ -17,6 +17,7 @@ const APIUtils = require('../utils/ApiUtils');
 const ProjectCRUD = require('../service/ProjectService');
 const folderCRUD = require('../service/FolderService');
 const testCRUD = require('../service/TestService');
+const ImportExportController = require('../controller/ImportExportController');
 
 class ImportExportService {
 
@@ -76,6 +77,7 @@ class ImportExportService {
                         }
                     }
                     good(testName);
+                    return;
                 }
             );
         });
@@ -108,31 +110,45 @@ class ImportExportService {
                     let file = files[i];
                     let fileName = path.parse(file).name;
                     let fileLocation = folderLocation + "/" + file;
-                    ImportExportService.importTestUnderFolderHelper(projname, foldername, fileLocation);
+                    ImportExportService.importTestUnderFolderHelper(projname,fileLocation,foldername);
                 }
+                good(true);
+                return;
             })
         });
+    }
+
+    // Import test script under a folder
+    // @param Project Name
+    // @param folder Name
+    // @param File Path Name
+    static importTestUnderFolderHelper(projname, file_pathname, foldername) {
+        let copyFileContent;
+        let copyProjectId;
+        let copyNodeId;
+        let copyTestName;
+        return ImportExportService.readFileContents(file_pathname)
+            .then(file_content => {
+                copyFileContent = file_content;
+                return ProjectCRUD.projectID(projname)})
+            .then(projID => {
+                copyProjectId=projID;
+                return folderCRUD.nodeID(projID, foldername)})
+            .then(nodeId => {
+                copyNodeId = nodeId;
+                return ImportExportService.checkTest(copyProjectId, file_pathname)})
+            .then(testName => {
+                copyTestName= testName;
+                return ImportExportService.importTestUnderFolder(copyProjectId, copyNodeId, testName, copyFileContent)})
+            .then(response => true)
+            .catch(error => {
+                console.error("Error: Error occurred while importing the Test Folder : "+error+"'\n");
+            });
     }
 
     //----------------------------------------------------------------------------
     // Import API Functions
     //----------------------------------------------------------------------------
-
-    /// Create a new test using projectName
-    /// @param	Project ID from projectID()
-    static importTest(projectID, testName, testContent) {
-         APIUtils.webstudioRawRequest(
-            "POST",
-            "/api/studio/v1/projects/" + projectID + "/workspace/tests/addAction",
-            {
-                name: testName,
-                script: testContent
-            },
-            function (data) {
-                return data;
-            }
-        );
-    }
 
     // Create a new test by importing it under a folder in a project
     // @param Project ID from projectID()

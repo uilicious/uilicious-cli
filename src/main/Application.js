@@ -32,37 +32,17 @@ function CLIApp() {
 		.option('-w, --width <optional>', 'width of browser')
 		.option('-ht, --height <optional>', 'height of browser');
 
-	// Import Test
-	program
-		.command('import <projname> <file_pathname>')
-		.option('-f, --folder <folder>', 'Set the folder path to save to.')
-		.description('Import a test.')
-		.action(function(projname, file_pathname, options) {
-			let folder_name = options.folder || null;
-			if (folder_name == null) {
-				ImportExportController.importTestHelper(projname, file_pathname);
-			} else {
-				ImportExportController.importTestUnderFolderHelper(projname, file_pathname, folder_name);
-			}
-		});
-
-    // Import Folder
+    // Import as Folder
     program
-        .command('import-folder <projname> <folder_path>')
+        .command('import <projname> <folder_path>')
         .description('Import a folder.')
         .action(function(projname, folder_path, options) {
         	ImportExportController.importFolderHelper(projname, folder_path);
         });
 
-	// Export Test
+	// Export Test Folder
 	program
-		.command('export <projname> <test_name> <directory>')
-		.description('Export a test.')
-		.action(ImportExportController.exportTestHelper);
-
-	// Export Folder
-	program
-		.command('export-folder <projname> <folder_name> <directory>')
+		.command('export <projname> <folder_name> <directory>') // To:Do
 		.alias('ef')
 		.description('Export a folder.')
 		.action(ImportExportController.exportFolderHelper);
