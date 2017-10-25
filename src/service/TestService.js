@@ -4,7 +4,6 @@
 */
 
 // npm Dependencies
-const path = require('path');
 const program = require('commander');
 const fs = require('fs');
 

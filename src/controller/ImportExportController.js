@@ -1,11 +1,8 @@
-/*
-* ImportExport class that provides functionality for import/export operations
-* to be performed
-*/
-
-// npm Dependencies
-const fs = require('fs');
-const path = require('path');
+/**
+ * ImportExport class that provides functionality for import/export operations
+ * to be performed
+ * @Author: Shahin (shahin@uilicious.com)
+ */
 
 // Chalk (color) messages for success/error
 const chalk = require('chalk');
@@ -13,12 +10,11 @@ const error = chalk.red;
 const success = chalk.green;
 
 // Module Dependencies (non-npm)
-const ProjectCRUD = require('../service/ProjectService');
-const folderCRUD = require('../service/FolderService');
-const testCRUD = require('../service/TestService');
+const ProjectService = require('../service/ProjectService');
+const FolderService = require('../service/FolderService');
 const ImportExportService = require('../service/ImportExportService');
 
-class ImportExport {
+class ImportExportController {
 
     //----------------------------------------------------------------------------
     // Import Helper Functions
@@ -27,7 +23,7 @@ class ImportExport {
     // Import folder and its contents
     // @param		Project Name
     // @param		Folder Path
-    static importFolderHelper(projName, folderPath) {
+    static importFolderHelper(projectName, folderPath) {
         let copyFolderPathName;
         let copyFolderName;
         let copyProjectId;
@@ -37,31 +33,35 @@ class ImportExport {
                 return ImportExportService.checkFolderContents(folder_pathname) })
             .then(folder_name => {
                 copyFolderName = folder_name;
-                return ProjectCRUD.projectID(projName)})
+                return ProjectService.projectID(projectName)})
             .then(projID => {
                 copyProjectId=projID;
-                return folderCRUD.checkFolder(projID, copyFolderName)})
+                return FolderService.checkFolder(projID, copyFolderName)})
             .then(folder_name => {
                 copyFolderName=folder_name;
-                return folderCRUD.createFolder(copyProjectId, folder_name)})
+                return FolderService.createFolder(copyProjectId, folder_name)})
             .then(response => {
-                return ImportExportService.importFolderContents(projName, copyFolderName, copyFolderPathName)})
+                return ImportExportService.importFolderContents(projectName, copyFolderName, copyFolderPathName)})
             .then(response=> {
-                console.log(success("Import successful!" + "'Test created under Folder '" + copyFolderName + "' under Project '" + projName+"'" ));})
+                console.log(success("Import successful! Test created under Folder <" + copyFolderName
+                    + "> under Project <" + projectName+">" ));})
             .catch(error =>{
                 console.error("Error: error occurred while importing folder : "+error+"'\n");
             });
     }
 
     // Export folder and its test scripts
-    static exportFolderHelper(projName, folderName, directory) {
+    // @param		Project Name
+    // @param		Folder Name
+    // @param       Directory
+    static exportFolderHelper(projectName, folderName, directory) {
         let copyProjectId;
-        return ProjectCRUD.projectID(projName)
+        return ProjectService.projectID(projectName)
             .then(projID => {
                 copyProjectId = projID;
-                return folderCRUD.nodeID(projID, folderName)})
+                return FolderService.nodeID(projID, folderName)})
             .then(folderID => ImportExportService.exportTestDirectory(copyProjectId, folderID, directory))
-            .then(t => console.log(success("Folder has been exported successfully to "+directory+"'\n")))
+            .then(t => console.log(success("Folder has been exported successfully to <"+directory+">")))
             .catch(error =>{
                 console.log("Error: "+error+"'\n");
             });
@@ -69,4 +69,4 @@ class ImportExport {
 
 }
 
-module.exports = ImportExport;
+module.exports = ImportExportController;

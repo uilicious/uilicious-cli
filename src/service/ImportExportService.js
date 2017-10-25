@@ -16,8 +16,6 @@ const success = chalk.green;
 const APIUtils = require('../utils/ApiUtils');
 const ProjectCRUD = require('../service/ProjectService');
 const folderCRUD = require('../service/FolderService');
-const testCRUD = require('../service/TestService');
-const ImportExportController = require('../controller/ImportExportController');
 
 class ImportExportService {
 

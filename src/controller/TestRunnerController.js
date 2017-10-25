@@ -26,8 +26,10 @@ class TestRunnerController {
 //------------------------------------------------------------------------------
 
     // Run test script from project
+    // @param Project Name
+    // @param Script Path
+    // @param Options
     static main(projname, scriptpath, options) {
-
         if (options.save != null) {
             let copyProjectId;
             let copyTestDirectory;
@@ -41,16 +43,16 @@ class TestRunnerController {
                         defaultEncoding: 'utf8'
                     });
                     const logStdout = process.stdout;
+                    CLIUtils.banner();
                     console.log = function() {
                         logFile.write(util.format.apply(null, arguments) + '\n');
                         logStdout.write(util.format.apply(null, arguments) + '\n');
                     };
                     //console.error = console.log;
-                    CLIUtils.banner();
                     CLIUtils.consoleLogTestDate();
 
                     console.log("#");
-                    console.log("# Uilicious CLI - Runner");
+                    console.log("# Uilicious CLI - Test Runner");
                     console.log("# Project Name: " + projname);
                     console.log("# Script Path : " + scriptpath);
                     console.log("#");
