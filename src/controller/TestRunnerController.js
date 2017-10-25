@@ -30,9 +30,11 @@ class TestRunnerController {
 
         if (options.save != null) {
             let copyProjectId;
+            let copyTestDirectory;
             TestService.makeDir(options.save)
                 .then(testDirectory => {
                     // Test log functionality
+                    copyTestDirectory = testDirectory;
                     let testLog = testDirectory + '/log.txt';
                     const logFile = fs.createWriteStream(testLog, {
                         flags: 'a',
@@ -71,10 +73,10 @@ class TestRunnerController {
                     console.log("");
                     TestService.outputStatus(response.outputPath, response.steps);
                     TestService.processErrors(response.outputPath, response.steps);
-                    console.log(success("Test Info saved in "+testDirectory+"\n"));
+                    console.log(success("Test Info saved in "+copyTestDirectory+"\n"));
                 })
                 .catch(error => {
-                    console.error(error(error));
+                    console.log("Error: "+error);
                 });
         }
         else {
