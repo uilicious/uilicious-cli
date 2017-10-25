@@ -43,7 +43,6 @@ function CLIApp() {
 	// Export Test Folder
 	program
 		.command('export <projname> <folder_name> <directory>') // To:Do
-		.alias('ef')
 		.description('Export a folder.')
 		.action(ImportExportController.exportFolderHelper);
 

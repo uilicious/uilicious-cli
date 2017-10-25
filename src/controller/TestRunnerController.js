@@ -86,7 +86,7 @@ class TestRunnerController {
             console.log("#");
             console.log("# Uilicious CLI - Runner");
             console.log("# Project Name: " + projname);
-            console.log("# Script Path : " + scriptpath);
+            console.log("# Test Path : " + scriptpath);
             console.log("#");
             let copyProjectId;
             return ProjectService.projectID(projname)
