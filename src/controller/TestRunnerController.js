@@ -18,7 +18,7 @@ const CLIUtils = require('../utils/CliUtils');
 const ProjectService = require('../service/ProjectService');
 const TestService = require('../service/TestService');
 
-class testCRUD {
+class TestRunnerController {
 
 
 //------------------------------------------------------------------------------
@@ -114,4 +114,4 @@ class testCRUD {
     }
 }
 
-module.exports = testCRUD;
+module.exports = TestRunnerController;

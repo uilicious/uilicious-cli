@@ -1,5 +1,5 @@
 /*
-* testCRUD class that provides functionality for CRUD operations
+* TestService class that provides functionality for CRUD operations
 * to be performed by the test
 */
 
@@ -23,7 +23,7 @@ const APIUtils = require('../utils/ApiUtils');
 /// to ouputStep repeatingly
 var outputStepCache = [];
 
-class testCRUD {
+class TestService {
 
 	//------------------------------------------------------------------------------
 	// Test Core Functions
@@ -40,10 +40,10 @@ class testCRUD {
 		return new Promise(function(good, bad) {
 			function actualPoll() {
 				setTimeout(function() {
-					testCRUD.getResult(runTestID, function(res) {
+                    TestService.getResult(runTestID, function(res) {
 						// Everytime the result is received,
 						// Update the screen for the latest status updates
-						testCRUD.processResultSteps(res.outputPath, res.steps);
+                        TestService.processResultSteps(res.outputPath, res.steps);
 
 						// Wait for test status (success/failure) and
 						// then return the full results
@@ -93,7 +93,7 @@ class testCRUD {
 		for (let idx = 0; idx < stepArr.length; idx++) {
 			let step = stepArr[idx];
 			if (step.status == 'success' || step.status == 'failure') {
-				testCRUD.outputStep(remoteOutputPath, idx, step);
+                TestService.outputStep(remoteOutputPath, idx, step);
 			}
 		}
 	}
@@ -103,7 +103,7 @@ class testCRUD {
 		for (let idx = 0; idx < stepArr.length; idx++) {
 			let step = stepArr[idx];
 			if (step.status == 'failure') {
-				testCRUD.outputError(remoteOutputPath, idx, step);
+                TestService.outputError(remoteOutputPath, idx, step);
 			}
 		}
 	}
@@ -129,7 +129,7 @@ class testCRUD {
 		// Output each step, if its in cache, ignore duplicates
 		if ( outputStepCache[idx] == null ) {
 			outputStepCache[idx] = step;
-			let stepMsg = testCRUD.formatStepOutputMsg(step);
+			let stepMsg = TestService.formatStepOutputMsg(step);
 			if ( step.status == 'success' ) {
 				console.log(stepMsg);
 			} else if ( step.status == 'failure' ) {
@@ -146,7 +146,7 @@ class testCRUD {
 
 		if ( outputErrorCache[idx] == null ) {
 			outputErrorCache[idx] = step;
-			let stepError = testCRUD.formatErrorOutput(step);
+			let stepError = TestService.formatErrorOutput(step);
 			if ( step.status == 'failure' ) {
 				console.error(stepError);
 			}
@@ -256,4 +256,4 @@ class testCRUD {
 	}
 }
 
-module.exports = testCRUD;
+module.exports = TestService;
