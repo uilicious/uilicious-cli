@@ -1,4 +1,4 @@
-/*
+/**
 * TestRunnerController class responds to run command
 * in the command line
 * @Author : Shahin (shahin@uilicious.com)
@@ -73,6 +73,8 @@ class TestRunnerController {
                     return TestService.pollForResult(postID)})
                 .then(response => {
                     console.log("");
+                    TestService.outputTotalTestRunningTime(response.steps);
+                    console.log("");
                     TestService.outputStatus(response.outputPath, response.steps);
                     TestService.processErrors(response.outputPath, response.steps);
                     console.log(success("Test Info saved in "+copyTestDirectory+"\n"));
@@ -106,6 +108,8 @@ class TestRunnerController {
                     console.log("");
                     return TestService.pollForResult(postID)})
                 .then(response => {
+                    console.log("");
+                    TestService.outputTotalTestRunningTime(response.steps);
                     console.log("");
                     TestService.outputStatus(response.outputPath, response.steps);
                     TestService.processErrors(response.outputPath, response.steps);

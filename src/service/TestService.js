@@ -84,6 +84,20 @@ class TestService {
 		}
 	}
 
+    // Output log for test status and errors after completion
+    static outputTotalTestRunningTime(stepArr) {
+        if (stepArr == null) {
+            return;
+        }
+        let totalTime=0;
+        for (let idx = 0; idx < stepArr.length; idx++) {
+            let step = stepArr[idx];
+            totalTime+=step.time;
+        }
+		console.log("Total time to execute the test : " + totalTime.toFixed(2) + "s");
+
+    }
+
 	// Cycle through every step and output those steps with 'success/failure'
 	static processResultSteps(remoteOutputPath, stepArr) {
 		if (stepArr == null) {
@@ -109,12 +123,7 @@ class TestService {
 
 	// Return the status of each step
 	static formatStepOutputMsg(step) {
-	    if(step.status=='success') {
-            return "[Step " + (step.idx + 1) + " - " + success(step.status) + "]: " + step.description + " - " + step.time.toFixed(2) + "s";
-        }
-        else {
-            return "[Step " + (step.idx + 1) + " - " + error(step.status) + "]: " + step.description + " - " + step.time.toFixed(2) + "s";
-        }
+		return "[Step " + (step.idx + 1) + " - " + step.status + "]: " + step.description + " - " + step.time.toFixed(2) + "s";
 	}
 
 	// Return each error
