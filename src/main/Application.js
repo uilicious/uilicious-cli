@@ -1,5 +1,7 @@
 /**
- * Created by tadapatrisonika on 17/7/17.
+ * Application class is handles all the commands in the terminal
+ * and call respected controller to respond to the request
+ * @Author: Shahin (shahin@uilicious.com)
  */
 // 'use strict';
 
