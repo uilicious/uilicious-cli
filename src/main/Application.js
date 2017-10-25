@@ -28,13 +28,12 @@ function CLIApp() {
 		// .option('-d, --directory <optional>', 'Output directory path to use')
 		.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
 		.option('-w, --width <optional>', 'width of browser')
-		.option('-h, --height <optional>', 'height of browser');
+		.option('-ht, --height <optional>', 'height of browser');
 
 	// Import Test
 	program
-		.command('import-test <projname> <file_pathname>')
+		.command('import <projname> <file_pathname>')
 		.option('-f, --folder <folder>', 'Set the folder path to save to.')
-		.alias('it')
 		.description('Import a test.')
 		.action(function(projname, file_pathname, options) {
 			let folder_name = options.folder || null;
@@ -45,27 +44,19 @@ function CLIApp() {
 			}
 		});
 
+    // Import Folder
+    program
+        .command('import-folder <projname> <folder_path>')
+        .description('Import a folder.')
+        .action(function(projname, folder_path, options) {
+        	ImportExportController.importFolderHelper(projname, folder_path);
+        });
+
 	// Export Test
 	program
-		.command('export-test <projname> <test_name> <directory>')
-		.alias('et')
+		.command('export <projname> <test_name> <directory>')
 		.description('Export a test.')
 		.action(ImportExportController.exportTestHelper);
-
-	// Import Folder
-	program
-		.command('import-folder <projname> <folder_path>')
-		.option('-f, --folder <folder>', 'Set the folder.')
-		.alias('if')
-		.description('Import a folder.')
-		.action(function(projname, folder_path, options) {
-			let foldername = options.folder || null;
-			if(foldername == null) {
-				ImportExportController.importFolderHelper(projname, folder_path);
-			} else {
-				ImportExportController.importFolderUnderFolderHelper(projname, folder_path, foldername);
-			}
-		});
 
 	// Export Folder
 	program

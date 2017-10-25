@@ -21,80 +21,6 @@ const testCRUD = require('../service/TestService');
 class ImportExportService {
 
     //----------------------------------------------------------------------------
-    // Import Helper Functions
-    //----------------------------------------------------------------------------
-
-    // Import test script
-    // @param		Project Name
-    // @param		Test Name
-    // @param		File Path Name
-    static importTestHelper(projname, file_pathname, options) {
-        ImportExport.readFileContents(file_pathname, function(file_content) {
-            ProjectCRUD.projectID(projname, function(projID) {
-                ImportExport.checkTest(projID, file_pathname, function(testname) {
-                    ImportExport.importTest(projID, testname, file_content, function(res) {
-                        console.log(success("Import successful!\nNew test '"+testname+"' created in Project '"+projname+"'\n"));
-                    });
-                });
-            });
-        });
-    }
-
-    // Import test script under a folder
-    // @param Project Name
-    // @param folder Name
-    // @param File Path Name
-    static importTestUnderFolderHelper(projname, file_pathname, foldername, options) {
-        ImportExport.readFileContents(file_pathname, function(file_content) {
-            ProjectCRUD.projectID(projname, function(projID) {
-                folderCRUD.nodeID(projID, foldername, function(nodeId) {
-                    ImportExport.checkTest(projID, file_pathname, function(testname) {
-                        ImportExport.importTestUnderFolder(projID, nodeId, testname, file_content, function(res) {
-                            console.log(success("Import successful!\nNew test '"+testname+"' created under Folder '"+foldername+"' under Project '"+projname+"'.\n"));
-                        });
-                    });
-                });
-            });
-        });
-    }
-
-    // Import folder and its contents
-    static importFolderHelper(projName, folderPath, options) {
-        ImportExport.checkPath(folderPath, function(folder_pathname) {
-            ImportExport.checkFolderContents(folder_pathname, function(folder_name) {
-                ProjectCRUD.projectID(projName, function(projID) {
-                    folderCRUD.checkFolder(projID, folder_name, function(folder_name) {
-                        folderCRUD.createFolder(projID, folder_name, function(res) {
-                            ImportExport.importFolderContents(projName, folder_name, folder_pathname, function(res) {
-                                console.log("");
-                            });
-                        });
-                    });
-                });
-            });
-        });
-    }
-
-    //Import folder under another folder that is present in the project along with its contents
-    static importFolderUnderFolderHelper(projName, folderPath, folderName, options) {
-        ImportExport.checkPath(folderPath, function(folder_pathname) {
-            ImportExport.checkFolderContents(folder_pathname, function(folder_name) {
-                ProjectCRUD.projectID(projName, function(projID) {
-                    folderCRUD.nodeID(projID, folderName, function(nodeId) {
-                        folderCRUD.checkFolder(projID, folder_name, function(folder_name) {
-                            folderCRUD.createFolderUnderFolder(projID, nodeId, folder_name, function(res) {
-                                ImportExport.importFolderContents(projName, folder_name, folder_pathname, function(res) {
-                                    console.log("");
-                                });
-                            });
-                        });
-                    });
-                });
-            });
-        });
-    }
-
-    //----------------------------------------------------------------------------
     // Import Core Functions
     //----------------------------------------------------------------------------
 
@@ -117,7 +43,7 @@ class ImportExportService {
     // Check path and return path location if valid
     // @param   Path Name
     // @return  Promise object that returns the path location
-    static checkPath(path_name, callback) {
+    static checkPath(path_name) {
         return new Promise(function(good, bad) {
             let pathLocation = path.resolve(path_name);
             let folderName = path.basename(path_name);
@@ -128,7 +54,7 @@ class ImportExportService {
                 good(pathLocation);
                 return;
             }
-        }).then(callback);
+        });
     }
 
     /// Check for duplicate Test name
@@ -158,7 +84,7 @@ class ImportExportService {
     // Check folder contents and return folder name if folder is not empty
     // @param   Folder Path Name
     // @return  Promise object that returns name of folder
-    static checkFolderContents(folder_pathname, callback) {
+    static checkFolderContents(folder_pathname) {
         return new Promise(function(good, bad) {
             let folderName = path.basename(folder_pathname);
             let folderContents = fs.readdir(folder_pathname, function(err, files) {
@@ -170,11 +96,11 @@ class ImportExportService {
                     return;
                 }
             })
-        }).then(callback);
+        });
     }
 
     // Import folder contents
-    static importFolderContents(projname, foldername, folder_pathname, callback) {
+    static importFolderContents(projname, foldername, folder_pathname) {
         return new Promise(function(good, bad) {
             let folderLocation = path.resolve(folder_pathname);
             let folderContents = fs.readdir(folder_pathname, function(err, files) {
@@ -185,7 +111,7 @@ class ImportExportService {
                     ImportExport.importTestUnderFolderHelper(projname, foldername, fileLocation);
                 }
             })
-        }).then(callback);
+        });
     }
 
     //----------------------------------------------------------------------------
@@ -211,7 +137,7 @@ class ImportExportService {
     // Create a new test by importing it under a folder in a project
     // @param Project ID from projectID()
     // @param nodeID from nodeID()
-    static importTestUnderFolder(projectID, nodeID, testName, testContent, callback) {
+    static importTestUnderFolder(projectID, nodeID, testName, testContent) {
         return APIUtils.webstudioRawRequest(
             "POST",
             "/api/studio/v1/projects/" + projectID + "/workspace/tests/addAction",
@@ -220,35 +146,10 @@ class ImportExportService {
                 parentId: nodeID,
                 script: testContent
             },
-            callback
+            function (data) {
+                return data;
+            }
         );
-    }
-
-    //----------------------------------------------------------------------------
-    // Export Helper Functions
-    //----------------------------------------------------------------------------
-
-    static exportTestHelper(projname, testname, directory) {
-        let copyProjectId;
-        ProjectCRUD.projectID(projname)
-            .then(projID => {
-                copyProjectId = projID;
-                return testCRUD.testID(projID, testname)
-            })
-            .then(testID => {
-                ImportExport.getScript(copyProjectId, testID, function(fileContent) {
-                    ImportExport.exportTestFile(directory, testname, fileContent);
-                });
-            });
-    }
-
-    // Export folder and its test scripts
-    static exportFolderHelper(projName, folderName, directory) {
-        ProjectCRUD.projectID(projName, function(projID) {
-            folderCRUD.nodeID(projID, folderName, function(folderID) {
-                ImportExport.exportTestDirectory(projID, folderID, directory);
-            });
-        });
     }
 
     //----------------------------------------------------------------------------
@@ -299,14 +200,20 @@ class ImportExportService {
     // @param   directory to export test
     // @param   test_name (name of test)
     static exportTestFile(directory, test_name, file_content) {
-        let filePathName = path.resolve(directory) + "/" + test_name + ".js";
-        let fileName = test_name + ".js";
-        fs.writeFile(filePathName, file_content, function(err) {
-            if (err) {
-                throw err;
-            }
-            console.log(success("File <" + fileName + "> successfully saved in " + directory));
-        });
+        return new Promise(function (good,bad) {
+            let filePathName = path.resolve(directory) + "/" + test_name + ".js";
+            let fileName = test_name + ".js";
+            fs.writeFile(filePathName, file_content, function(err) {
+                if (err) {
+                    console.error(error(err));
+                    process.exit(1);
+                }
+                good("File <" + fileName + "> successfully saved in " + directory);
+                return;
+                //console.log(success("File <" + fileName + "> successfully saved in " + directory));
+            });
+        })
+
     }
 
     // Make folder in local directory for export

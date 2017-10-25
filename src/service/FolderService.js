@@ -113,7 +113,7 @@ class folderCRUD {
 	/// Check for duplicate Folder name
 	/// @param	Project ID
 	/// @param	Folder Name
-	static checkFolder(projID, folderName, callback) {
+	static checkFolder(projID, folderName) {
 		return new Promise(function(good, bad) {
 			folderCRUD.folderList(projID, function(list) {
 				for (let i = 0; i < list.length; i++) {
@@ -126,7 +126,7 @@ class folderCRUD {
 				good(folderName);
 				return;
 			});
-		}).then(callback);
+		});
 	}
 
 	/// Returns the node ID (if found) , given the project ID and folderName
@@ -134,7 +134,7 @@ class folderCRUD {
 	/// @param folderName
 	/// @param [optional] callback to return the result
 	/// @return promise object , for result
-	static nodeID(projectId, folderName, callback) {
+	static nodeID(projectId, folderName) {
 		return new Promise(function(good, bad) {
 			folderCRUD.folderList(projectId, function(list) {
 				for(let i = 0; i<list.length; ++i) {
@@ -147,7 +147,7 @@ class folderCRUD {
 				console.error(error("ERROR: This folder <" + folderName + "> does not exist!\n"));
 				process.exit(1);
 			});
-		}).then(callback);
+		});
 	}
 
 	//------------------------------------------------------------------------------
@@ -168,14 +168,16 @@ class folderCRUD {
 
 	/// Create a new folder using projectName
 	/// @param	Project ID from projectID()
-	static createFolder(projectID, folderName, callback) {
+	static createFolder(projectID, folderName) {
 		return APIUtils.webstudioRawRequest(
 			"POST",
 			"/api/studio/v1/projects/" + projectID + "/workspace/folders/addAction",
 			{
 				name: folderName
 			},
-			callback
+			function (data) {
+				return data;
+            }
 		);
 	}
 
