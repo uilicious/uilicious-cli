@@ -73,7 +73,7 @@ class ImportExport {
         .then(testName => {
             copyTestName= testName;
             return ImportExportService.importTestUnderFolder(copyProjectId, copyNodeId, testName, copyFileContent)})
-        .then(response=> {
+        .then(response => {
             console.log(success("Import successful!\nNew test '"+copyTestName+"' created under Folder '"+foldername+"' under Project '"+projname+"'.\n"));
         }).catch(error => {
             console.error("Error: error occurred while importing the test file : "+error+"'\n");
@@ -95,12 +95,12 @@ class ImportExport {
         .then(projID => {
             copyProjectId=projID;
             return folderCRUD.checkFolder(projID, copyFolderName)})
-        .then(folder_name=> {
+        .then(folder_name => {
             copyFolderName=folder_name;
             return folderCRUD.createFolder(copyProjectId, folder_name)})
         .then(response => {
             return ImportExportService.importFolderContents(projName, copyFolderName, copyFolderPathName)})
-        .then(res=> {
+        .then(response=> {
             console.log(success("Import successful!" + "' created under Folder '" + copyFolderName + "' under Project '" + projName + "'.\n"));})
         .catch(error =>{
             console.error("Error: error occurred while importing folder : "+error+"'\n");

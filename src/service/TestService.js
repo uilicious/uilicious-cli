@@ -158,7 +158,7 @@ class TestService {
 	static makeDir(directory, callback) {
 		return new Promise(function(good, bad) {
 			let testRun = new Date().toString();
-			let testDirectory = directory + "/TestRun " + testRun;
+			let testDirectory = directory + "TestRun " + testRun;
 			fs.mkdir(testDirectory, function(err) {
 				if (err) {
 					console.log(error("Error: An error occurred while creating the directory, Please specify a valid path"));

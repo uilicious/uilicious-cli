@@ -31,7 +31,7 @@ class TestRunnerController {
         if (options.save != null) {
             let copyProjectId;
             let copyTestDirectory;
-            TestService.makeDir(options.save)
+            return TestService.makeDir(options.save)
                 .then(testDirectory => {
                     // Test log functionality
                     copyTestDirectory = testDirectory;
@@ -89,11 +89,11 @@ class TestRunnerController {
             console.log("# Script Path : " + scriptpath);
             console.log("#");
             let copyProjectId;
-            ProjectService.projectID(projname)
-                .then(projID => {
-                    console.log("# Project ID : "+projID);
-                    copyProjectId=projID;
-                    return TestService.testID(projID, scriptpath)})
+            return ProjectService.projectID(projname)
+                .then(projectId => {
+                    console.log("# Project ID : "+projectId);
+                    copyProjectId=projectId;
+                    return TestService.testID(projectId, scriptpath)})
                 .then(scriptID =>  {
                     console.log("# Script ID  : "+scriptID);
                     let dataParams = null;
@@ -111,7 +111,6 @@ class TestRunnerController {
                 .catch(error => {
                     console.error(error(error));
                 });
-
         }
     }
 }
