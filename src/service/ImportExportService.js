@@ -1,5 +1,5 @@
 /*
-* ImportExport class that provides functionality for import/export operations
+* ImportExportService class that provides functionality for import/export operations
 * to be performed
 */
 
@@ -108,7 +108,7 @@ class ImportExportService {
                     let file = files[i];
                     let fileName = path.parse(file).name;
                     let fileLocation = folderLocation + "/" + file;
-                    ImportExport.importTestUnderFolderHelper(projname, foldername, fileLocation);
+                    ImportExportService.importTestUnderFolderHelper(projname, foldername, fileLocation);
                 }
             })
         });
@@ -160,17 +160,20 @@ class ImportExportService {
     /// @param   Project ID
     /// @param   Folder ID
     /// @param   local system file path, to export tests into
-    static exportTestDirectory(projID, folderID, directory, callback) {
+    static exportTestDirectory(projID, folderID, directory) {
         return new Promise(function(good, bad) {
-            ImportExport.getDirectoryMapByID(projID, folderID, function(dirNode) {
-                if (dirNode) {
-                    ImportExport.exportDirectoryNodeToDirectoryPath(projID, dirNode, directory);
-                    good(true);
-                } else {
-                    bad(false);
-                }
-            });
-        }).then(callback);
+            return ImportExportService.getDirectoryMapByID(projID, folderID)
+                .then(dirNode => {
+                    if (dirNode) {
+                        ImportExportService.exportDirectoryNodeToDirectoryPath(projID, dirNode, directory);
+                        good(true);
+                        return;
+                    } else {
+                        bad(false);
+                        return;
+                    }
+                });
+        });
     }
 
     /// Recursively scans the directory node, and export the folders / files when needed
@@ -181,18 +184,21 @@ class ImportExportService {
             return;
         }
         if (dirNode.typeName == "FOLDER") {
+
             // makeSureDirectoryExists(localDirPath);
-            ImportExport.makeFolder(dirNode.name, localDirPath);
-            var nextPath = localDirPath + "/" + dirNode.name;
-            let folder_children = dirNode.children;
-            for (var i = 0; i < folder_children.length; i++) {
-                let folder_child = folder_children[i];
-                ImportExport.exportDirectoryNodeToDirectoryPath(projID, folder_child, nextPath);
-            }
-        } else if (dirNode.typeName == "TEST") {
-            ImportExport.getScript(projID, dirNode.id, function(fileContent) {
-                ImportExport.exportTestFile(localDirPath, dirNode.name, fileContent);
-            });
+            ImportExportService.makeFolder(dirNode.name, localDirPath)
+                .then(t => {
+                    var nextPath = localDirPath + "/" + dirNode.name;
+                    let folder_children = dirNode.children;
+                    for (var i = 0; i < folder_children.length; i++) {
+                        let folder_child = folder_children[i];
+                        ImportExportService.exportDirectoryNodeToDirectoryPath(projID, folder_child, nextPath);
+                    }
+                });
+        }
+        else if (dirNode.typeName == "TEST") {
+            ImportExportService.getScript(projID, dirNode.id)
+                .then(fileContent => ImportExportService.exportTestFile(localDirPath, dirNode.name, fileContent));
         }
     }
 
@@ -219,7 +225,7 @@ class ImportExportService {
     // Make folder in local directory for export
     // @param   folderName (name of folder)
     // @param   directory (path of local directory) to export
-    static makeFolder(folderName, directory, callback) {
+    static makeFolder(folderName, directory) {
         return new Promise(function(good, bad) {
             let newDirectory = directory + "/" + folderName;
             fs.mkdir(newDirectory, function(err) {
@@ -230,7 +236,7 @@ class ImportExportService {
             });
             good(newDirectory);
             return;
-        }).then(callback);
+        });
     }
 
     /// Get the directory map, using the projectID and folderID
@@ -238,21 +244,21 @@ class ImportExportService {
     /// @param  folderID to export from
     /// @param  callback to call with result
     /// @return  Promise object that returns the directory map
-    static getDirectoryMapByID(projID, folderID, callback) {
+    static getDirectoryMapByID(projID, folderID) {
         return new Promise(function(good, bad) {
-            ImportExport.directoryList(projID, function(rootDirMap) {
+            ImportExportService.directoryList(projID, function(rootDirMap) {
                 for (var i = 0; i < rootDirMap.length; i++) {
                     let root_folder = rootDirMap[i];
                     if (root_folder.id == folderID) {
                         if (folderID != null) {
-                            good(ImportExport.findSubDirectoryByID(root_folder, folderID));
+                            good(ImportExportService.findSubDirectoryByID(root_folder, folderID));
                         } else {
                             good(rootDirMap);
                         }
                     }
                 }
             });
-        }).then(callback);
+        });
     }
 
     /// Does a recursive search on the parentDir object, and its children
@@ -268,7 +274,7 @@ class ImportExportService {
             // @childrenList (children of directory)
             var childrenList = parentDir.children;
             for (var i = 0; i < childrenList.length; i++) {
-                var validatedChildNode = ImportExport.findSubDirectoryByID(childrenList[i], folderID);
+                var validatedChildNode = ImportExportService.findSubDirectoryByID(childrenList[i], folderID);
                 if (validatedChildNode != null) {
                     // @return folder
                     return validatedChildNode;
