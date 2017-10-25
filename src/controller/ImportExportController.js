@@ -30,15 +30,25 @@ class ImportExport {
   // @param		Test Name
   // @param		File Path Name
   static importTestHelper(projname, file_pathname, options) {
-  	ImportExport.readFileContents(file_pathname, function(file_content) {
-  		ProjectCRUD.projectID(projname, function(projID) {
-  			ImportExport.checkTest(projID, file_pathname, function(testname) {
-  				ImportExport.importTest(projID, testname, file_content, function(res) {
-  					console.log(success("Import successful!\nNew test '"+testname+"' created in Project '"+projname+"'\n"));
-  				});
-  			});
-  		});
-  	});
+      let copyFileContent;
+      let copyProjectId;
+      let copyTestName;
+  	return ImportExportService.readFileContents(file_pathname)
+        .then(file_content=> {
+            copyFileContent=file_content;
+            return ProjectCRUD.projectID(projname);
+        })
+        .then(projID=> {
+            copyProjectId = projID;
+  			return ImportExportService.checkTest(projID, file_pathname)})
+        .then(testName=> {
+        	copyTestName = testName;
+            return ImportExportService.importTest(copyProjectId, testName, copyFileContent)})
+		.then(t =>  {
+			console.log(success("Import successful!\nNew test '"+copyTestName+"' created in Project '"+projname+"'\n"));
+		}).catch(error=>{
+			console.error("Error: error occurred while importing the test file : "+error);
+		});
   }
 
   // Import test script under a folder
@@ -229,7 +239,7 @@ class ImportExport {
 
   static exportTestHelper(projname, testname, directory) {
   	let copyProjectId;
-  	ProjectCRUD.projectID(projname)
+  	return ProjectCRUD.projectID(projname)
 		.then(projID => {
 			copyProjectId = projID;
 			return testCRUD.testID(projID, testname)

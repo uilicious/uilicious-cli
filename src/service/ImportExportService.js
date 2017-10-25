@@ -101,7 +101,7 @@ class ImportExportService {
     // Read contents from file in local directory
     // @param   File Pathname
     // @return  Promise object that returns the contents from file in local directory
-    static readFileContents(file_pathname, callback) {
+    static readFileContents(file_pathname) {
         return new Promise(function(good, bad) {
             let fileLocation = path.resolve(file_pathname);
             let fileContent = fs.readFileSync(fileLocation, 'utf-8');
@@ -111,7 +111,7 @@ class ImportExportService {
             } else {
                 good(fileContent);
             }
-        }).then(callback);
+        });
     }
 
     // Check path and return path location if valid
@@ -134,7 +134,7 @@ class ImportExportService {
     /// Check for duplicate Test name
     /// @param	Project ID
     /// @param	Test Name
-    static checkTest(projID, filePathname, callback) {
+    static checkTest(projID, filePathname) {
         return new Promise(function(good, bad) {
             let testName = path.parse(filePathname).name;
             APIUtils.webstudioJsonRequest(
@@ -152,7 +152,7 @@ class ImportExportService {
                     good(testName);
                 }
             );
-        }).then(callback);
+        });
     }
 
     // Check folder contents and return folder name if folder is not empty
@@ -194,15 +194,17 @@ class ImportExportService {
 
     /// Create a new test using projectName
     /// @param	Project ID from projectID()
-    static importTest(projectID, testName, testContent, callback) {
-        return APIUtils.webstudioRawRequest(
+    static importTest(projectID, testName, testContent) {
+         APIUtils.webstudioRawRequest(
             "POST",
             "/api/studio/v1/projects/" + projectID + "/workspace/tests/addAction",
             {
                 name: testName,
                 script: testContent
             },
-            callback
+            function (data) {
+                return data;
+            }
         );
     }
 
