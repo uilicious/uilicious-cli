@@ -123,17 +123,22 @@ class ImportExport {
 		.then(fileContent=> ImportExportService.exportTestFile(directory, testname, fileContent))
         .then(successMessage => console.log(success(successMessage)+"'\n"))
         .catch(error =>{
-            console.log("Error"+error+"'\n");
+            console.log("Error: "+error+"'\n");
         });
   }
 
   // Export folder and its test scripts
   static exportFolderHelper(projName, folderName, directory) {
-  	ProjectCRUD.projectID(projName, function(projID) {
-  		folderCRUD.nodeID(projID, folderName, function(folderID) {
-        ImportExport.exportTestDirectory(projID, folderID, directory);
-  		});
-  	});
+      let copyProjectId;
+  	return ProjectCRUD.projectID(projName)
+        .then(projID => {
+            copyProjectId = projID;
+            return folderCRUD.nodeID(projID, folderName)})
+        .then(folderID => ImportExportService.exportTestDirectory(copyProjectId, folderID, directory))
+        .then(t => console.log(success("Folder has been exported successfully to "+directory+"'\n")))
+        .catch(error =>{
+            console.log("Error: "+error+"'\n");
+        });
   }
 
 }
