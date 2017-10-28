@@ -23,14 +23,15 @@ class ProjectService {
   /// @param  Project Name to fetch ID
   static projectID(projectName) {
   	return new Promise(function(good, bad) {
-  		ProjectService.projectList(function(list) {
-  			for (let i=0; i<list.length; ++i) {
-  				let project = list[i];
-  				if (project.title == projectName) {
-  					good(project.id);
-  					return;
-  				}
-  			}
+  		return ProjectService.projectList()
+			.then(list => {
+				for (let i=0; i<list.length; ++i) {
+					let project = list[i];
+					if (project.title == projectName) {
+						good(project.id);
+						return;
+					}
+				}
   			console.error(error("ERROR: Project Name not found: " + projectName));
   			process.exit(1);
   		});
@@ -42,14 +43,15 @@ class ProjectService {
   //------------------------------------------------------------------------------
 
   /// Get a list of projects, in the following format [ { id, title, logoUrl }]
-  /// @param  [Optional] Callback to return result, defaults to console.log
   /// @return  Promise object, for result
-  static projectList(callback) {
+  static projectList() {
   	return APIUtils.webstudioJsonRequest(
   		"GET",
   		"/api/studio/v1/projects",
-  		{},
-  		callback
+  		{},									// To:Do : accept projectName and username and return project id
+  		function (callback) {
+			return callback;
+        }
   	);
   }
 }
