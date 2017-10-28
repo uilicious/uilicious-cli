@@ -77,7 +77,8 @@ class TestRunnerController {
                     console.log("");
                     TestService.outputStatus(response.outputPath, response.steps);
                     TestService.processErrors(response.outputPath, response.steps);
-                    console.log(success("Test Info saved in "+copyTestDirectory+"\n"));
+                    console.log("")
+                    console.log("Test Info saved in "+copyTestDirectory+"\n");
                 })
                 .catch(error => {
                     console.log("Error: "+error);

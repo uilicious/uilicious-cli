@@ -128,7 +128,7 @@ class TestService {
 
 	// Return each error
 	static formatErrorOutput(step) {
-		return error("[Step " + (step.idx+1) + " - " + step.status + "]: " + step.error.message);
+		return "[Step " + (step.idx+1) + " - " + step.status + "]: " + step.error.message;
 	}
 
 	// Output each step
@@ -156,14 +156,14 @@ class TestService {
 			outputErrorCache[idx] = step;
 			let stepError = TestService.formatErrorOutput(step);
 			if ( step.status == 'failure' ) {
-				console.error(stepError);
+				console.log(stepError);
 			}
 		}
 	}
 
 
 	// Make local directory to save the test report and screenshots
-	static makeDir(directory, callback) {
+	static makeDir(directory) {
 		return new Promise(function(good, bad) {
 			let testRun = new Date().toString();
 			let testDirectory = directory + "TestRun " + testRun;
@@ -175,7 +175,7 @@ class TestService {
 			});
 			good(testDirectory);
 			return;
-		}).then(callback);
+		});
 	}
 
 	//------------------------------------------------------------------------------
@@ -195,11 +195,11 @@ class TestService {
 				testPath = testPath.substr(1);
 			}
 
-			APIUtils.webstudioTestRequest(
+			return APIUtils.webstudioTestRequest(
 				"GET",
 				"/api/studio/v1/projects/" + projID + "/workspace/tests",
-				{path: testPath},
-				function (tests) {
+				{path: testPath})
+				.then(tests=> {
 					for (var i = 0; i < tests.length; i++) {
 						let test = tests[i];
 						if (test.path === testPath) {
@@ -209,8 +209,7 @@ class TestService {
 					}
 					console.error(error("ERROR: Unable to find test script: '" + testPath + "'\n"));
 					process.exit(1);
-				}
-			);
+				});
 		});
 	}
 
@@ -238,15 +237,14 @@ class TestService {
 			APIUtils.webstudioJsonRequest(
 				"POST",
 				"/api/studio/v1/projects/" + projID + "/workspace/tests/" + testID + "/runAction?cli=true",
-				form,
-				function(res) {
+				form)
+                .then(res => {
 					if ( res.id != null ) {
 						good(res.id);
 						return;
 					}
 					throw new Error(error("Missing Test Run ID/Invalid JSON format"));
-				}
-			);
+				});
 		});
 	}
 
