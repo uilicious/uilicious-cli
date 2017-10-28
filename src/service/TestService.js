@@ -39,20 +39,21 @@ class TestService {
 		return new Promise(function(good, bad) {
 			function actualPoll() {
 				setTimeout(function() {
-                    TestService.getResult(runTestID, function(res) {
-						// Everytime the result is received,
-						// Update the screen for the latest status updates
-                        TestService.processResultSteps(res.outputPath, res.steps);
+                    return TestService.getResult(runTestID)
+                        .then(res => {
+                            // Everytime the result is received,
+                            // Update the screen for the latest status updates
+                            TestService.processResultSteps(res.outputPath, res.steps);
 
-						// Wait for test status (success/failure) and
-						// then return the full results
-						if (res.status == 'success' || res.status == 'failure') {
-							good(res);
-							return;
-						}
-						else {
-							actualPoll();
-						}
+                            // Wait for test status (success/failure) and
+                            // then return the full results
+                            if (res.status == 'success' || res.status == 'failure') {
+                                good(res);
+                                return;
+                            }
+                            else {
+                                actualPoll();
+                            }
 					})
 				}, pollInterval);
 			}
@@ -252,12 +253,14 @@ class TestService {
 	// that ID id is called the runTestID
 	// @param runTestID
 	// @param [Optional] Callback to return result
-	static getResult(runTestID, callback) {
+	static getResult(runTestID) {
 		return APIUtils.webstudioJsonRequest(
 			"GET",
 			"/api/v0/test/result",
 			{ id : runTestID },
-			callback
+			function (callback) {
+                return callback;
+            }
 		);
 	}
 }

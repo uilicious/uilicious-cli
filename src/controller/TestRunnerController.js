@@ -63,7 +63,7 @@ class TestRunnerController {
                     copyProjectId=projID;
                     return TestService.testID(projID, scriptpath)})
                 .then(scriptID =>  {
-                    console.log("# Script ID  : "+scriptID);
+                    console.log("# Test ID  : "+scriptID);
                     let dataParams = null;
                     return TestService.runTest(copyProjectId, scriptID, dataParams)})
                 .then(postID => {
@@ -100,7 +100,7 @@ class TestRunnerController {
                     copyProjectId=projectId;
                     return TestService.testID(projectId, scriptpath)})
                 .then(scriptID =>  {
-                    console.log("# Script ID  : "+scriptID);
+                    console.log("# Test ID  : "+scriptID);
                     let dataParams = null;
                     return TestService.runTest(copyProjectId, scriptID, dataParams)})
                 .then(postID => {
