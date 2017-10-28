@@ -1,6 +1,7 @@
-/*
-* projectCRUD class that provides functionality for CRUD operations
-* to be performed by the folder
+/**
+* Project Service class that provides functionality for CRUD operations
+* to be performed by the project
+* @Author:Shahin (shahin@uilicious.com)
 */
 
 // Chalk (color) messages for success/error

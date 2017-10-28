@@ -1,6 +1,7 @@
-/*
-* folderCRUD class that provides functionality for CRUD operations
+/**
+* FolderService class that provides functionality for Folder related operations
 * to be performed by the folder
+* @Author:Shahin (shahin@uilicious.com)
 */
 
 
@@ -19,15 +20,16 @@ class FolderService {
 	/// @param	Folder Name
 	static checkFolder(projectId, folderName) {
 		return new Promise(function(good, bad) {
-			FolderService.folderList(projectId, function(list) {
-				for (let i = 0; i < list.length; i++) {
-					let folder = list[i];
-					if (folder.name == folderName) {
-						console.error(error("ERROR: This folder '" + folderName + "' exists.\nPlease use another name!\n"));
-						process.exit(1);
+			return FolderService.folderList(projectId)
+				.then(list =>{
+					for (let i = 0; i < list.length; i++) {
+						let folder = list[i];
+						if (folder.name == folderName) {
+							console.error(error("ERROR: This folder '" + folderName + "' exists.\nPlease use another name!\n"));
+							process.exit(1);
+						}
 					}
-				}
-				good(folderName);
+					good(folderName);
 				return;
 			});
 		});
@@ -38,17 +40,18 @@ class FolderService {
 	/// @param folderName
 	static nodeID(projectId, folderName) {
 		return new Promise(function(good, bad) {
-			FolderService.folderList(projectId, function(list) {
-				for(let i = 0; i<list.length; ++i) {
-					let item = list[i];
-					if(item.name == folderName) {
-						good(item.id);
-						return;
-					}
-				}
-				console.error(error("ERROR: This folder <" + folderName + "> does not exist!\n"));
-				process.exit(1);
-			});
+			return FolderService.folderList(projectId)
+                .then(list => {
+                    for(let i = 0; i<list.length; ++i) {
+                        let item = list[i];
+                        if(item.name == folderName) {
+                            good(item.id);
+                            return;
+                        }
+                    }
+				    console.error(error("ERROR: This folder <" + folderName + "> does not exist!\n"));
+				    process.exit(1);
+                });
 		});
 	}
 
@@ -59,12 +62,15 @@ class FolderService {
 	/// Get a list of folders
 	/// @param  [Optional] Callback to return result, defaults to console.log
 	/// @return  Promise object, for result
-		static folderList(projectID, callback) {
+		static folderList(projectID) {
 		return APIUtils.webstudioJsonRequest(
 			"GET",
 			"/api/studio/v1/projects/" + projectID + "/workspace/folders",
 			{},
-			callback
+            function (callback) {
+				return callback;
+            }
+
 		);
 	}
 
