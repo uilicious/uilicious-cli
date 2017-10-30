@@ -5,7 +5,6 @@
 const request = require('request');
 const url = require('url');
 const program = require('commander');
-
 class APIUtils {
 
 	static requestErrorHandler(err) {
