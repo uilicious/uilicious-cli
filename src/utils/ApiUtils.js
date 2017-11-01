@@ -87,41 +87,6 @@ class APIUtils {
 		}).then(callback);
 	}
 
-	/// Makes a POST or GET request, with the given form object
-	/// and return its JSON result in a promise
-	///
-	/// @param  Write stream to output data into
-	/// @param  "POST" or "GET" method
-	/// @param  FULL URL to make the request
-	/// @param  [OPTIONAL] Query / Form parameter to pass as an object
-	/// @param  [OPTIONAL] Callback parameter, to attach to promise
-	///
-	/// @return The promise object, returns the request object
-	static streamRequest(writeStream, method, url, data, callback) {
-		// Option / parameter parsing
-		var option = {
-			url : url,
-			method : method
-		};
-		if( method == "GET" ) {
-			option.qs = data;
-		} else {
-			option.form = data;
-		}
-
-		// The actual API call, with promise object
-		return new Promise(function(good, bad) {
-			let req = request(option);
-			req.pipe(writeStream)
-				.on('error', function(err){
-					throw new Error("Unexpected error for URL request : " + url + " -> " + err);
-				})
-				.on('close', function(misc) {
-					good(req, misc);
-				});
-		}).then(callback);
-	}
-
 	/// Makes a GET or POST request, with the given form object
 	/// and return its JSON result in a promise
 	///
@@ -156,22 +121,23 @@ class APIUtils {
 	static TestRequest(method, url, inData, callback) {
 		// Calling rawRequest, and parsing the good result as JSON
 		return new Promise(function(good, bad) {
-			APIUtils.TestRequestData(method, url, inData).then(function(data) {
-				try {
-					good(JSON.parse(data));
-				} catch(err) {
-					console.error("---- Error trace ----");
-					console.error(err);
-					console.error("---- HTTP response data ----");
-					console.error(data);
-					console.error("---- HTTP request URL ----");
-					console.error(url);
-					console.error("---- HTTP request data ----");
-					console.error(inData);
-					console.error("---- End of error report ----");
-					process.exit(1);
-				}
-			},bad);
+			APIUtils.TestRequestData(method, url, inData)
+                .then(function(data) {
+                    try {
+                        good(JSON.parse(data));
+                    } catch(err) {
+                        console.error("---- Error trace ----");
+                        console.error(err);
+                        console.error("---- HTTP response data ----");
+                        console.error(data);
+                        console.error("---- HTTP request URL ----");
+                        console.error(url);
+                        console.error("---- HTTP request data ----");
+                        console.error(inData);
+                        console.error("---- End of error report ----");
+                        process.exit(1);
+                    }
+                },bad);
 		}).then(callback);
 	}
 
@@ -179,12 +145,12 @@ class APIUtils {
 	/// silently terminates, with an error message if it fails
 	///
 	/// @return   Promise object, returning the full URL to make request to
-	static getFullHostURL(callback) {
+	static getFullHostURL() {
 		/// Cached full host URL
 		 var _fullHostURL = null;
 
 		if ( _fullHostURL != null ) {
-			return Promise.resolve(_fullHostURL).then(callback);
+			return Promise.resolve(_fullHostURL);
 		}
 
 		return new Promise(function(good, bad) {
@@ -202,10 +168,11 @@ class APIUtils {
 					} else {
 						var _fullHostURL = res.protectedURL;
 						good(_fullHostURL);
+						return;
 					}
 				}
 			);
-		}).then(callback);
+		});
 	}
 
 	/// Does a JSON request to web-studio instance of the client
@@ -217,17 +184,21 @@ class APIUtils {
 	///
 	static webstudioJsonRequest(method, webPath, params, callback) {
 		return new Promise(function(good, bad) {
-			APIUtils.getFullHostURL(function(hostURL) {
-				APIUtils.jsonRequest(method, hostURL+webPath, params).then(good, bad);
+			return APIUtils.getFullHostURL()
+                .then(hostURL=> {
+                    APIUtils.jsonRequest(method, hostURL+webPath, params)
+					.then(good, bad);
 			});
 		}).then(callback);
 	}
 
 	static webstudioTestRequest(method, webPath, params, callback) {
 		return new Promise(function(good, bad) {
-			APIUtils.getFullHostURL(function(hostURL) {
-				APIUtils.TestRequest(method, hostURL+webPath, params).then(good, bad);
-			});
+			return APIUtils.getFullHostURL()
+                .then(hostURL=> {
+                    APIUtils.TestRequest(method, hostURL+webPath, params)
+                        .then(good, bad);
+                });
 		}).then(callback);
 	}
 
@@ -240,28 +211,11 @@ class APIUtils {
 	///
 	static webstudioRawRequest(method, webPath, params, callback) {
 		return new Promise(function(good, bad) {
-			APIUtils.getFullHostURL(function(hostURL) {
-				APIUtils.rawRequestData(method, hostURL+webPath, params).then(good, bad);
-			});
-		}).then(callback);
-	}
-
-
-	/// Makes a POST or GET request, with the given form object
-	/// and return its JSON result in a promise
-	///
-	/// @param  Write stream to output data into
-	/// @param  "POST" or "GET" method
-	/// @param  FULL URL to make the request
-	/// @param  [OPTIONAL] Query / Form parameter to pass as an object
-	/// @param  [OPTIONAL] Callback parameter, to attach to promise
-	///
-	/// @return The promise object, returns the request object
-	static webstudioStreamRequest(writeStream, method, webPath, params, callback) {
-		return new Promise(function(good, bad) {
-			APIUtils.getFullHostURL(function(hostURL) {
-				APIUtils.streamRequest(writeStream, method, hostURL+webPath, params).then(good, bad);
-			});
+			return APIUtils.getFullHostURL()
+                .then(hostURL=> {
+                    APIUtils.rawRequestData(method, hostURL+webPath, params)
+                        .then(good, bad);
+			    });
 		}).then(callback);
 	}
 
