@@ -7,6 +7,10 @@ const chalk       = require('chalk');
 const figlet      = require('figlet');
 
 class CLIUtils {
+
+    /**
+     * Display the time and date of test execution
+     */
 	static consoleLogTestDate() {
 		var objToday = new Date();
 		var weekday = new Array('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat');
@@ -15,6 +19,9 @@ class CLIUtils {
 		console.log("Test executed on: " + dayOfWeek + ", " + localDateTime + "\n");
 	}
 
+    /**
+     * Display a banner
+     */
 	static banner(){
         console.log(
             chalk.yellow(

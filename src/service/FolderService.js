@@ -83,9 +83,6 @@ class FolderService {
 		);
 	}
 
-	/// Create a new folder using projectName
-	/// @param	Project ID from projectID()
-	/// @param	Folder Name
     /**
 	 * Create a new folder using projectName
      * @param projectID

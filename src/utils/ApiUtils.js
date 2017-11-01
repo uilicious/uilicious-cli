@@ -212,6 +212,13 @@ class APIUtils {
 		});
 	}
 
+    /**
+     * Does a request to web-studio for test run
+     * @param method
+     * @param webPath
+     * @param params
+     * @return {Promise}
+     */
 	static webstudioTestRequest(method, webPath, params) {
 		return new Promise(function(good, bad) {
 			return APIUtils.getFullHostURL()
@@ -228,8 +235,7 @@ class APIUtils {
      * @param method
      * @param webPath
      * @param params
-     * @param callback
-     * @return {Promise.<TResult>}
+     * @return {Promise}
      */
 	static webstudioRawRequest(method, webPath, params) {
 		return new Promise(function(good, bad) {
