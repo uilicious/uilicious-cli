@@ -197,8 +197,9 @@ class TestService {
             return APIUtils.webstudioTestRequest(
                 "GET",
                 "/api/studio/v1/projects/" + projID + "/workspace/tests",
-                {path: testPath})
-                .then(tests=> {
+                {path: testPath}
+                )
+                .then(tests => {
                     for (var i = 0; i < tests.length; i++) {
                         let test = tests[i];
                         if (test.path === testPath) {

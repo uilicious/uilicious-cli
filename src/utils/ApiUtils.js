@@ -103,13 +103,14 @@ class APIUtils {
      * @param callback
      * @return {Promise.<TResult>}
      */
-	static jsonRequest(method, url, inData, callback) {
+	static jsonRequest(method, url, inData) {
 		// Calling rawRequest, and parsing the good result as JSON
 		return new Promise(function(good, bad) {
 			APIUtils.rawRequestData(method, url, inData)
                 .then(data=> {
                     try {
 					    good(JSON.parse(data));
+					    return;
                     } catch(err) {
                         console.error("---- Error trace ----");
                         console.error(err);
@@ -123,7 +124,7 @@ class APIUtils {
                         process.exit(1);
                     }
 			    },bad);
-		}).then(callback);
+		});
 	}
 
     /**
@@ -178,8 +179,8 @@ class APIUtils {
 				{
 					"user" : program.user,
 					"pass" : program.pass
-				},
-				function(res) {
+				})
+                .then(res => {
 					if ( res.protectedURL == null ) {
 						console.error("ERROR: Unable to login - Invalid username/password");
 						process.exit(1);
@@ -188,8 +189,7 @@ class APIUtils {
 						good(_fullHostURL);
 						return;
 					}
-				}
-			);
+				});
 		});
 	}
 
@@ -214,9 +214,10 @@ class APIUtils {
 	static webstudioTestRequest(method, webPath, params) {
 		return new Promise(function(good, bad) {
 			return APIUtils.getFullHostURL()
-                .then(hostURL=> {
-                    APIUtils.TestRequest(method, hostURL+webPath, params)
-                        .then(good, bad);
+                .then(hostURL=> APIUtils.TestRequest(method, hostURL+webPath, params))
+                .then(response => {
+                    good(response);
+                    return;
                 });
 		});
 	}
@@ -232,13 +233,11 @@ class APIUtils {
 	static webstudioRawRequest(method, webPath, params) {
 		return new Promise(function(good, bad) {
 			return APIUtils.getFullHostURL()
-                .then(hostURL=> {
-                    APIUtils.rawRequestData(method, hostURL+webPath, params)
-                        .then(data => {
-                            good(JSON.parse(data));
-                            return;
-                        });
-			    });
+                .then(hostURL=> APIUtils.rawRequestData(method, hostURL+webPath, params))
+                .then(data => {
+                    good(JSON.parse(data));
+                    return;
+                });
 		});
 	}
 
