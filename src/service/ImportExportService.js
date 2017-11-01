@@ -374,12 +374,12 @@ class ImportExportService {
             APIUtils.webstudioJsonRequest(
                 "GET",
                 "/api/studio/v1/projects/" + projectID + "/workspace/directory",
-                {},
-                function(project) {
+                {}
+                )
+                .then(project => {
                     good(project.children);
                     return;
-                }
-            );
+                });
         });
     }
 

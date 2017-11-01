@@ -53,11 +53,11 @@ class ProjectService {
         return APIUtils.webstudioJsonRequest(
             "GET",
             "/api/studio/v1/projects",
-            {},									// To:Do : accept projectName and username and return project id
-            function (callback) {
+            {}
+            )
+            .then(callback => {
                 return callback;
-            }
-        );
+            });
     }
 }
 

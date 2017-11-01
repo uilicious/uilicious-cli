@@ -259,11 +259,11 @@ class TestService {
         return APIUtils.webstudioJsonRequest(
             "GET",
             "/api/v0/test/result",
-            { id : runTestID },
-            function (callback) {
+            { id : runTestID }
+            )
+            .then(callback => {
                 return callback;
-            }
-        );
+            });
     }
 }
 

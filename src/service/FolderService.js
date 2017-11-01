@@ -74,8 +74,9 @@ class FolderService {
 		return APIUtils.webstudioJsonRequest(
 			"GET",
 			"/api/studio/v1/projects/" + projectID + "/workspace/folders",
-			{},
-            function (callback) {
+			{}
+			)
+            .then(callback => {
 				return callback;
             }
 

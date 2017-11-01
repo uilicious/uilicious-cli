@@ -201,14 +201,15 @@ class APIUtils {
      * @param callback
      * @return {Promise.<TResult>}
      */
-	static webstudioJsonRequest(method, webPath, params, callback) {
+	static webstudioJsonRequest(method, webPath, params) {
 		return new Promise(function(good, bad) {
 			return APIUtils.getFullHostURL()
-                .then(hostURL=> {
-                    APIUtils.jsonRequest(method, hostURL+webPath, params)
-					.then(good, bad);
-			});
-		}).then(callback);
+                .then(hostURL=> APIUtils.jsonRequest(method, hostURL+webPath, params))
+                .then(response => {
+                    good(response);
+                    return;
+                });
+		});
 	}
 
 	static webstudioTestRequest(method, webPath, params) {
