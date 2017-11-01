@@ -1,8 +1,8 @@
 /**
-* FolderService class that provides functionality for Folder related operations
-* to be performed by the folder
-* @Author:Shahin (shahin@uilicious.com)
-*/
+ * FolderService class that provides functionality for Folder related operations
+ * to be performed by the folder
+ * @author Shahin (shahin@uilicious.com)
+ */
 
 
 // Chalk messages
@@ -15,9 +15,12 @@ const APIUtils = require('../utils/ApiUtils');
 
 class FolderService {
 
-	/// Check for duplicate Folder name
-	/// @param	Project ID
-	/// @param	Folder Name
+	/**
+     * Check for duplicate Folder name
+     * @param projectId
+     * @param folderName
+     * @return {Promise}
+     */
 	static checkFolder(projectId, folderName) {
 		return new Promise(function(good, bad) {
 			return FolderService.folderList(projectId)
@@ -35,9 +38,12 @@ class FolderService {
 		});
 	}
 
-	/// Returns the node ID (if found) , given the project ID and folderName
-	/// @param projectID
-	/// @param folderName
+    /**
+     * It will return node id (if found)
+     * @param projectId
+     * @param folderName
+     * @return {Promise}
+     */
 	static nodeID(projectId, folderName) {
 		return new Promise(function(good, bad) {
 			return FolderService.folderList(projectId)
@@ -59,9 +65,11 @@ class FolderService {
 	//	Folder API Functions
 	//------------------------------------------------------------------------------
 
-	/// Get a list of folders
-	/// @param  [Optional] Callback to return result, defaults to console.log
-	/// @return  Promise object, for result
+    /**
+     * Get a list of folders
+     * @param projectID
+     * @return {*}
+     */
 		static folderList(projectID) {
 		return APIUtils.webstudioJsonRequest(
 			"GET",
@@ -77,6 +85,12 @@ class FolderService {
 	/// Create a new folder using projectName
 	/// @param	Project ID from projectID()
 	/// @param	Folder Name
+    /**
+	 * Create a new folder using projectName
+     * @param projectID
+     * @param folderName
+     * @return {*}
+     */
 	static createFolder(projectID, folderName) {
 		return APIUtils.webstudioRawRequest(
 			"POST",

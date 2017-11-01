@@ -28,9 +28,11 @@ class TestService {
 	// Test Core Functions
 	//------------------------------------------------------------------------------
 
-	// Get result from API and return results
-	// @param runTestID
-	// @param [Optional] Callback to return result
+    /**
+	 * Get result from API and return results
+     * @param runTestID
+     * @return {Promise}
+     */
 	static pollForResult(runTestID) {
 
 		// Call API every 2000ms
@@ -61,7 +63,11 @@ class TestService {
 		});
 	}
 
-	// Output log for test status and errors after completion
+    /**
+	 * Output log for test status and errors after completion
+     * @param remoteOutputPath
+     * @param stepArr
+     */
 	static outputStatus(remoteOutputPath, stepArr) {
 		let errorCount = 0;
 		if (stepArr == null) {
@@ -85,7 +91,10 @@ class TestService {
 		}
 	}
 
-    // Output log for test status and errors after completion
+    /**
+     * Output log for test status and errors after completion
+     * @param stepArr
+     */
     static outputTotalTestRunningTime(stepArr) {
         if (stepArr == null) {
             return;
@@ -99,7 +108,11 @@ class TestService {
 
     }
 
-	// Cycle through every step and output those steps with 'success/failure'
+    /**
+     * Cycle through every step and output those steps with 'success/failure'
+     * @param remoteOutputPath
+     * @param stepArr
+     */
 	static processResultSteps(remoteOutputPath, stepArr) {
 		if (stepArr == null) {
 			return;
@@ -112,7 +125,11 @@ class TestService {
 		}
 	}
 
-	// Cycle through every step and output errors
+    /**
+     * Cycle through every step and output errors
+     * @param remoteOutputPath
+     * @param stepArr
+     */
 	static processErrors(remoteOutputPath, stepArr) {
 		for (let idx = 0; idx < stepArr.length; idx++) {
 			let step = stepArr[idx];
@@ -122,17 +139,30 @@ class TestService {
 		}
 	}
 
-	// Return the status of each step
+    /**
+     * Return the status of each step
+     * @param step
+     * @return {string}
+     */
 	static formatStepOutputMsg(step) {
 		return "[Step " + (step.idx + 1) + " - " + step.status + "]: " + step.description + " - " + step.time.toFixed(2) + "s";
 	}
 
-	// Return each error
+    /**
+     * Return each error
+     * @param step
+     * @return {string}
+     */
 	static formatErrorOutput(step) {
 		return "[Step " + (step.idx+1) + " - " + step.status + "]: " + step.error.message;
 	}
 
-	// Output each step
+    /**
+     * Output each step
+     * @param remoteOutputPath
+     * @param idx
+     * @param step
+     */
 	static outputStep(remoteOutputPath, idx, step) {
 
 		// Output each step, if its in cache, ignore duplicates
@@ -147,7 +177,12 @@ class TestService {
 		}
 	}
 
-	// Output each error
+    /**
+     * Output each error
+     * @param remoteOutputPath
+     * @param idx
+     * @param step
+     */
 	static outputError(remoteOutputPath, idx, step) {
 
 		// Output each error
@@ -163,7 +198,11 @@ class TestService {
 	}
 
 
-	// Make local directory to save the test report and screenshots
+    /**
+     * Make local directory to save the test report and screenshots
+     * @param directory
+     * @return {Promise}
+     */
 	static makeDir(directory) {
 		return new Promise(function(good, bad) {
 			let testRun = new Date().toString();
@@ -183,12 +222,13 @@ class TestService {
 	// Test API Functions
 	//------------------------------------------------------------------------------
 
-	/// Returns the test ID (if found), given the project ID AND test webPath
-	/// Also can be used to return node ID for test
-	/// @param  Project ID
-	/// @param  Test Path
-	/// @param  [Optional] Callback to return result
-	/// @return  Promise object, for result
+    /**
+     * Returns the test ID (if found), given the project ID AND test webPath
+     * Also can be used to return node ID for test
+     * @param projID
+     * @param testPath
+     * @return {Promise}
+     */
 	static testID(projID, testPath) {
 		return new Promise(function (good, bad) {
 
@@ -214,11 +254,13 @@ class TestService {
 		});
 	}
 
-	/// Runs a test, and returns the run GUID
-	/// @param   Project ID to use
-	/// @param   Test ID to use
-	/// @param   [optional] callback to return run GUID
-	/// @return   Promise object for result run GUID
+    /**
+     * Runs a test, and returns the run GUID
+     * @param projID
+     * @param testID
+     * @param dataParams
+     * @return {Promise}
+     */
 	static runTest(projID, testID, dataParams) {
 		// Get the browser config
 		let form = {};
@@ -249,10 +291,11 @@ class TestService {
 		});
 	}
 
-	// Get result from the ID which is generated when a new test is ran
-	// that ID id is called the runTestID
-	// @param runTestID
-	// @param [Optional] Callback to return result
+    /**
+     * Get result from the ID which is generated when a new test is ran
+     * @param runTestID
+     * @return {*}
+     */
 	static getResult(runTestID) {
 		return APIUtils.webstudioJsonRequest(
 			"GET",

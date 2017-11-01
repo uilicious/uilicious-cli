@@ -1,7 +1,7 @@
 /**
 * ImportExportService class that provides functionality for import/export operations
 * to be performed
-* @Author:Shahin (shahin@uilicious.com)
+* @author Shahin (shahin@uilicious.com)
 */
 
 // npm Dependencies
@@ -24,9 +24,11 @@ class ImportExportService {
     // Import Core Functions
     //----------------------------------------------------------------------------
 
-    // Read contents from file in local directory
-    // @param   File Pathname
-    // @return  Promise object that returns the contents from file in local directory
+    /**
+     * Read contents from file in local directory
+     * @param file_pathname
+     * @return {Promise}
+     */
     static readFileContents(file_pathname) {
         return new Promise(function(good, bad) {
             let fileLocation = path.resolve(file_pathname);
@@ -40,9 +42,11 @@ class ImportExportService {
         });
     }
 
-    // Check path and return path location if valid
-    // @param   Path Name
-    // @return  Promise object that returns the path location
+    /**
+     * Check path and return path location if valid
+     * @param path_name
+     * @return {Promise}
+     */
     static checkPath(path_name) {
         return new Promise(function(good, bad) {
             let pathLocation = path.resolve(path_name);
@@ -57,9 +61,12 @@ class ImportExportService {
         });
     }
 
-    /// Check for duplicate Test name
-    /// @param	Project ID
-    /// @param	Test Name
+    /**
+     * Check for duplicate Test name
+     * @param projID
+     * @param filePathname
+     * @return {Promise}
+     */
     static checkTest(projID, filePathname) {
         return new Promise(function(good, bad) {
             let testName = path.parse(filePathname).name;
@@ -82,9 +89,11 @@ class ImportExportService {
         });
     }
 
-    // Check folder contents and return folder name if folder is not empty
-    // @param   Folder Path Name
-    // @return  Promise object that returns name of folder
+    /**
+     * Check folder contents and return folder name if folder is not empty
+     * @param folder_pathname
+     * @return {Promise}
+     */
     static checkFolderContents(folder_pathname) {
         return new Promise(function(good, bad) {
             let folderName = path.basename(folder_pathname);
@@ -100,7 +109,13 @@ class ImportExportService {
         });
     }
 
-    // Import folder contents
+    /**
+     * Import folder contents
+     * @param projname
+     * @param foldername
+     * @param folder_pathname
+     * @return {Promise}
+     */
     static importFolderContents(projname, foldername, folder_pathname) {
         return new Promise(function(good, bad) {
             let folderLocation = path.resolve(folder_pathname);
@@ -117,10 +132,13 @@ class ImportExportService {
         });
     }
 
-    // Import test script under a folder
-    // @param Project Name
-    // @param folder Name
-    // @param File Path Name
+    /**
+     * Import test script under a folder
+     * @param projname
+     * @param file_pathname
+     * @param foldername
+     * @return {Promise.<boolean>}
+     */
     static importTestUnderFolderHelper(projname, file_pathname, foldername) {
         let copyFileContent;
         let copyProjectId;
@@ -149,9 +167,14 @@ class ImportExportService {
     // Import API Functions
     //----------------------------------------------------------------------------
 
-    // Create a new test by importing it under a folder in a project
-    // @param Project ID from projectID()
-    // @param nodeID from nodeID()
+    /**
+     * Create a new test by importing it under a folder in a project
+     * @param projectID
+     * @param nodeID
+     * @param testName
+     * @param testContent
+     * @return {*}
+     */
     static importTestUnderFolder(projectID, nodeID, testName, testContent) {
         return APIUtils.webstudioRawRequest(
             "POST",
@@ -171,10 +194,13 @@ class ImportExportService {
     // Export Core Functions
     //----------------------------------------------------------------------------
 
-    /// Export children(tests) of folder
-    /// @param   Project ID
-    /// @param   Folder ID
-    /// @param   local system file path, to export tests into
+    /**
+     * Export children(tests) of folder
+     * @param projID
+     * @param folderID
+     * @param directory
+     * @return {Promise}
+     */
     static exportTestDirectory(projID, folderID, directory) {
         return new Promise(function(good, bad) {
             return ImportExportService.getDirectoryMapByID(projID, folderID)
@@ -191,9 +217,12 @@ class ImportExportService {
         });
     }
 
-    /// Recursively scans the directory node, and export the folders / files when needed
-    /// @param  The directory node to use
-    /// @param  local directory path to export into
+    /**
+     * Recursively scans the directory node, and export the folders / files when needed
+     * @param projID
+     * @param dirNode
+     * @param localDirPath
+     */
     static exportDirectoryNodeToDirectoryPath(projID, dirNode, localDirPath) {
         if( dirNode == null ) {
             return;
@@ -217,9 +246,13 @@ class ImportExportService {
         }
     }
 
-    // Export a test
-    // @param   directory to export test
-    // @param   test_name (name of test)
+    /**
+     * Export a test
+     * @param directory
+     * @param test_name
+     * @param file_content
+     * @return {Promise}
+     */
     static exportTestFile(directory, test_name, file_content) {
         return new Promise(function (good,bad) {
             let filePathName = path.resolve(directory) + "/" + test_name + ".js";
@@ -237,9 +270,12 @@ class ImportExportService {
 
     }
 
-    // Make folder in local directory for export
-    // @param   folderName (name of folder)
-    // @param   directory (path of local directory) to export
+    /**
+     * Make folder in local directory for export
+     * @param folderName
+     * @param directory
+     * @return {Promise}
+     */
     static makeFolder(folderName, directory) {
         return new Promise(function(good, bad) {
             let newDirectory = directory + "/" + folderName;
@@ -254,11 +290,12 @@ class ImportExportService {
         });
     }
 
-    /// Get the directory map, using the projectID and folderID
-    /// @param  projectID to export from
-    /// @param  folderID to export from
-    /// @param  callback to call with result
-    /// @return  Promise object that returns the directory map
+    /**
+     * Get the directory map, using the projectID and folderID
+     * @param projID
+     * @param folderID
+     * @return {Promise}
+     */
     static getDirectoryMapByID(projID, folderID) {
         return new Promise(function(good, bad) {
             ImportExportService.directoryList(projID, function(rootDirMap) {
@@ -276,11 +313,12 @@ class ImportExportService {
         });
     }
 
-    /// Does a recursive search on the parentDir object, and its children
-    /// For the target folderID, if not found, returns a null
-    /// @param  parentDir object, an example would be the return from "api/studio/v1/projects/:projid/workspace/directory"
-    /// @param  folderID to find, not folder path.
-    /// @return  The directory node, that matches the ID
+    /**
+     * Does a recursive search on the parentDir object, and its children
+     * @param parentDir
+     * @param folderID
+     * @return {*}
+     */
     static findSubDirectoryByID(parentDir, folderID) {
         if( parentDir.typeName == "FOLDER" ) {
             if( parentDir.id == folderID ) {
@@ -303,9 +341,12 @@ class ImportExportService {
     // Export API Functions
     //----------------------------------------------------------------------------
 
-    // Get content of script from a test
-    // @param   Project ID
-    // @param   Test ID
+    /**
+     * Get content of script from a test
+     * @param projectID
+     * @param testID
+     * @return {Promise}
+     */
     static getScript(projectID, testID) {
         return new Promise(function(good, bad) {
             APIUtils.webstudioRawRequest(
@@ -319,9 +360,12 @@ class ImportExportService {
         });
     }
 
-    /// Get the directory of a project
-    /// @param  [Optional] Callback to return result, defaults to console.log
-    /// @return  Promise object, for result
+    /**
+     * Get the directory of a project
+     * @param projectID
+     * @param callback
+     * @return {Promise.<TResult>}
+     */
     static directoryList(projectID, callback) {
         return new Promise(function(good, bad) {
             APIUtils.webstudioJsonRequest(

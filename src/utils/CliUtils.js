@@ -1,9 +1,11 @@
-const chalk       = require('chalk');
-const figlet      = require('figlet');
 /**
  * Utility classes that provided functionality that may/may not be
  * cross application applicable. And may be reused in other places
+ * @author Shahin Alam(shahin@uilicious.com)
  */
+const chalk       = require('chalk');
+const figlet      = require('figlet');
+
 class CLIUtils {
 	static consoleLogTestDate() {
 		var objToday = new Date();

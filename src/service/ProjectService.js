@@ -18,10 +18,12 @@ class ProjectService {
   //	Project Core Functions
   //------------------------------------------------------------------------------
 
-  /// Fetch the project ID for a project,
-  /// silently terminates, with an error message if it fails
-  ///
-  /// @param  Project Name to fetch ID
+    /**
+     * Fetch the project ID for a project,
+     * silently terminates, with an error message if it fails
+     * @param projectName
+     * @return {Promise}
+     */
   static projectID(projectName) {
   	return new Promise(function(good, bad) {
   		return ProjectService.projectList()
@@ -43,8 +45,10 @@ class ProjectService {
   //	Project API Functions
   //------------------------------------------------------------------------------
 
-  /// Get a list of projects, in the following format [ { id, title, logoUrl }]
-  /// @return  Promise object, for result
+    /**
+     * Get a list of projects, in the following format [ { id, title, logoUrl }]
+     * @return {*}
+     */
   static projectList() {
   	return APIUtils.webstudioJsonRequest(
   		"GET",

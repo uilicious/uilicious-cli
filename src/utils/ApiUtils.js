@@ -1,6 +1,7 @@
 /**
  * Utility classes that provided functionality that may/may not be
  * cross application applicable. This focuses on API specifically
+ * @author Shahin Alam(shahin@uilicious.com)
  */
 const request = require('request');
 const url = require('url');

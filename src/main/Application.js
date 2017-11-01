@@ -1,7 +1,7 @@
 /**
  * Application class is handles all the commands in the terminal
  * and call respected controller to respond to the request
- * @Author: Shahin (shahin@uilicious.com)
+ * @author Shahin (shahin@uilicious.com)
  */
 // 'use strict';
 
