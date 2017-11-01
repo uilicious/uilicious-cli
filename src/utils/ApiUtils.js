@@ -25,7 +25,7 @@ class APIUtils {
      * @param callback
      * @return {Promise.<TResult>}
      */
-	static rawRequestData(method, url, data, callback) {
+	static rawRequestData(method, url, data) {
 
 		// Option / parameter parsing
 		var option = {
@@ -46,12 +46,13 @@ class APIUtils {
 				} else {
 					try {
 						good(body);
+						return;
 					} catch(err) {
 						throw new Error("Invalid data (JSON) format for URL request : " + url + " -> " + body);
 					}
 				}
 			});
-		}).then(callback);
+		});
 	}
 
     /**
@@ -105,22 +106,23 @@ class APIUtils {
 	static jsonRequest(method, url, inData, callback) {
 		// Calling rawRequest, and parsing the good result as JSON
 		return new Promise(function(good, bad) {
-			APIUtils.rawRequestData(method, url, inData).then(function(data) {
-				try {
-					good(JSON.parse(data));
-				} catch(err) {
-					console.error("---- Error trace ----");
-					console.error(err);
-					console.error("---- HTTP response data ----");
-					console.error(data);
-					console.error("---- HTTP request URL ----");
-					console.error(url);
-					console.error("---- HTTP request data ----");
-					console.error(inData);
-					console.error("---- End of error report ----");
-					process.exit(1);
-				}
-			},bad);
+			APIUtils.rawRequestData(method, url, inData)
+                .then(data=> {
+                    try {
+					    good(JSON.parse(data));
+                    } catch(err) {
+                        console.error("---- Error trace ----");
+                        console.error(err);
+                        console.error("---- HTTP response data ----");
+                        console.error(data);
+                        console.error("---- HTTP request URL ----");
+                        console.error(url);
+                        console.error("---- HTTP request data ----");
+                        console.error(inData);
+                        console.error("---- End of error report ----");
+                        process.exit(1);
+                    }
+			    },bad);
 		}).then(callback);
 	}
 
@@ -209,14 +211,14 @@ class APIUtils {
 		}).then(callback);
 	}
 
-	static webstudioTestRequest(method, webPath, params, callback) {
+	static webstudioTestRequest(method, webPath, params) {
 		return new Promise(function(good, bad) {
 			return APIUtils.getFullHostURL()
                 .then(hostURL=> {
                     APIUtils.TestRequest(method, hostURL+webPath, params)
                         .then(good, bad);
                 });
-		}).then(callback);
+		});
 	}
 
     /**
@@ -227,14 +229,17 @@ class APIUtils {
      * @param callback
      * @return {Promise.<TResult>}
      */
-	static webstudioRawRequest(method, webPath, params, callback) {
+	static webstudioRawRequest(method, webPath, params) {
 		return new Promise(function(good, bad) {
 			return APIUtils.getFullHostURL()
                 .then(hostURL=> {
                     APIUtils.rawRequestData(method, hostURL+webPath, params)
-                        .then(good, bad);
+                        .then(data => {
+                            good(JSON.parse(data));
+                            return;
+                        });
 			    });
-		}).then(callback);
+		});
 	}
 
     /**

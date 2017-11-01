@@ -97,11 +97,10 @@ class FolderService {
 			"/api/studio/v1/projects/" + projectID + "/workspace/folders/addAction",
 			{
 				name: folderName
-			},
-			function (data) {
-				return data;
-            }
-		);
+			})
+            .then(data=> {
+			    return data;
+			});
 	}
 }
 

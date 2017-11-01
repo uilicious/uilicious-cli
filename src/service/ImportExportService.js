@@ -184,11 +184,10 @@ class ImportExportService {
                 name: testName,
                 parentId: nodeID,
                 script: testContent
-            },
-            function (data) {
+            })
+            .then(data=> {
                 return data;
-            }
-        );
+            });
     }
 
     //----------------------------------------------------------------------------
@@ -299,18 +298,21 @@ class ImportExportService {
      */
     static getDirectoryMapByID(projID, folderID) {
         return new Promise(function(good, bad) {
-            ImportExportService.directoryList(projID, function(rootDirMap) {
-                for (var i = 0; i < rootDirMap.length; i++) {
-                    let root_folder = rootDirMap[i];
-                    if (root_folder.id == folderID) {
-                        if (folderID != null) {
-                            good(ImportExportService.findSubDirectoryByID(root_folder, folderID));
-                        } else {
-                            good(rootDirMap);
+            ImportExportService.directoryList(projID)
+                .then(rootDirMap=> {
+                    for (var i = 0; i < rootDirMap.length; i++) {
+                        let root_folder = rootDirMap[i];
+                        if (root_folder.id == folderID) {
+                            if (folderID != null) {
+                                good(ImportExportService.findSubDirectoryByID(root_folder, folderID));
+                                return;
+                            } else {
+                                good(rootDirMap);
+                                return;
+                            }
                         }
                     }
-                }
-            });
+                });
         });
     }
 
@@ -353,11 +355,11 @@ class ImportExportService {
             APIUtils.webstudioRawRequest(
                 "GET",
                 "/api/studio/v1/projects/" + projectID + "/workspace/tests/" + testID + "/script",
-                {},
-                function(res) {
-                    good(res);
-                }
-            );
+                {})
+                .then(data => {
+                    good(data);
+                    return;
+                });
         });
     }
 
@@ -367,7 +369,7 @@ class ImportExportService {
      * @param callback
      * @return {Promise.<TResult>}
      */
-    static directoryList(projectID, callback) {
+    static directoryList(projectID) {
         return new Promise(function(good, bad) {
             APIUtils.webstudioJsonRequest(
                 "GET",
@@ -378,7 +380,7 @@ class ImportExportService {
                     return;
                 }
             );
-        }).then(callback);
+        });
     }
 
 }
