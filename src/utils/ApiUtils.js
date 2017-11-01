@@ -6,6 +6,8 @@
 const request = require('request');
 const url = require('url');
 const program = require('commander');
+const api = require('../utils/api');
+
 class APIUtils {
 
 	static requestErrorHandler(err) {
@@ -14,15 +16,15 @@ class APIUtils {
 		process.exit(1);
 	}
 
-	/// Makes a POST or GET request, with the given form object
-	/// and return its JSON result in a promise
-	///
-	/// @param  "POST" or "GET" method
-	/// @param  FULL URL to make the request
-	/// @param  [OPTIONAL] Query / Form parameter to pass as an object
-	/// @param  [OPTIONAL] Callback parameter, to attach to promise
-	///
-	/// @return The promise object, with the attached callback
+	/**
+     * Makes a POST or GET request, with the given form object
+     * and return its JSON result in a promise
+     * @param method "POST" or "GET" method
+     * @param url
+     * @param data
+     * @param callback
+     * @return {Promise.<TResult>}
+     */
 	static rawRequestData(method, url, data, callback) {
 
 		// Option / parameter parsing
@@ -52,16 +54,17 @@ class APIUtils {
 		}).then(callback);
 	}
 
-	/// Makes a POST or GET request for test requests, with the given form object (strictly for test requests)
-	/// and return its JSON result in a promise
-	///
-	/// @param  "POST" or "GET" method
-	/// @param  FULL URL to make the request
-	/// @param  [OPTIONAL] Query / Form parameter to pass as an object
-	/// @param  [OPTIONAL] Callback parameter, to attach to promise
-	///
-	/// @return The promise object, with the attached callback
-	static TestRequestData(method, url, data, callback) {
+    /**
+     * Makes a POST or GET request for test requests, with the given form object (strictly for test requests)
+     * and return its JSON result in a promise
+     * @param method
+     * @param url
+     * @param data
+     * @param callback
+     * @return {Promise.<TResult>}
+     * @constructor
+     */
+	static TestRequestData(method, url, data) {
 
 		// Option / parameter parsing
 		var option = {
@@ -80,23 +83,25 @@ class APIUtils {
 				} else {
 					try {
 						good(body);
+						return;
 					} catch(err) {
 						throw new Error("Invalid data (JSON) format for URL request : " + url + " -> " + body);
 					}
 				}
 			});
-		}).then(callback);
+		});
 	}
 
-	/// Makes a GET or POST request, with the given form object
-	/// and return its JSON result in a promise
-	///
-	/// @param  "GET" or "POST" method
-	/// @param  FULL URL to make the request
-	/// @param  [OPTIONAL] Query / Form parameter to pass as an object
-	/// @param  [OPTIONAL] Callback parameter, to attach to promise
-	///
-	/// @return The promise object, with the attached callback, returns the JSON output
+
+    /**
+     * Makes a GET or POST request, with the given form object
+     * and return its JSON result in a promise
+     * @param method
+     * @param url
+     * @param inData
+     * @param callback
+     * @return {Promise.<TResult>}
+     */
 	static jsonRequest(method, url, inData, callback) {
 		// Calling rawRequest, and parsing the good result as JSON
 		return new Promise(function(good, bad) {
@@ -119,10 +124,19 @@ class APIUtils {
 		}).then(callback);
 	}
 
+    /**
+     * Debug the request and response
+     * @param method
+     * @param url
+     * @param inData
+     * @param callback
+     * @return {Promise.<TResult>}
+     * @constructor
+     */
 	static TestRequest(method, url, inData, callback) {
 		// Calling rawRequest, and parsing the good result as JSON
 		return new Promise(function(good, bad) {
-			APIUtils.TestRequestData(method, url, inData)
+			return APIUtils.TestRequestData(method, url, inData)
                 .then(function(data) {
                     try {
                         good(JSON.parse(data));
@@ -142,10 +156,11 @@ class APIUtils {
 		}).then(callback);
 	}
 
-	/// Does a login check, and provides the actual server URL to call API
-	/// silently terminates, with an error message if it fails
-	///
-	/// @return   Promise object, returning the full URL to make request to
+    /**
+     * Does a login check, and provides the actual server URL to call API
+     * silently terminates, with an error message if it fails
+     * @return {*}
+     */
 	static getFullHostURL() {
 		/// Cached full host URL
 		 var _fullHostURL = null;
@@ -155,7 +170,7 @@ class APIUtils {
 		}
 
 		return new Promise(function(good, bad) {
-			APIUtils.jsonRequest(
+			return APIUtils.jsonRequest(
 				"POST",
 				"https://beta-login.uilicious.com/api/fetchHostURL",
 				{
@@ -176,13 +191,14 @@ class APIUtils {
 		});
 	}
 
-	/// Does a JSON request to web-studio instance of the client
-	///
-	/// @param  "POST" or "GET" method
-	/// @param  Webstudio webPath request
-	/// @param  [OPTIONAL] Query / Form parameter to pass as an object
-	/// @param  [OPTIONAL] Callback parameter, to attach to promise
-	///
+    /**
+     * Does a JSON request to web-studio instance of the client
+     * @param method
+     * @param webPath
+     * @param params
+     * @param callback
+     * @return {Promise.<TResult>}
+     */
 	static webstudioJsonRequest(method, webPath, params, callback) {
 		return new Promise(function(good, bad) {
 			return APIUtils.getFullHostURL()
@@ -203,13 +219,14 @@ class APIUtils {
 		}).then(callback);
 	}
 
-	/// Does a RAW request to web-studio instance of the client
-	///
-	/// @param  "POST" or "GET" method
-	/// @param  Webstudio webPath request
-	/// @param  [OPTIONAL] Query / Form parameter to pass as an object
-	/// @param  [OPTIONAL] Callback parameter, to attach to promise
-	///
+    /**
+     * Does a RAW request to web-studio instance of the client
+     * @param method
+     * @param webPath
+     * @param params
+     * @param callback
+     * @return {Promise.<TResult>}
+     */
 	static webstudioRawRequest(method, webPath, params, callback) {
 		return new Promise(function(good, bad) {
 			return APIUtils.getFullHostURL()
@@ -219,6 +236,21 @@ class APIUtils {
 			    });
 		}).then(callback);
 	}
+
+    /**
+     * This will authenticate the user
+     * @return {Promise}
+     */
+	static login(){
+	    return new Promise(function (good,bad) {
+            return api.account.login({loginName:"myNewEdgeTest9@uilicious.com",password: "Password123456"})
+                .then(response => {
+                    console.log(response);
+                    good(true);
+                    return;
+                });
+        });
+    }
 
 }
 

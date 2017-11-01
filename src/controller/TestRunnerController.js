@@ -57,7 +57,7 @@ class TestRunnerController {
                     console.log("#");
                     console.log("# Uilicious CLI - Test Runner");
                     console.log("# Project Name: " + projectName);
-                    console.log("# Script Path : " + scriptPath);
+                    console.log("# Test Path : " + scriptPath);
                     console.log("#");
 
                     return ProjectService.projectID(projectName)})
@@ -78,8 +78,8 @@ class TestRunnerController {
                     console.log("");
                     TestService.outputTotalTestRunningTime(response.steps);
                     console.log("");
-                    TestService.outputStatus(response.outputPath, response.steps);
-                    TestService.processErrors(response.outputPath, response.steps);
+                    TestService.outputStatus(response.steps);
+                    TestService.processErrors(response.steps);
                     console.log("")
                     console.log("Test Info saved in "+copyTestDirectory+"\n");
                 })
@@ -115,8 +115,8 @@ class TestRunnerController {
                     console.log("");
                     TestService.outputTotalTestRunningTime(response.steps);
                     console.log("");
-                    TestService.outputStatus(response.outputPath, response.steps);
-                    TestService.processErrors(response.outputPath, response.steps);
+                    TestService.outputStatus(response.steps);
+                    TestService.processErrors(response.steps);
                 })
                 .catch(error => {
                     console.error(error(error));

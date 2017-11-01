@@ -38,6 +38,7 @@ class ImportExportService {
                 process.exit(1);
             } else {
                 good(fileContent);
+                return;
             }
         });
     }
