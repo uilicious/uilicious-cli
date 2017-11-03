@@ -7,6 +7,8 @@ const request = require('request');
 const url = require('url');
 const program = require('commander');
 const api = require('../utils/api');
+/// Cached full host URL
+var _fullHostURL = null;
 
 class APIUtils {
 
@@ -30,7 +32,8 @@ class APIUtils {
 		// Option / parameter parsing
 		var option = {
 			url : url,
-			method : method
+			method : method,
+            jar : api._core.getCookieJar()
 		};
 		if ( method == "GET" ) {
 			option.qs = data;
@@ -70,7 +73,8 @@ class APIUtils {
 		// Option / parameter parsing
 		var option = {
 			url : url,
-			method : method
+			method : method,
+            jar : api._core.getCookieJar()
 		};
 		if ( method == "GET" || method == "POST") {
 			option.form = data;
@@ -161,38 +165,34 @@ class APIUtils {
 	}
 
     /**
-     * Does a login check, and provides the actual server URL to call API
+     * Does a login check,set cookies and provides the actual server URL to call API
      * silently terminates, with an error message if it fails
-     * @return {*}
+     * @return {Promise}
      */
 	static getFullHostURL() {
-		/// Cached full host URL
-		 var _fullHostURL = null;
 
 		if ( _fullHostURL != null ) {
-			return Promise.resolve(_fullHostURL);
+		    return Promise.resolve(_fullHostURL);
 		}
-
-		return new Promise(function(good, bad) {
-			return APIUtils.jsonRequest(
-				"POST",
-				"https://beta-login.uilicious.com/api/fetchHostURL",
-				{
-					"user" : program.user,
-					"pass" : program.pass
-				})
-                .then(res => {
-					if ( res.protectedURL == null ) {
-						console.error("ERROR: Unable to login - Invalid username/password");
-						process.exit(1);
-					} else {
-						var _fullHostURL = res.protectedURL;
-						good(_fullHostURL);
-						return;
-					}
-				});
-		});
-	}
+        return new Promise(function (good, bad) {
+            api._core.baseURL("https://api.uilicious.com/");
+             return api.account.login({loginName:program.user, password: program.pass})
+                .then(response=>{
+                    return api.account.hostURL();
+                })
+                .then(data => {
+                    var obj = JSON.parse(data);
+                    if ( obj.result == null ) {
+                        console.error("ERROR: Unable to login - Invalid username/password");
+                        process.exit(1);
+                    } else {
+                        _fullHostURL = obj.result;
+                        good(_fullHostURL);
+                        return;
+                    }
+                });
+        });
+    }
 
     /**
      * Does a JSON request to web-studio instance of the client
@@ -254,14 +254,7 @@ class APIUtils {
      * @return {Promise}
      */
 	static login(){
-	    return new Promise(function (good,bad) {
-            return api.account.login({loginName:"myNewEdgeTest9@uilicious.com",password: "Password123456"})
-                .then(response => {
-                    console.log(response);
-                    good(true);
-                    return;
-                });
-        });
+
     }
 
 }

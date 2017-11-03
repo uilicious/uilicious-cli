@@ -13,14 +13,13 @@ var api = {};
 /// api configuration object
 var apiconfig = {
 	// baseURL: "//localhost:8080/api/",
-	baseURL: "https://api.uilicious-dev.com/",
+	baseURL: null,
 	apiKey: null
 };
 
 /// The internal core sub namespace
 var apicore = {};
 api._core = apicore;
-
 /// Function: api.isNodeJS
 ///
 /// @return  Boolean true/false if the runtime environment is node.js compliant (or not)
@@ -84,6 +83,19 @@ apicore.setCookieJar = function setCookieJar(cookieJar){
 	}
 }
 
+/**
+ * Function: api._core.getCookieJar
+ * @return {cookieJar}
+ */
+apicore.getCookieJar = function getCookieJar(){
+    if(apicore.isNodeJS()){
+        return apicore.cookieJar;
+    } else {
+        throw "You are not in NodeJS environment.";
+    }
+}
+
+
 //---------------------------------------------------------------------------------------
 //
 //  API rawPostRequest
@@ -136,8 +148,10 @@ if(apicore.isNodeJS()) {
 		var ret = request(options);
 		// Retain server's cookie response and store in jar if persistency is true
 		if(apicore.persistentSession){
-			apicore.cookieJar = jar;
-		}
+		    apicore.setCookieJar(jar);
+        }
+
+        //console.log(apicore.cookieJar);
 		// Attach callback
 		if( callback != null ) {
 			ret.then(callback);
@@ -436,7 +450,7 @@ apicore.setEndpointMap = function setEndpointMap(pathMap) {
 		}
 	}
 }
-	apicore.baseURL("https://api.uilicious-dev.com/");
+	//apicore.baseURL("https://api.uilicious.com/");
 	apicore.setEndpointMap({
 		"stripe.plans.get" : [],
 		"group.admin.removeMembershipRole" : [],
