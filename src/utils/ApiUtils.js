@@ -136,13 +136,14 @@ class APIUtils {
      * @return {Promise.<TResult>}
      * @constructor
      */
-	static TestRequest(method, url, inData, callback) {
+	static TestRequest(method, url, inData) {
 		// Calling rawRequest, and parsing the good result as JSON
 		return new Promise(function(good, bad) {
 			return APIUtils.TestRequestData(method, url, inData)
                 .then(function(data) {
                     try {
                         good(JSON.parse(data));
+                        return;
                     } catch(err) {
                         console.error("---- Error trace ----");
                         console.error(err);
@@ -156,7 +157,7 @@ class APIUtils {
                         process.exit(1);
                     }
                 },bad);
-		}).then(callback);
+		});
 	}
 
     /**
