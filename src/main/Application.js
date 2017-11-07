@@ -31,7 +31,7 @@ function CLIApp() {
 		.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
 		.option('-w, --width <optional>', 'width of browser')
 		.option('-ht, --height <optional>', 'height of browser')
-		.option('--host <optional>','host');
+		.option('--apiHost <optional>','API host');
 
     // Import as Folder
     program
