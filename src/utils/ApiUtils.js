@@ -176,7 +176,7 @@ class APIUtils {
 		}
         return new Promise(function (good, bad) {
             if(program.apiHost!=null){
-                api._core.baseURL(program.host);
+                api._core.baseURL(program.apiHost);
             }
             else {
                 api._core.baseURL("https://api.uilicious.com/");
