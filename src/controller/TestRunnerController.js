@@ -1,8 +1,8 @@
 /**
-* TestRunnerController class responds to run command
-* in the command line
-* @Author : Shahin (shahin@uilicious.com)
-*/
+ *TestRunnerController class responds to run command
+ *in the command line
+ *@author Shahin (shahin@uilicious.com)
+ */
 
 // npm Dependencies
 const fs = require('fs');
@@ -25,11 +25,14 @@ class TestRunnerController {
 //	Main Function to run test script
 //------------------------------------------------------------------------------
 
-    // Run test script from project
-    // @param Project Name
-    // @param Script Path
-    // @param Options
-    static main(projname, scriptpath, options) {
+    /**
+     *Run test script from project
+     *@param projectName
+     *@param scriptPath
+     *@param options
+     *@return {Promise.<TResult>}
+     */
+    static main(projectName, scriptPath, options) {
         if (options.save != null) {
             let copyProjectId;
             let copyTestDirectory;
@@ -53,15 +56,15 @@ class TestRunnerController {
 
                     console.log("#");
                     console.log("# Uilicious CLI - Test Runner");
-                    console.log("# Project Name: " + projname);
-                    console.log("# Script Path : " + scriptpath);
+                    console.log("# Project Name: " + projectName);
+                    console.log("# Test Path : " + scriptPath);
                     console.log("#");
 
-                    return ProjectService.projectID(projname)})
+                    return ProjectService.projectID(projectName)})
                 .then(projID => {
                     console.log("# Project ID : "+projID);
                     copyProjectId=projID;
-                    return TestService.testID(projID, scriptpath)})
+                    return TestService.testID(projID, scriptPath)})
                 .then(scriptID =>  {
                     console.log("# Test ID  : "+scriptID);
                     let dataParams = null;
@@ -75,8 +78,8 @@ class TestRunnerController {
                     console.log("");
                     TestService.outputTotalTestRunningTime(response.steps);
                     console.log("");
-                    TestService.outputStatus(response.outputPath, response.steps);
-                    TestService.processErrors(response.outputPath, response.steps);
+                    TestService.outputStatus(response.steps);
+                    TestService.processErrors(response.steps);
                     console.log("")
                     console.log("Test Info saved in "+copyTestDirectory+"\n");
                 })
@@ -90,15 +93,15 @@ class TestRunnerController {
 
             console.log("#");
             console.log("# Uilicious CLI - Runner");
-            console.log("# Project Name: " + projname);
-            console.log("# Test Path : " + scriptpath);
+            console.log("# Project Name: " + projectName);
+            console.log("# Test Path : " + scriptPath);
             console.log("#");
             let copyProjectId;
-            return ProjectService.projectID(projname)
+            return ProjectService.projectID(projectName)
                 .then(projectId => {
                     console.log("# Project ID : "+projectId);
                     copyProjectId=projectId;
-                    return TestService.testID(projectId, scriptpath)})
+                    return TestService.testID(projectId, scriptPath)})
                 .then(scriptID =>  {
                     console.log("# Test ID  : "+scriptID);
                     let dataParams = null;
@@ -112,8 +115,8 @@ class TestRunnerController {
                     console.log("");
                     TestService.outputTotalTestRunningTime(response.steps);
                     console.log("");
-                    TestService.outputStatus(response.outputPath, response.steps);
-                    TestService.processErrors(response.outputPath, response.steps);
+                    TestService.outputStatus(response.steps);
+                    TestService.processErrors(response.steps);
                 })
                 .catch(error => {
                     console.error(error(error));

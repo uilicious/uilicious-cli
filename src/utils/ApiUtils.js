@@ -1,10 +1,15 @@
 /**
  * Utility classes that provided functionality that may/may not be
  * cross application applicable. This focuses on API specifically
+ * @author Shahin Alam(shahin@uilicious.com)
  */
 const request = require('request');
 const url = require('url');
 const program = require('commander');
+const api = require('../utils/api');
+/// Cached full host URL
+var _fullHostURL = null;
+
 class APIUtils {
 
 	static requestErrorHandler(err) {
@@ -13,21 +18,22 @@ class APIUtils {
 		process.exit(1);
 	}
 
-	/// Makes a POST or GET request, with the given form object
-	/// and return its JSON result in a promise
-	///
-	/// @param  "POST" or "GET" method
-	/// @param  FULL URL to make the request
-	/// @param  [OPTIONAL] Query / Form parameter to pass as an object
-	/// @param  [OPTIONAL] Callback parameter, to attach to promise
-	///
-	/// @return The promise object, with the attached callback
-	static rawRequestData(method, url, data, callback) {
+	/**
+     * Makes a POST or GET request, with the given form object
+     * and return its JSON result in a promise
+     * @param method "POST" or "GET" method
+     * @param url
+     * @param data
+     * @param callback
+     * @return {Promise.<TResult>}
+     */
+	static rawRequestData(method, url, data) {
 
 		// Option / parameter parsing
 		var option = {
 			url : url,
-			method : method
+			method : method,
+            jar : api._core.getCookieJar()
 		};
 		if ( method == "GET" ) {
 			option.qs = data;
@@ -43,29 +49,32 @@ class APIUtils {
 				} else {
 					try {
 						good(body);
+						return;
 					} catch(err) {
 						throw new Error("Invalid data (JSON) format for URL request : " + url + " -> " + body);
 					}
 				}
 			});
-		}).then(callback);
+		});
 	}
 
-	/// Makes a POST or GET request for test requests, with the given form object (strictly for test requests)
-	/// and return its JSON result in a promise
-	///
-	/// @param  "POST" or "GET" method
-	/// @param  FULL URL to make the request
-	/// @param  [OPTIONAL] Query / Form parameter to pass as an object
-	/// @param  [OPTIONAL] Callback parameter, to attach to promise
-	///
-	/// @return The promise object, with the attached callback
-	static TestRequestData(method, url, data, callback) {
+    /**
+     * Makes a POST or GET request for test requests, with the given form object (strictly for test requests)
+     * and return its JSON result in a promise
+     * @param method
+     * @param url
+     * @param data
+     * @param callback
+     * @return {Promise.<TResult>}
+     * @constructor
+     */
+	static TestRequestData(method, url, data) {
 
 		// Option / parameter parsing
 		var option = {
 			url : url,
-			method : method
+			method : method,
+            jar : api._core.getCookieJar()
 		};
 		if ( method == "GET" || method == "POST") {
 			option.form = data;
@@ -79,191 +88,174 @@ class APIUtils {
 				} else {
 					try {
 						good(body);
+						return;
 					} catch(err) {
 						throw new Error("Invalid data (JSON) format for URL request : " + url + " -> " + body);
 					}
 				}
 			});
-		}).then(callback);
+		});
 	}
 
-	/// Makes a POST or GET request, with the given form object
-	/// and return its JSON result in a promise
-	///
-	/// @param  Write stream to output data into
-	/// @param  "POST" or "GET" method
-	/// @param  FULL URL to make the request
-	/// @param  [OPTIONAL] Query / Form parameter to pass as an object
-	/// @param  [OPTIONAL] Callback parameter, to attach to promise
-	///
-	/// @return The promise object, returns the request object
-	static streamRequest(writeStream, method, url, data, callback) {
-		// Option / parameter parsing
-		var option = {
-			url : url,
-			method : method
-		};
-		if( method == "GET" ) {
-			option.qs = data;
-		} else {
-			option.form = data;
-		}
 
-		// The actual API call, with promise object
-		return new Promise(function(good, bad) {
-			let req = request(option);
-			req.pipe(writeStream)
-				.on('error', function(err){
-					throw new Error("Unexpected error for URL request : " + url + " -> " + err);
-				})
-				.on('close', function(misc) {
-					good(req, misc);
-				});
-		}).then(callback);
-	}
-
-	/// Makes a GET or POST request, with the given form object
-	/// and return its JSON result in a promise
-	///
-	/// @param  "GET" or "POST" method
-	/// @param  FULL URL to make the request
-	/// @param  [OPTIONAL] Query / Form parameter to pass as an object
-	/// @param  [OPTIONAL] Callback parameter, to attach to promise
-	///
-	/// @return The promise object, with the attached callback, returns the JSON output
-	static jsonRequest(method, url, inData, callback) {
+    /**
+     * Makes a GET or POST request, with the given form object
+     * and return its JSON result in a promise
+     * @param method
+     * @param url
+     * @param inData
+     * @param callback
+     * @return {Promise.<TResult>}
+     */
+	static jsonRequest(method, url, inData) {
 		// Calling rawRequest, and parsing the good result as JSON
 		return new Promise(function(good, bad) {
-			APIUtils.rawRequestData(method, url, inData).then(function(data) {
-				try {
-					good(JSON.parse(data));
-				} catch(err) {
-					console.error("---- Error trace ----");
-					console.error(err);
-					console.error("---- HTTP response data ----");
-					console.error(data);
-					console.error("---- HTTP request URL ----");
-					console.error(url);
-					console.error("---- HTTP request data ----");
-					console.error(inData);
-					console.error("---- End of error report ----");
-					process.exit(1);
-				}
-			},bad);
-		}).then(callback);
+			APIUtils.rawRequestData(method, url, inData)
+                .then(data=> {
+                    try {
+					    good(JSON.parse(data));
+					    return;
+                    } catch(err) {
+                        console.error("---- Error trace ----");
+                        console.error(err);
+                        console.error("---- HTTP response data ----");
+                        console.error(data);
+                        console.error("---- HTTP request URL ----");
+                        console.error(url);
+                        console.error("---- HTTP request data ----");
+                        console.error(inData);
+                        console.error("---- End of error report ----");
+                        process.exit(1);
+                    }
+			    },bad);
+		});
 	}
 
-	static TestRequest(method, url, inData, callback) {
+    /**
+     * Debug the request and response
+     * @param method
+     * @param url
+     * @param inData
+     * @param callback
+     * @return {Promise.<TResult>}
+     * @constructor
+     */
+	static TestRequest(method, url, inData) {
 		// Calling rawRequest, and parsing the good result as JSON
 		return new Promise(function(good, bad) {
-			APIUtils.TestRequestData(method, url, inData).then(function(data) {
-				try {
-					good(JSON.parse(data));
-				} catch(err) {
-					console.error("---- Error trace ----");
-					console.error(err);
-					console.error("---- HTTP response data ----");
-					console.error(data);
-					console.error("---- HTTP request URL ----");
-					console.error(url);
-					console.error("---- HTTP request data ----");
-					console.error(inData);
-					console.error("---- End of error report ----");
-					process.exit(1);
-				}
-			},bad);
-		}).then(callback);
+			return APIUtils.TestRequestData(method, url, inData)
+                .then(function(data) {
+                    try {
+                        good(JSON.parse(data));
+                        return;
+                    } catch(err) {
+                        console.error("---- Error trace ----");
+                        console.error(err);
+                        console.error("---- HTTP response data ----");
+                        console.error(data);
+                        console.error("---- HTTP request URL ----");
+                        console.error(url);
+                        console.error("---- HTTP request data ----");
+                        console.error(inData);
+                        console.error("---- End of error report ----");
+                        process.exit(1);
+                    }
+                },bad);
+		});
 	}
 
-	/// Does a login check, and provides the actual server URL to call API
-	/// silently terminates, with an error message if it fails
-	///
-	/// @return   Promise object, returning the full URL to make request to
-	static getFullHostURL(callback) {
-		/// Cached full host URL
-		 var _fullHostURL = null;
+    /**
+     * Does a login check,set cookies and provides the actual server URL to call API
+     * silently terminates, with an error message if it fails
+     * @return {Promise}
+     */
+	static getFullHostURL() {
 
 		if ( _fullHostURL != null ) {
-			return Promise.resolve(_fullHostURL).then(callback);
+		    return Promise.resolve(_fullHostURL);
 		}
+        return new Promise(function (good, bad) {
+            api._core.baseURL("https://api.uilicious.com/");
+             return api.account.login({loginName:program.user, password: program.pass})
+                .then(response=>{
+                    return api.account.hostURL();
+                })
+                .then(data => {
+                    var obj = JSON.parse(data);
+                    if ( obj.result == null ) {
+                        console.error("ERROR: Unable to login - Invalid username/password");
+                        process.exit(1);
+                    } else {
+                        _fullHostURL = obj.result;
+                        good(_fullHostURL);
+                        return;
+                    }
+                });
+        });
+    }
 
+    /**
+     * Does a JSON request to web-studio instance of the client
+     * @param method
+     * @param webPath
+     * @param params
+     * @param callback
+     * @return {Promise.<TResult>}
+     */
+	static webstudioJsonRequest(method, webPath, params) {
 		return new Promise(function(good, bad) {
-			APIUtils.jsonRequest(
-				"POST",
-				"https://beta-login.uilicious.com/api/fetchHostURL",
-				{
-					"user" : program.user,
-					"pass" : program.pass
-				},
-				function(res) {
-					if ( res.protectedURL == null ) {
-						console.error("ERROR: Unable to login - Invalid username/password");
-						process.exit(1);
-					} else {
-						var _fullHostURL = res.protectedURL;
-						good(_fullHostURL);
-					}
-				}
-			);
-		}).then(callback);
+			return APIUtils.getFullHostURL()
+                .then(hostURL=> APIUtils.jsonRequest(method, hostURL+webPath, params))
+                .then(response => {
+                    good(response);
+                    return;
+                });
+		});
 	}
 
-	/// Does a JSON request to web-studio instance of the client
-	///
-	/// @param  "POST" or "GET" method
-	/// @param  Webstudio webPath request
-	/// @param  [OPTIONAL] Query / Form parameter to pass as an object
-	/// @param  [OPTIONAL] Callback parameter, to attach to promise
-	///
-	static webstudioJsonRequest(method, webPath, params, callback) {
+    /**
+     * Does a request to web-studio for test run
+     * @param method
+     * @param webPath
+     * @param params
+     * @return {Promise}
+     */
+	static webstudioTestRequest(method, webPath, params) {
 		return new Promise(function(good, bad) {
-			APIUtils.getFullHostURL(function(hostURL) {
-				APIUtils.jsonRequest(method, hostURL+webPath, params).then(good, bad);
-			});
-		}).then(callback);
+			return APIUtils.getFullHostURL()
+                .then(hostURL=> APIUtils.TestRequest(method, hostURL+webPath, params))
+                .then(response => {
+                    good(response);
+                    return;
+                });
+		});
 	}
 
-	static webstudioTestRequest(method, webPath, params, callback) {
+    /**
+     * Does a RAW request to web-studio instance of the client
+     * @param method
+     * @param webPath
+     * @param params
+     * @return {Promise}
+     */
+	static webstudioRawRequest(method, webPath, params) {
 		return new Promise(function(good, bad) {
-			APIUtils.getFullHostURL(function(hostURL) {
-				APIUtils.TestRequest(method, hostURL+webPath, params).then(good, bad);
-			});
-		}).then(callback);
+			return APIUtils.getFullHostURL()
+                .then(hostURL=> APIUtils.rawRequestData(method, hostURL+webPath, params))
+                .then(data => {
+                    good(JSON.parse(data));
+                    return;
+                });
+		});
 	}
 
-	/// Does a RAW request to web-studio instance of the client
-	///
-	/// @param  "POST" or "GET" method
-	/// @param  Webstudio webPath request
-	/// @param  [OPTIONAL] Query / Form parameter to pass as an object
-	/// @param  [OPTIONAL] Callback parameter, to attach to promise
-	///
-	static webstudioRawRequest(method, webPath, params, callback) {
-		return new Promise(function(good, bad) {
-			APIUtils.getFullHostURL(function(hostURL) {
-				APIUtils.rawRequestData(method, hostURL+webPath, params).then(good, bad);
-			});
-		}).then(callback);
-	}
+    /**
+     * This will authenticate the user
+     * @return {Promise}
+     */
+	static login(){
 
-
-	/// Makes a POST or GET request, with the given form object
-	/// and return its JSON result in a promise
-	///
-	/// @param  Write stream to output data into
-	/// @param  "POST" or "GET" method
-	/// @param  FULL URL to make the request
-	/// @param  [OPTIONAL] Query / Form parameter to pass as an object
-	/// @param  [OPTIONAL] Callback parameter, to attach to promise
-	///
-	/// @return The promise object, returns the request object
-	static webstudioStreamRequest(writeStream, method, webPath, params, callback) {
-		return new Promise(function(good, bad) {
-			APIUtils.getFullHostURL(function(hostURL) {
-				APIUtils.streamRequest(writeStream, method, hostURL+webPath, params).then(good, bad);
-			});
-		}).then(callback);
-	}
+    }
 
 }
 

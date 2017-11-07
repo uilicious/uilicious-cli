@@ -1,7 +1,7 @@
 /**
  * ImportExport class that provides functionality for import/export operations
  * to be performed
- * @Author: Shahin (shahin@uilicious.com)
+ * @author Shahin (shahin@uilicious.com)
  */
 
 // Chalk (color) messages for success/error
@@ -17,12 +17,15 @@ const ImportExportService = require('../service/ImportExportService');
 class ImportExportController {
 
     //----------------------------------------------------------------------------
-    // Import Helper Functions
+    // Import and Export Helper Functions
     //----------------------------------------------------------------------------
 
-    // Import folder and its contents
-    // @param		Project Name
-    // @param		Folder Path
+    /**
+     * Import folder and its contents
+     * @param projectName
+     * @param folderPath
+     * @return {Promise.<TResult>}
+     */
     static importFolderHelper(projectName, folderPath) {
         let copyFolderPathName;
         let copyFolderName;
@@ -50,10 +53,13 @@ class ImportExportController {
             });
     }
 
-    // Export folder and its test scripts
-    // @param		Project Name
-    // @param		Folder Name
-    // @param       Directory
+    /**
+     * Export folder and its test scripts
+     * @param projectName
+     * @param folderName
+     * @param directory
+     * @return {Promise.<TResult>}
+     */
     static exportFolderHelper(projectName, folderName, directory) {
         let copyProjectId;
         return ProjectService.projectID(projectName)
@@ -66,7 +72,6 @@ class ImportExportController {
                 console.log("Error: "+error+"'\n");
             });
     }
-
 }
 
 module.exports = ImportExportController;
