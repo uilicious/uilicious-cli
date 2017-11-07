@@ -175,8 +175,13 @@ class APIUtils {
 		    return Promise.resolve(_fullHostURL);
 		}
         return new Promise(function (good, bad) {
-            api._core.baseURL("https://api.uilicious.com/");
-             return api.account.login({loginName:program.user, password: program.pass})
+            if(program.host!=null){
+                api._core.baseURL(program.host);
+            }
+            else {
+                api._core.baseURL("https://api.uilicious.com/");
+            }
+            return api.account.login({loginName:program.user, password: program.pass})
                 .then(response=>{
                     return api.account.hostURL();
                 })

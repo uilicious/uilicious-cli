@@ -30,7 +30,8 @@ function CLIApp() {
 		// .option('-d, --directory <optional>', 'Output directory path to use')
 		.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
 		.option('-w, --width <optional>', 'width of browser')
-		.option('-ht, --height <optional>', 'height of browser');
+		.option('-ht, --height <optional>', 'height of browser')
+		.option('--host <optional>','host');
 
     // Import as Folder
     program
@@ -42,7 +43,7 @@ function CLIApp() {
 
 	// Export Test Folder
 	program
-		.command('export <projname> <folder_name> <directory>') // To:Do
+		.command('export <projname> <folder_name> <directory>')
 		.description('Export a folder.')
 		.action(ImportExportController.exportFolderHelper);
 
