@@ -46,12 +46,10 @@ class ImportExportController {
     /**
      * Export folder and its test scripts
      * @param projectName
-     * @param folderName
      * @param directory
      * @return {Promise.<TResult>}
      */
-    static exportFolderHelper(projectName, folderName, directory) {
-        let copyProjectId;
+    static exportFolderHelper(projectName, directory) {
         return ProjectService.projectID(projectName)
             .then(projID => {
                 return ImportExportService.exportTestDirectory(projID, directory)})

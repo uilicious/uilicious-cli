@@ -226,10 +226,6 @@ class ImportExportService {
                 });
         }
         else if (dirNode.typeName == "TEST") {
-            var index = array.indexOf(dirNode.id);
-            if (index > -1) {
-                array.splice(index, 1);
-            }
             return ImportExportService.getScript(projID, dirNode.id)
                 .then(fileContent => {
                     return ImportExportService.exportTestFile(localDirPath, dirNode.name, fileContent);

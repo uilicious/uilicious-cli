@@ -43,9 +43,11 @@ function CLIApp() {
 
 	// Export Test Folder
 	program
-		.command('export <projname> <folder_name> <directory>')
+		.command('export <projname> <directory>')
 		.description('Export a folder.')
-		.action(ImportExportController.exportFolderHelper);
+		.action(function (projname, directory, options) {
+            ImportExportController.exportFolderHelper(projname, directory);
+        });
 
 	// -----------------------------
 	// 	Commands for running tests
