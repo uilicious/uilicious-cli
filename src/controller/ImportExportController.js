@@ -54,10 +54,9 @@ class ImportExportController {
         let copyProjectId;
         return ProjectService.projectID(projectName)
             .then(projID => {
-                copyProjectId = projID;
-                return FolderService.nodeID(projID, folderName)})
-            .then(folderID => ImportExportService.exportTestDirectory(copyProjectId, folderID, directory))
-            .then(t => console.log(success("Folder has been exported successfully to <"+directory+">")))
+                return ImportExportService.exportTestDirectory(projID, directory)})
+            .then(t => {
+                console.log(success("Folder has been exported successfully to <"+directory+">")) })
             .catch(error =>{
                 console.log("Error: "+error+"'\n");
             });

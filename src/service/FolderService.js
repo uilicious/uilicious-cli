@@ -70,14 +70,14 @@ class FolderService {
      * @param projectID
      * @return {*}
      */
-		static folderList(projectID) {
+	static folderList(projectID) {
 		return APIUtils.webstudioJsonRequest(
 			"GET",
 			"/api/studio/v1/projects/" + projectID + "/workspace/folders",
 			{}
 			)
-            .then(callback => {
-				return callback;
+            .then(data => {
+				return data;
             }
 
 		);

@@ -180,18 +180,24 @@ class ImportExportService {
      * @param directory
      * @return {Promise}
      */
-    static exportTestDirectory(projID, folderID, directory) {
+    static exportTestDirectory(projID, directory) {
         return new Promise(function(good, bad) {
-            return ImportExportService.getDirectoryMapByID(projID, folderID)
-                .then(dirNode => {
-                    if (dirNode) {
-                        ImportExportService.exportDirectoryNodeToDirectoryPath(projID, dirNode, directory);
-                        good(true);
-                        return;
-                    } else {
-                        bad(false);
-                        return;
+             return ImportExportService.directoryList(projID)
+                .then(rootDirMap => {
+                    for (var i = 0; i < rootDirMap.length; i++) {
+                        let root_folder = rootDirMap[i];
+                        if (root_folder.typeName == "FOLDER") {
+                            let dirNode;
+                            if (root_folder.id != null) {
+                                dirNode = ImportExportService.findSubDirectoryByID(root_folder, root_folder.id);
+                            }
+                            if (dirNode) {
+                                ImportExportService.exportDirectoryNodeToDirectoryPath(projID, dirNode, directory);
+                            }
+                        }
                     }
+                    good(true);
+                    return;
                 });
         });
     }
@@ -220,8 +226,14 @@ class ImportExportService {
                 });
         }
         else if (dirNode.typeName == "TEST") {
-            ImportExportService.getScript(projID, dirNode.id)
-                .then(fileContent => ImportExportService.exportTestFile(localDirPath, dirNode.name, fileContent));
+            var index = array.indexOf(dirNode.id);
+            if (index > -1) {
+                array.splice(index, 1);
+            }
+            return ImportExportService.getScript(projID, dirNode.id)
+                .then(fileContent => {
+                    return ImportExportService.exportTestFile(localDirPath, dirNode.name, fileContent);
+                });
         }
     }
 
@@ -270,32 +282,6 @@ class ImportExportService {
     }
 
     /**
-     * Get the directory map, using the projectID and folderID
-     * @param projID
-     * @param folderID
-     * @return {Promise}
-     */
-    static getDirectoryMapByID(projID, folderID) {
-        return new Promise(function(good, bad) {
-            ImportExportService.directoryList(projID)
-                .then(rootDirMap=> {
-                    for (var i = 0; i < rootDirMap.length; i++) {
-                        let root_folder = rootDirMap[i];
-                        if (root_folder.id == folderID) {
-                            if (folderID != null) {
-                                good(ImportExportService.findSubDirectoryByID(root_folder, folderID));
-                                return;
-                            } else {
-                                good(rootDirMap);
-                                return;
-                            }
-                        }
-                    }
-                });
-        });
-    }
-
-    /**
      * Does a recursive search on the parentDir object, and its children
      * @param parentDir
      * @param folderID
@@ -331,13 +317,16 @@ class ImportExportService {
      */
     static getScript(projectID, testID) {
         return new Promise(function(good, bad) {
-            APIUtils.webstudioRawRequest(
+            return APIUtils.webstudioRawRequest(
                 "GET",
                 "/api/studio/v1/projects/" + projectID + "/workspace/tests/" + testID + "/script",
                 {})
                 .then(data => {
                     good(data);
                     return;
+                }).catch(p1 => {
+                    console.log(p1);
+                    process.exit(1);
                 });
         });
     }
@@ -345,12 +334,11 @@ class ImportExportService {
     /**
      * Get the directory of a project
      * @param projectID
-     * @param callback
-     * @return {Promise.<TResult>}
+     * @return {Promise}
      */
     static directoryList(projectID) {
         return new Promise(function(good, bad) {
-            APIUtils.webstudioJsonRequest(
+            return APIUtils.webstudioJsonRequest(
                 "GET",
                 "/api/studio/v1/projects/" + projectID + "/workspace/directory",
                 {}

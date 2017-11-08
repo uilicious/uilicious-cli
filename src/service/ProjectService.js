@@ -53,10 +53,9 @@ class ProjectService {
         return APIUtils.webstudioJsonRequest(
             "GET",
             "/api/studio/v1/projects",
-            {}
-            )
-            .then(callback => {
-                return callback;
+            {})
+            .then(data => {
+                return data;
             });
     }
 }
