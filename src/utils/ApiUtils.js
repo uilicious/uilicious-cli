@@ -248,7 +248,7 @@ class APIUtils {
 			return APIUtils.getFullHostURL()
                 .then(hostURL=> APIUtils.rawRequestData(method, hostURL+webPath, params))
                 .then(data => {
-                    good(JSON.parse(data));
+                    good(data);
                     return;
                 });
 		});
