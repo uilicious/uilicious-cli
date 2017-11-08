@@ -124,7 +124,7 @@ class ImportExportService {
                     let file_pathname = folderLocation + "/" + file;
                     let copyFileContent;
                     let copyTestName;
-                    return ImportExportService.readFileContents(file_pathname)
+                    ImportExportService.readFileContents(file_pathname)
                         .then(file_content => {
                             copyFileContent = file_content;
                             return ImportExportService.checkTest(projID, fileName)})
@@ -134,11 +134,13 @@ class ImportExportService {
                         .then(response => true)
                         .catch(error => {
                             console.error("Error: Error occurred while importing the Test Folder : "+error+"'\n");
+                            bad();
+                            process.exit(1);
                         });
                 }
-                good(true);
-                return;
-            })
+            });
+            good(true);
+            return;
         });
     }
 
