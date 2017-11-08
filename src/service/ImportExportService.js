@@ -15,8 +15,6 @@ const success = chalk.green;
 
 // Module Dependencies (non-npm)
 const APIUtils = require('../utils/ApiUtils');
-const ProjectCRUD = require('../service/ProjectService');
-const folderCRUD = require('../service/FolderService');
 
 class ImportExportService {
 
@@ -71,11 +69,11 @@ class ImportExportService {
     static checkTest(projID, filePathname) {
         return new Promise(function(good, bad) {
             let testName = path.parse(filePathname).name;
-            APIUtils.webstudioJsonRequest(
+            return APIUtils.webstudioJsonRequest(
                 "GET",
                 "/api/studio/v1/projects/" + projID + "/workspace/tests",
-                { name: testName },
-                function (list) {
+                { name: testName })
+                .then(list => {
                     for (let i = 0; i < list.length; i++) {
                         let item = list[i];
                         if (item.name == testName) {
@@ -112,56 +110,36 @@ class ImportExportService {
 
     /**
      * Import folder contents
-     * @param projname
-     * @param foldername
+     * @param projID
      * @param folder_pathname
      * @return {Promise}
      */
-    static importFolderContents(projname, foldername, folder_pathname) {
+    static importFolderContents(projID, folder_pathname) {
         return new Promise(function(good, bad) {
             let folderLocation = path.resolve(folder_pathname);
             let folderContents = fs.readdir(folder_pathname, function(err, files) {
                 for (var i = 0; i < files.length; i++) {
                     let file = files[i];
                     let fileName = path.parse(file).name;
-                    let fileLocation = folderLocation + "/" + file;
-                    ImportExportService.importTestUnderFolderHelper(projname,fileLocation,foldername);
+                    let file_pathname = folderLocation + "/" + file;
+                    let copyFileContent;
+                    let copyTestName;
+                    return ImportExportService.readFileContents(file_pathname)
+                        .then(file_content => {
+                            copyFileContent = file_content;
+                            return ImportExportService.checkTest(projID, fileName)})
+                        .then(testName => {
+                            copyTestName= testName;
+                            return ImportExportService.importTestUnderFolder(projID, testName, copyFileContent)})
+                        .then(response => true)
+                        .catch(error => {
+                            console.error("Error: Error occurred while importing the Test Folder : "+error+"'\n");
+                        });
                 }
                 good(true);
                 return;
             })
         });
-    }
-
-    /**
-     * Import test script under a folder
-     * @param projname
-     * @param file_pathname
-     * @param foldername
-     * @return {Promise.<boolean>}
-     */
-    static importTestUnderFolderHelper(projname, file_pathname, foldername) {
-        let copyFileContent;
-        let copyProjectId;
-        let copyNodeId;
-        let copyTestName;
-        return ImportExportService.readFileContents(file_pathname)
-            .then(file_content => {
-                copyFileContent = file_content;
-                return ProjectCRUD.projectID(projname)})
-            .then(projID => {
-                copyProjectId=projID;
-                return folderCRUD.nodeID(projID, foldername)})
-            .then(nodeId => {
-                copyNodeId = nodeId;
-                return ImportExportService.checkTest(copyProjectId, file_pathname)})
-            .then(testName => {
-                copyTestName= testName;
-                return ImportExportService.importTestUnderFolder(copyProjectId, copyNodeId, testName, copyFileContent)})
-            .then(response => true)
-            .catch(error => {
-                console.error("Error: Error occurred while importing the Test Folder : "+error+"'\n");
-            });
     }
 
     //----------------------------------------------------------------------------
@@ -171,18 +149,17 @@ class ImportExportService {
     /**
      * Create a new test by importing it under a folder in a project
      * @param projectID
-     * @param nodeID
      * @param testName
      * @param testContent
-     * @return {*}
+     * @return {Promise.<TResult>}
      */
-    static importTestUnderFolder(projectID, nodeID, testName, testContent) {
+    static importTestUnderFolder(projectID, testName, testContent) {
+
         return APIUtils.webstudioRawRequest(
             "POST",
             "/api/studio/v1/projects/" + projectID + "/workspace/tests/addAction",
             {
                 name: testName,
-                parentId: nodeID,
                 script: testContent
             })
             .then(data=> {
@@ -230,7 +207,7 @@ class ImportExportService {
         if (dirNode.typeName == "FOLDER") {
 
             // makeSureDirectoryExists(localDirPath);
-            ImportExportService.makeFolder(dirNode.name, localDirPath)
+            return ImportExportService.makeFolder(dirNode.name, localDirPath)
                 .then(t => {
                     var nextPath = localDirPath + "/" + dirNode.name;
                     let folder_children = dirNode.children;

@@ -253,15 +253,6 @@ class APIUtils {
                 });
 		});
 	}
-
-    /**
-     * This will authenticate the user
-     * @return {Promise}
-     */
-	static login(){
-
-    }
-
 }
 
 module.exports = APIUtils;

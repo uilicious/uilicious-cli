@@ -28,26 +28,16 @@ class ImportExportController {
      */
     static importFolderHelper(projectName, folderPath) {
         let copyFolderPathName;
-        let copyFolderName;
-        let copyProjectId;
         return ImportExportService.checkPath(folderPath)
             .then(folder_pathname => {
                 copyFolderPathName = folder_pathname;
                 return ImportExportService.checkFolderContents(folder_pathname) })
             .then(folder_name => {
-                copyFolderName = folder_name;
                 return ProjectService.projectID(projectName)})
             .then(projID => {
-                copyProjectId=projID;
-                return FolderService.checkFolder(projID, copyFolderName)})
-            .then(folder_name => {
-                copyFolderName=folder_name;
-                return FolderService.createFolder(copyProjectId, folder_name)})
-            .then(response => {
-                return ImportExportService.importFolderContents(projectName, copyFolderName, copyFolderPathName)})
+                return ImportExportService.importFolderContents(projID, copyFolderPathName)})
             .then(response=> {
-                console.log(success("Import successful! Test created under Folder <" + copyFolderName
-                    + "> under Project <" + projectName+">" ));})
+                console.log(success("Import successful! Test created under Project <"+ projectName +">" ));})
             .catch(error =>{
                 console.error("Error: error occurred while importing folder : "+error+"'\n");
             });
