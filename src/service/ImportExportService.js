@@ -195,6 +195,9 @@ class ImportExportService {
                                 ImportExportService.exportDirectoryNodeToDirectoryPath(projID, dirNode, directory);
                             }
                         }
+                        else if(root_folder.typeName == "TEST"){
+                            ImportExportService.exportDirectoryNodeToDirectoryPath(projID, root_folder, directory);
+                        }
                     }
                     good(true);
                     return;
