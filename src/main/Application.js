@@ -67,6 +67,11 @@ function CLIApp() {
 		program.parse([process.argv[0], process.argv[1], '-h']);
 		process.exit(0);
 	}
+
+    if(program.user==null || program.pass==null){
+        console.error("Error: --user or --pass parameter can not leave empty");
+        process.exit(1);
+    }
 	//  else {
 	// 	// Warn about invalid commands
 	// 	let validCommands = program.commands.map(function(cmd){

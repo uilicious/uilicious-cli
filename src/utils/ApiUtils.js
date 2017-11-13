@@ -46,12 +46,14 @@ class APIUtils {
 			request(option, function( err, res, body ) {
 				if (err) {
 					throw new Error("Unexpected error for URL request : " + url + " -> " + err);
+					process.exit(1);
 				} else {
 					try {
 						good(body);
 						return;
 					} catch(err) {
 						throw new Error("Invalid data (JSON) format for URL request : " + url + " -> " + body);
+                        process.exit(1);
 					}
 				}
 			});
@@ -113,7 +115,7 @@ class APIUtils {
 			APIUtils.rawRequestData(method, url, inData)
                 .then(data=> {
                     try {
-					    good(JSON.parse(data));
+					    good(data);
 					    return;
                     } catch(err) {
                         console.error("---- Error trace ----");
@@ -175,8 +177,20 @@ class APIUtils {
 		    return Promise.resolve(_fullHostURL);
 		}
         return new Promise(function (good, bad) {
+            if(program.user==null || program.pass==null){
+                console.log("Error: username/password can not leave empty");
+                process.exit(1);
+            }
             if(program.apiHost!=null){
-                api._core.baseURL(program.apiHost);
+                let apiHost = program.apiHost;
+                var pattern = /^((http|https):\/\/)/;
+                if(!pattern.test(apiHost)) {
+                    apiHost = "https://" + apiHost;
+                }
+                if (apiHost.substr(-1) != '/'){
+                    apiHost += '/';
+				}
+                api._core.baseURL(apiHost);
             }
             else {
                 api._core.baseURL("https://api.uilicious.com/");
