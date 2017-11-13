@@ -183,7 +183,7 @@ class APIUtils {
             }
             if(program.apiHost!=null){
                 let apiHost = program.apiHost;
-                var pattern = /^((http|https):\/\/)/;
+                let pattern = /^((http|https):\/\/)/;
                 if(!pattern.test(apiHost)) {
                     apiHost = "https://" + apiHost;
                 }
