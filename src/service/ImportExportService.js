@@ -228,7 +228,6 @@ class ImportExportService {
             return;
         }
         if (dirNode.typeName == "FOLDER") {
-
             // makeSureDirectoryExists(localDirPath);
             return ImportExportService.makeFolder(dirNode.name, localDirPath)
                 .then(t => {
@@ -259,14 +258,13 @@ class ImportExportService {
         return new Promise(function (good,bad) {
             let filePathName = path.resolve(directory) + "/" + test_name + ".js";
             let fileName = test_name + ".js";
-            fs.writeFile(filePathName, file_content, function(err) {
+            return fs.writeFile(filePathName, file_content, function(err) {
                 if (err) {
                     console.error(error(err));
                     process.exit(1);
                 }
                 good("File <" + fileName + "> successfully saved in " + directory);
                 return;
-                //console.log(success("File <" + fileName + "> successfully saved in " + directory));
             });
         })
 

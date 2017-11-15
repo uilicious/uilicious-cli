@@ -6,6 +6,7 @@
 // npm Dependencies
 const program = require('commander');
 const fs = require('fs');
+const path = require('path');
 
 // Chalk (color) messages for success/error
 const chalk = require('chalk');
@@ -175,6 +176,21 @@ class TestService {
             good(testDirectory);
             return;
         });
+    }
+
+    /**
+     * Read contents from file in local directory
+     * @param file_pathname
+     * @return {Promise}
+     */
+    static readFileContents(file_pathname) {
+        let fileLocation = path.resolve(file_pathname);
+        let fileContent = fs.readFileSync(fileLocation, 'utf-8');
+        if (fileLocation.indexOf(fileContent) > -1) {
+            console.log("ERROR: There is nothing in this file!\n");
+        } else {
+            return fileContent;
+        }
     }
 
     //------------------------------------------------------------------------------

@@ -55,7 +55,9 @@ function CLIApp() {
 	program
 		.command('run <projname> <scriptpath>')
 		.option('-s, --save <directory>', 'Set the directory path to save test log.')
-		.description('Run a test from a project.')
+        .option('--dataObject <directory>', 'Set the directory path to save test log.')
+        .option('--dataFile <directory>', 'Set the directory path to save test log.')
+        .description('Run a test from a project.')
 		.action(TestRunnerController.main);
 
 	// end with parse to parse through the input.txt

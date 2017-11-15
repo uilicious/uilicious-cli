@@ -67,7 +67,18 @@ class TestRunnerController {
                     return TestService.testID(projID, scriptPath)})
                 .then(scriptID =>  {
                     console.log("# Test ID  : "+scriptID);
-                    let dataParams = null;
+                    let dataParams;
+                    if(options.dataObject!=null){
+                        console.log("# Data object is being supplied");
+                        dataParams = options.dataObject;
+                    }
+                    else if(options.dataFile!=null){
+                        console.log("# Data object is being supplied from a file");
+                        dataParams = TestService.readFileContents(options.dataFile);
+                    }
+                    else{
+                        dataParams = null;
+                    }
                     return TestService.runTest(copyProjectId, scriptID, dataParams)})
                 .then(postID => {
                     console.log("# Test run ID: "+postID);
@@ -104,7 +115,18 @@ class TestRunnerController {
                     return TestService.testID(projectId, scriptPath)})
                 .then(scriptID =>  {
                     console.log("# Test ID  : "+scriptID);
-                    let dataParams = null;
+                    let dataParams;
+                    if(options.dataObject!=null){
+                        console.log("# Data object is being supplied");
+                        dataParams = options.dataObject;
+                    }
+                    else if(options.dataFile!=null){
+                        console.log("# Data object is being supplied from a file");
+                        dataParams = TestService.readFileContents(options.dataFile);
+                    }
+                    else{
+                        dataParams = null;
+                    }
                     return TestService.runTest(copyProjectId, scriptID, dataParams)})
                 .then(postID => {
                     console.log("# Test run ID: "+postID);

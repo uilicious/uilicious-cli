@@ -40,7 +40,7 @@ class ImportExportController {
                 return ImportExportService.importFolderContents(projID, copyFolderPathName)
             })
             .then(response => {
-                console.log(success("Import successful! Test created under Project <"+ projectName +">" ));
+                console.log(success("Import successful! test(s) created under Project <"+ projectName +">" ));
             })
             .catch(errors =>{
                 console.log(error(errors));
@@ -57,10 +57,10 @@ class ImportExportController {
         return ProjectService.projectID(projectName)
             .then(projID => {
                 return ImportExportService.exportTestDirectory(projID, directory)})
-            .then(t => {
-                console.log(success("Folder has been exported successfully to <"+directory+">")) })
+            .then(response => {
+                console.log(success("Project has successfully exported to <"+directory+">")) })
             .catch(error =>{
-                console.log("Error: "+error+"'\n");
+                console.log(error(error));
             });
     }
 }
