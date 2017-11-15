@@ -118,7 +118,7 @@ class ImportExportService {
     static importFolderContents(projID, folder_pathname) {
         return new Promise(function(good, bad) {
             let folderLocation = path.resolve(folder_pathname);
-            let folderContents = fs.readdir(folder_pathname, function(err, files) {
+            return fs.readdir(folder_pathname, function(err, files) {
                 for (var i = 0; i < files.length; i++) {
                     let file = files[i];
                     let fileName = path.parse(file).name;
@@ -139,9 +139,9 @@ class ImportExportService {
                             process.exit(1);
                         });
                 }
+                good(true);
+                return;
             });
-            good(true);
-            return;
         });
     }
 
