@@ -31,15 +31,19 @@ class ImportExportController {
         return ImportExportService.checkPath(folderPath)
             .then(folder_pathname => {
                 copyFolderPathName = folder_pathname;
-                return ImportExportService.checkFolderContents(folder_pathname) })
+                return ImportExportService.checkFolderContents(folder_pathname)
+            })
             .then(folder_name => {
-                return ProjectService.projectID(projectName)})
+                return ProjectService.projectID(projectName)
+            })
             .then(projID => {
-                return ImportExportService.importFolderContents(projID, copyFolderPathName)})
-            .then(response=> {
-                console.log(success("Import successful! Test created under Project <"+ projectName +">" ));})
-            .catch(error =>{
-                console.error("Error: error occurred while importing folder : "+error+"'\n");
+                return ImportExportService.importFolderContents(projID, copyFolderPathName)
+            })
+            .then(response => {
+                console.log(success("Import successful! Test created under Project <"+ projectName +">" ));
+            })
+            .catch(errors =>{
+                console.log(error(errors));
             });
     }
 

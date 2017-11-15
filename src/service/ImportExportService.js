@@ -78,8 +78,8 @@ class ImportExportService {
                     for (let i = 0; i < list.length; i++) {
                         let item = list[i];
                         if (item.name == testName) {
-                            console.error(error("ERROR: This test '" + testName + "' exists.\nPlease use another name!\n"));
-                            process.exit(1);
+                            bad("ERROR: This test '" + testName + "' exists. Please use another name!\n");
+                            return;
                         }
                     }
                     good(testName);
@@ -128,7 +128,7 @@ class ImportExportService {
                 }
                 return Promise.all(promiseArr)
                     .then(response => good())
-                    .catch(error => bad());
+                    .catch(error => bad(error));
             });
         });
     }
@@ -151,10 +151,8 @@ class ImportExportService {
                 .then(testName => {
                     copyTestName= testName;
                     return ImportExportService.importTestUnderFolder(projID, testName, copyFileContent)})
-                .then(response => {
-                    good();
-                    return;
-                });
+                .then(response => good())
+                .catch(error => bad(error));
         });
     }
 
