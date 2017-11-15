@@ -119,29 +119,42 @@ class ImportExportService {
         return new Promise(function(good, bad) {
             let folderLocation = path.resolve(folder_pathname);
             return fs.readdir(folder_pathname, function(err, files) {
+                let promiseArr = [];
                 for (var i = 0; i < files.length; i++) {
                     let file = files[i];
                     let fileName = path.parse(file).name;
                     let file_pathname = folderLocation + "/" + file;
-                    let copyFileContent;
-                    let copyTestName;
-                    ImportExportService.readFileContents(file_pathname)
-                        .then(file_content => {
-                            copyFileContent = file_content;
-                            return ImportExportService.checkTest(projID, fileName)})
-                        .then(testName => {
-                            copyTestName= testName;
-                            return ImportExportService.importTestUnderFolder(projID, testName, copyFileContent)})
-                        .then(response => true)
-                        .catch(error => {
-                            console.error("Error: Error occurred while importing the Test Folder : "+error+"'\n");
-                            bad();
-                            process.exit(1);
-                        });
+                    promiseArr.push(ImportExportService.importTestContentsHelper(projID,file_pathname,fileName) );
                 }
-                good(true);
-                return;
+                return Promise.all(promiseArr)
+                    .then(response => good())
+                    .catch(error => bad());
             });
+        });
+    }
+
+    /**
+     * This will create a single promise which will be pushed to promise Array
+     * @param projID
+     * @param file_pathname
+     * @param fileName
+     * @return {Promise}
+     */
+    static importTestContentsHelper(projID, file_pathname, fileName){
+        return new Promise(function (good,bad) {
+            let copyFileContent;
+            let copyTestName;
+            return ImportExportService.readFileContents(file_pathname)
+                .then(file_content => {
+                    copyFileContent = file_content;
+                    return ImportExportService.checkTest(projID, fileName)})
+                .then(testName => {
+                    copyTestName= testName;
+                    return ImportExportService.importTestUnderFolder(projID, testName, copyFileContent)})
+                .then(response => {
+                    good();
+                    return;
+                });
         });
     }
 
