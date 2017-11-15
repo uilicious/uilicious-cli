@@ -99,8 +99,8 @@ class ImportExportService {
             let folderName = path.basename(folder_pathname);
             let folderContents = fs.readdir(folder_pathname, function(err, files) {
                 if (err || files.length == 0) {
-                    console.error(error("ERROR: This folder is empty!\n"));
-                    process.exit(1);
+                    bad("ERROR: This folder is empty!\n");
+                    return;
                 } else {
                     good(folderName);
                     return;
