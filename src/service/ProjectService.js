@@ -28,6 +28,7 @@ class ProjectService {
         return new Promise(function(good, bad) {
             return ProjectService.projectList()
                 .then(list => {
+                    list = JSON.parse(list);
                     for (let i=0; i<list.length; ++i) {
                         let project = list[i];
                         if (project.title == projectName) {

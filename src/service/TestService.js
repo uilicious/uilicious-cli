@@ -43,6 +43,7 @@ class TestService {
                 setTimeout(function() {
                     return TestService.getResult(runTestID)
                         .then(res => {
+                            res = JSON.parse(res);
                             // Everytime the result is received,
                             // Update the screen for the latest status updates
                             TestService.processResultSteps(res.steps);
@@ -241,6 +242,7 @@ class TestService {
                 "/api/studio/v1/projects/" + projID + "/workspace/tests/" + testID + "/runAction?cli=true",
                 form)
                 .then(res => {
+                    res = JSON.parse(res);
                     if ( res.id != null ) {
                         good(res.id);
                         return;
@@ -261,8 +263,8 @@ class TestService {
             "/api/v0/test/result",
             { id : runTestID }
             )
-            .then(callback => {
-                return callback;
+            .then(data => {
+                return data;
             });
     }
 }
