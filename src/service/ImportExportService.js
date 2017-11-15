@@ -74,6 +74,7 @@ class ImportExportService {
                 "/api/studio/v1/projects/" + projID + "/workspace/tests",
                 { name: testName })
                 .then(list => {
+                    list = JSON.parse(list);
                     for (let i = 0; i < list.length; i++) {
                         let item = list[i];
                         if (item.name == testName) {
@@ -343,6 +344,7 @@ class ImportExportService {
                 {}
                 )
                 .then(project => {
+                    project = JSON.parse(project);
                     good(project.children);
                     return;
                 });
