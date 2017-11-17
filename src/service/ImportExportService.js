@@ -8,6 +8,8 @@
 const fs = require('fs');
 const path = require('path');
 
+const program = require('commander');
+
 // Chalk (color) messages for success/error
 const chalk = require('chalk');
 const error = chalk.red;
@@ -151,7 +153,13 @@ class ImportExportService {
                 .then(testName => {
                     copyTestName= testName;
                     return ImportExportService.importTestUnderFolder(projID, testName, copyFileContent)})
-                .then(response => good())
+                .then(response => {
+                    if (program.verbose) {
+                        console.log("Status : uploading test script to remote project");
+                    }
+                    good();
+                    return;
+                })
                 .catch(error => bad(error));
         });
     }
@@ -176,7 +184,7 @@ class ImportExportService {
                 name: testName,
                 script: testContent
             })
-            .then(data=> {
+            .then(data => {
                 return data;
             });
     }
