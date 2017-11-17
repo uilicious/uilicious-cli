@@ -9,6 +9,8 @@ const chalk = require('chalk');
 const error = chalk.red;
 const success = chalk.green;
 
+const program = require('commander');
+
 // Module Dependencies (non-npm)
 const ProjectService = require('../service/ProjectService');
 const FolderService = require('../service/FolderService');
@@ -26,17 +28,27 @@ class ImportExportController {
      * @param folderPath
      * @return {Promise.<TResult>}
      */
-    static importFolderHelper(projectName, folderPath) {
+    static importFolderHelper(projectName, folderPath, options) {
         let copyFolderPathName;
         return ImportExportService.checkPath(folderPath)
             .then(folder_pathname => {
+                if (program.verbose) {
+                    console.log("Status : checked target folder path");
+                }
                 copyFolderPathName = folder_pathname;
                 return ImportExportService.checkFolderContents(folder_pathname)
             })
             .then(folder_name => {
+                if (program.verbose) {
+                    console.log("Status : checked folder contents");
+                }
                 return ProjectService.projectID(projectName)
             })
             .then(projID => {
+                if (program.verbose) {
+                    console.log("Status : retrieved project id");
+                    console.log("Status : trying to import to local folder contents to project root directory");
+                }
                 return ImportExportService.importFolderContents(projID, copyFolderPathName)
             })
             .then(response => {

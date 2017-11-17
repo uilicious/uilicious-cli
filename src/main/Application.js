@@ -27,7 +27,7 @@ function CLIApp() {
 		.version('1.3.13')
 		.option('-u, --user <required>', 'username')
 		.option('-p, --pass <required>', 'password')
-		.option('-v, --verbose <optional>', 'display details log')
+		.option('-v, --verbose', 'display details log')
 		.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
 		.option('-w, --width <optional>', 'width of browser')
 		.option('-ht, --height <optional>', 'height of browser')
@@ -38,7 +38,7 @@ function CLIApp() {
         .command('import <projname> <folder_path>')
         .description('Import test scripts to a project from a local directory.')
         .action(function(projname, folder_path, options) {
-        	ImportExportController.importFolderHelper(projname, folder_path);
+        	ImportExportController.importFolderHelper(projname, folder_path, options);
         });
 
 	// Export Test Folder
