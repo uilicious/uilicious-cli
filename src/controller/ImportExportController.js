@@ -56,11 +56,13 @@ class ImportExportController {
     static exportFolderHelper(projectName, directory) {
         return ProjectService.projectID(projectName)
             .then(projID => {
-                return ImportExportService.exportTestDirectory(projID, directory)})
+                return ImportExportService.exportTestDirectory(projID, directory);
+            })
             .then(response => {
-                console.log(success("Project has successfully exported to <"+directory+">")) })
-            .catch(error =>{
-                console.log(error(error));
+                console.log(success("Project has successfully exported to <"+directory+">"));
+            })
+            .catch(errors =>{
+                console.log(error(errors));
             });
     }
 }

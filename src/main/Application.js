@@ -27,7 +27,7 @@ function CLIApp() {
 		.version('1.3.13')
 		.option('-u, --user <required>', 'username')
 		.option('-p, --pass <required>', 'password')
-		// .option('-d, --directory <optional>', 'Output directory path to use')
+		.option('-v, --verbose <optional>', 'display details log')
 		.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
 		.option('-w, --width <optional>', 'width of browser')
 		.option('-ht, --height <optional>', 'height of browser')
