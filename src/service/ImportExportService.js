@@ -204,29 +204,40 @@ class ImportExportService {
         return new Promise(function(good, bad) {
              return ImportExportService.directoryList(projID)
                 .then(rootDirMap => {
+                    let promiseArr = [];
                     for (var i = 0; i < rootDirMap.length; i++) {
                         let root_folder = rootDirMap[i];
-                        if (root_folder.typeName == "FOLDER") {
-                            let dirNode;
-                            if (root_folder.id != null) {
-                                dirNode = ImportExportService.findSubDirectoryByID(root_folder, root_folder.id);
-                            }
-                            if (dirNode) {
-                                ImportExportService.exportDirectoryNodeToDirectoryPath(projID, dirNode, directory);
-                            }
-                        }
-                        else if(root_folder.typeName == "TEST"){
-                            ImportExportService.getScript(projID, root_folder.id)
-                                .then(fileContent => {
-                                    return ImportExportService.exportTestFile(directory, root_folder.name, fileContent);
-                                });
-                        }
+                        promiseArr.push(ImportExportService.exportHelper(projID,root_folder,directory) );
                     }
-                    good(true);
-                    return;
+                    return Promise.all(promiseArr)
+                        .then(response => good())
+                        .catch(error => bad(error));
                 });
         });
     }
+    static exportHelper(projID,root_folder,directory){
+        return new Promise(function (good, bad) {
+            if (root_folder.typeName == "FOLDER") {
+                let dirNode;
+                if (root_folder.id != null) {
+                    dirNode = ImportExportService.findSubDirectoryByID(root_folder, root_folder.id);
+                }
+                if (dirNode) {
+                    ImportExportService.exportDirectoryNodeToDirectoryPath(projID, dirNode, directory);
+                    good();
+                }
+            }
+            else if(root_folder.typeName == "TEST"){
+                return ImportExportService.getScript(projID, root_folder.id)
+                    .then(fileContent => {
+                        return ImportExportService.exportTestFile(directory, root_folder.name, fileContent);
+                    })
+                    .then(response => good(response))
+                    .catch(errors => bad(errors))
+            }
+        });
+    }
+
 
     /**
      * Recursively scans the directory node, and export the folders / files when needed
