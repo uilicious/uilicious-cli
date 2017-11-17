@@ -216,7 +216,10 @@ class ImportExportService {
                             }
                         }
                         else if(root_folder.typeName == "TEST"){
-                            ImportExportService.exportDirectoryNodeToDirectoryPath(projID, root_folder, directory);
+                            ImportExportService.getScript(projID, root_folder.id)
+                                .then(fileContent => {
+                                    return ImportExportService.exportTestFile(directory, root_folder.name, fileContent);
+                                });
                         }
                     }
                     good(true);
