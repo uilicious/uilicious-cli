@@ -94,8 +94,8 @@ class TestRunnerController {
                     console.log("")
                     console.log("Test Info saved in "+copyTestDirectory+"\n");
                 })
-                .catch(error => {
-                    console.log("Error: "+error);
+                .catch(errors => {
+                    console.error(error(errors));
                 });
         }
         else {
@@ -140,8 +140,8 @@ class TestRunnerController {
                     TestService.outputStatus(response.steps);
                     TestService.processErrors(response.steps);
                 })
-                .catch(error => {
-                    console.error(error(error));
+                .catch(errors => {
+                    console.error(error(errors));
                 });
         }
     }

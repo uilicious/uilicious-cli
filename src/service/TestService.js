@@ -250,10 +250,9 @@ class TestService {
             form.width = program.width;
         }
         form.data = dataParams;
-
         // Return promise obj
         return new Promise(function(good, bad) {
-            APIUtils.webstudioJsonRequest(
+            return APIUtils.webstudioJsonRequest(
                 "POST",
                 "/api/studio/v1/projects/" + projID + "/workspace/tests/" + testID + "/runAction?cli=true",
                 form)
@@ -263,7 +262,8 @@ class TestService {
                         good(res.id);
                         return;
                     }
-                    throw new Error(error("Missing Test Run ID/Invalid JSON format"));
+                    bad("Missing Test Run ID/Invalid JSON format");
+                    return;
                 });
         });
     }

@@ -202,7 +202,10 @@ class ImportExportService {
      */
     static exportTestDirectory(projID, directory) {
         return new Promise(function(good, bad) {
-             return ImportExportService.directoryList(projID)
+            if (program.verbose) {
+                console.log("Status : downloading directory list");
+            }
+            return ImportExportService.directoryList(projID)
                 .then(rootDirMap => {
                     let promiseArr = [];
                     for (var i = 0; i < rootDirMap.length; i++) {
@@ -210,7 +213,12 @@ class ImportExportService {
                         promiseArr.push(ImportExportService.exportHelper(projID,root_folder,directory) );
                     }
                     return Promise.all(promiseArr)
-                        .then(response => good())
+                        .then(response => {
+                            if (program.verbose) {
+                                console.log("Status : saved tests scripts to your local directory");
+                            }
+                            good();
+                        })
                         .catch(error => bad(error));
                 });
         });
@@ -225,6 +233,7 @@ class ImportExportService {
                 if (dirNode) {
                     ImportExportService.exportDirectoryNodeToDirectoryPath(projID, dirNode, directory);
                     good();
+                    return;
                 }
             }
             else if(root_folder.typeName == "TEST"){
@@ -282,14 +291,13 @@ class ImportExportService {
             let fileName = test_name + ".js";
             return fs.writeFile(filePathName, file_content, function(err) {
                 if (err) {
-                    console.error(error(err));
+                    console.error(error("ERROR: No such file/directory found"));
                     process.exit(1);
                 }
                 good("File <" + fileName + "> successfully saved in " + directory);
                 return;
             });
-        })
-
+        });
     }
 
     /**
@@ -310,6 +318,26 @@ class ImportExportService {
             good(newDirectory);
             return;
         });
+    }
+
+    /**
+     * create a folder if does not exist
+     * @param folderName
+     * @param directory
+     * @return {Promise}
+     */
+    static makeFolderIfNotExist(directory) {
+        return new Promise(function(good, bad) {
+            return fs.mkdir(directory, function(err) {
+                if (err === 'EEXIST') {
+                }
+                if (program.verbose) {
+                    console.log("Status : creating folder at <"+directory+">");
+                }
+                good(directory);
+                return;
+            });
+       });
     }
 
     /**

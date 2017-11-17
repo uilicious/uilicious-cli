@@ -66,8 +66,13 @@ class ImportExportController {
      * @return {Promise.<TResult>}
      */
     static exportFolderHelper(projectName, directory) {
-        return ProjectService.projectID(projectName)
+        //create folder does not exist
+        return ImportExportService.makeFolderIfNotExist(directory)
+            .then(t => ProjectService.projectID(projectName))
             .then(projID => {
+                if (program.verbose) {
+                    console.log("Status : checked project ID");
+                }
                 return ImportExportService.exportTestDirectory(projID, directory);
             })
             .then(response => {
