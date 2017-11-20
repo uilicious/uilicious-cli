@@ -7,6 +7,7 @@
 const program = require('commander');
 const fs = require('fs');
 const path = require('path');
+const ngrok = require('ngrok');
 
 // Chalk (color) messages for success/error
 const chalk = require('chalk');
@@ -283,6 +284,40 @@ class TestService {
                 return data;
             });
     }
+
+    /**
+     * connect localhost project to ngrok to access it from public url
+     * @param port
+     * @returns {Promise}
+     */
+    static connectToNgrok(port){
+        return new Promise(function (good, bad) {
+            return ngrok.connect(port, function (err, url) {
+                if(err){
+                    good("Unable to connect Ngrok");
+                    return;
+                }
+                else{
+                    good("Ngrok connection successful with public address : "+url);
+                    return;
+                }
+            });
+        });
+    }
+
+    /**
+     * disconnect the  tunnel from ngrok
+     * @returns {Promise}
+     */
+    static disconnectNgrok(){
+        return  new Promise(function (good, bad) {
+            ngrok.disconnect();
+            ngrok.kill();
+            good();
+            return;
+        });
+    }
+
 }
 
 module.exports = TestService;

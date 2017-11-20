@@ -112,8 +112,8 @@ class APIUtils {
 	static jsonRequest(method, url, inData) {
 		// Calling rawRequest, and parsing the good result as JSON
 		return new Promise(function(good, bad) {
-			APIUtils.rawRequestData(method, url, inData)
-                .then(data=> {
+			return APIUtils.rawRequestData(method, url, inData)
+                .then(data => {
                     try {
 					    good(data);
 					    return;
