@@ -168,14 +168,14 @@ class TestService {
         return new Promise(function(good, bad) {
             let testRun = new Date().toString();
             let testDirectory = directory + "TestRun " + testRun;
-            fs.mkdir(testDirectory, function(err) {
+            return fs.mkdir(testDirectory, function(err) {
                 if (err) {
                     console.log(error("Error: An error occurred while creating the directory, Please specify a valid path"));
                     process.exit(1);
                 }
+                good(testDirectory);
+                return;
             });
-            good(testDirectory);
-            return;
         });
     }
 
@@ -236,9 +236,11 @@ class TestService {
      * @param projID
      * @param testID
      * @param dataParams
-     * @return {Promise}
+     * @param ngrokUrl
+     * @param ngrokProperty
+     * @returns {Promise}
      */
-    static runTest(projID, testID, dataParams) {
+    static runTest(projID, testID, dataParams, ngrokUrl, ngrokProperty) {
         // Get the browser config
         let form = {};
         if (program.browser != null) {
@@ -249,6 +251,12 @@ class TestService {
         }
         if (program.width != null) {
             form.width = program.width;
+        }
+        if(ngrokUrl && ngrokProperty){
+            dataParams = JSON.parse(dataParams);
+            //dataParams.url = ngrokUrl;
+            dataParams[ngrokProperty] = ngrokUrl;
+            dataParams = JSON.stringify(dataParams);
         }
         form.data = dataParams;
         // Return promise obj
@@ -298,7 +306,7 @@ class TestService {
                     return;
                 }
                 else{
-                    good("Ngrok connection successful with public address : "+url);
+                    good(url);
                     return;
                 }
             });
@@ -310,12 +318,8 @@ class TestService {
      * @returns {Promise}
      */
     static disconnectNgrok(){
-        return  new Promise(function (good, bad) {
-            ngrok.disconnect();
-            ngrok.kill();
-            good();
-            return;
-        });
+        ngrok.disconnect();
+        ngrok.kill();
     }
 
 }
