@@ -201,7 +201,7 @@ class APIUtils {
                 })
                 .then(data => {
                     var obj = JSON.parse(data);
-                    if ( obj.result == null ) {
+                    if ( obj.result == false ) {
                         console.error("ERROR: Unable to login - Invalid username/password");
                         process.exit(1);
                     } else {
