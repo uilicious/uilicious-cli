@@ -237,25 +237,25 @@ class TestService {
      * @param testID
      * @param dataParams
      * @param ngrokUrl
-     * @param ngrokProperty
+     * @param options
      * @returns {Promise}
      */
-    static runTest(projID, testID, dataParams, ngrokUrl, ngrokProperty) {
+    static runTest(projID, testID, dataParams, ngrokUrl, options) {
         // Get the browser config
         let form = {};
-        if (program.browser != null) {
-            form.browser = program.browser;
+        if (options.browser != null) {
+            form.browser = options.browser;
         }
-        if (program.height != null) {
-            form.height = program.height;
+        if (options.height != null) {
+            form.height = options.height;
         }
-        if (program.width != null) {
-            form.width = program.width;
+        if (options.width != null) {
+            form.width = options.width;
         }
-        if(ngrokUrl && ngrokProperty){
+        if(ngrokUrl && options.ngrokParam){
             dataParams = JSON.parse(dataParams);
-            if(dataParams[ngrokProperty]){
-                dataParams[ngrokProperty] = ngrokUrl;
+            if(dataParams[options.ngrokParam]){
+                dataParams[options.ngrokParam] = ngrokUrl;
             }
             dataParams = JSON.stringify(dataParams);
         }

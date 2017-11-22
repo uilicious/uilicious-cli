@@ -28,9 +28,6 @@ function CLIApp() {
 		.option('-u, --user <required>', 'username')
 		.option('-p, --pass <required>', 'password')
 		.option('-v, --verbose', 'display details log')
-		.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
-		.option('-w, --width <optional>', 'width of browser')
-		.option('-ht, --height <optional>', 'height of browser')
 		.option('--apiHost <optional>','API host');
 
     // Import as Folder
@@ -54,6 +51,9 @@ function CLIApp() {
 	// -----------------------------
 	program
 		.command('run <projname> <scriptpath>')
+        .option('-br, --browser <optional>', 'browser [Chrome/Firefox]')
+        .option('-wi, --width <optional>', 'width of browser')
+        .option('-ht, --height <optional>', 'height of browser')
 		.option('-s, --save <directory>', 'Set the directory path to save test log.')
         .option('--dataObject <directory>', 'Set the directory path to save test log.')
         .option('--dataFile <directory>', 'Set the directory path to save test log.')

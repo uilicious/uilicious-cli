@@ -196,7 +196,7 @@ class APIUtils {
                 api._core.baseURL("https://api.uilicious.com/");
             }
             return api.account.login({loginName:program.user, password: program.pass})
-                .then(response=>{
+                .then(response =>{
                     return api.account.hostURL();
                 })
                 .then(data => {

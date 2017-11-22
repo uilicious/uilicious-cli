@@ -91,7 +91,7 @@ class TestRunnerController {
                     else{
                         dataParams = null;
                     }
-                    return TestService.runTest(copyProjectId, scriptID, dataParams, copyngrokUrl, options.ngrokParam)})
+                    return TestService.runTest(copyProjectId, scriptID, dataParams, copyngrokUrl, options)})
                 .then(postID => {
                     console.log("# Test run ID: "+postID);
                     console.log("#");
@@ -154,7 +154,7 @@ class TestRunnerController {
                     else{
                         dataParams = null;
                     }
-                    return TestService.runTest(copyProjectId, scriptID, dataParams, copyngrokUrl, options.ngrokParam)})
+                    return TestService.runTest(copyProjectId, scriptID, dataParams, copyngrokUrl, options)})
                 .then(postID => {
                     console.log("# Test run ID: "+postID);
                     console.log("#");
