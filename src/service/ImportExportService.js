@@ -130,10 +130,7 @@ class ImportExportService {
                         promiseArr.push(ImportExportService.importTestContentsHelper(projID, nodeLocation, nodeName));
                     }
                     else if(fs.lstatSync(nodeLocation).isDirectory()){
-
                         ImportExportService.importDirectoryNodeToDirectoryPath(projID, nodeLocation, nodeName);
-
-                        // //promiseArr.push(ImportExportService.createFolderInsideProject(projID, file));
                     }
                 }
                 return Promise.all(promiseArr)
@@ -148,20 +145,17 @@ class ImportExportService {
             return;
         }
         if (fs.lstatSync(nodeLocation).isDirectory()) {
-            return ImportExportService.createFolderInsideProject(projID, nodeName)
-                .then(t => {
                     fs.readdir(nodeLocation, function(err, files) {
                         for (var i = 0; i < files.length; i++) {
                             let file = files[i];
                             let fileName = path.parse(file).name;
                             let file_pathname = nodeLocation + "/" + file;
-                            ImportExportService.importDirectoryNodeToDirectoryPath(projID, file_pathname, fileName);
+                            ImportExportService.importDirectoryNodeToDirectoryPath(projID, file_pathname, file);
                         }
                     });
-                });
         }
         else if (fs.lstatSync(nodeLocation).isFile()) {
-
+            ImportExportService.importTestContentsHelper(projID, nodeLocation, nodeName)
         }
     }
 
@@ -253,8 +247,15 @@ class ImportExportService {
                 });
         });
     }
-    
-    static exportHelper(projID,root_folder,directory){
+
+    /**
+     * Export helper function
+     * @param projID
+     * @param root_folder
+     * @param directory
+     * @returns {Promise}
+     */
+    static exportHelper(projID, root_folder, directory){
         return new Promise(function (good, bad) {
             if (root_folder.typeName == "FOLDER") {
                 let dirNode;
@@ -470,6 +471,12 @@ class ImportExportService {
         });
     }
 
+    /**
+     * Check if the remote path exists or not
+     * @param projectID
+     * @param folderName
+     * @returns {Promise}
+     */
     static checkRemoteFolderPath(projectID, folderName) {
         return new Promise(function (good, bad) {
             return APIUtils.webstudioJsonRequest(

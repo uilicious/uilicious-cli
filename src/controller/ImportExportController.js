@@ -47,7 +47,7 @@ class ImportExportController {
             .then(projID => {
                 if (program.verbose) {
                     console.log("Status : retrieved project id");
-                    console.log("Status : trying to import to local folder contents to project root directory");
+                    console.log("Status : trying to import from local folder to project root directory");
                 }
                 return ImportExportService.importFolderContents(projID, copyFolderPathName)
             })
