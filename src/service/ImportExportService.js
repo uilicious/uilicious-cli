@@ -124,13 +124,16 @@ class ImportExportService {
                 let promiseArr = [];
                 for (var i = 0; i < files.length; i++) {
                     let file = files[i];
-                    let fileName = path.parse(file).name;
-                    let file_pathname = folderLocation + "/" + file;
-                    if(fs.lstatSync(file_pathname).isFile()){
-                        promiseArr.push(ImportExportService.importTestContentsHelper(projID,file_pathname,fileName) );
+                    let nodeName = path.parse(file).name;
+                    let nodeLocation = folderLocation + "/" + file;
+                    if(fs.lstatSync(nodeLocation).isFile()){
+                        promiseArr.push(ImportExportService.importTestContentsHelper(projID, nodeLocation, nodeName));
                     }
-                    else if(fs.lstatSync(file_pathname).isDirectory()){
-                        //promiseArr.push(ImportExportService.importTestContentsHelper(projID,file_pathname,fileName) );
+                    else if(fs.lstatSync(nodeLocation).isDirectory()){
+
+                        ImportExportService.importDirectoryNodeToDirectoryPath(projID, nodeLocation, nodeName);
+
+                        // //promiseArr.push(ImportExportService.createFolderInsideProject(projID, file));
                     }
                 }
                 return Promise.all(promiseArr)
@@ -138,6 +141,28 @@ class ImportExportService {
                     .catch(error => bad(error));
             });
         });
+    }
+
+    static importDirectoryNodeToDirectoryPath(projID, nodeLocation, nodeName) {
+        if( nodeLocation == null ) {
+            return;
+        }
+        if (fs.lstatSync(nodeLocation).isDirectory()) {
+            return ImportExportService.createFolderInsideProject(projID, nodeName)
+                .then(t => {
+                    fs.readdir(nodeLocation, function(err, files) {
+                        for (var i = 0; i < files.length; i++) {
+                            let file = files[i];
+                            let fileName = path.parse(file).name;
+                            let file_pathname = nodeLocation + "/" + file;
+                            ImportExportService.importDirectoryNodeToDirectoryPath(projID, file_pathname, fileName);
+                        }
+                    });
+                });
+        }
+        else if (fs.lstatSync(nodeLocation).isFile()) {
+
+        }
     }
 
     /**
@@ -228,6 +253,7 @@ class ImportExportService {
                 });
         });
     }
+    
     static exportHelper(projID,root_folder,directory){
         return new Promise(function (good, bad) {
             if (root_folder.typeName == "FOLDER") {
@@ -411,10 +437,59 @@ class ImportExportService {
                     project = JSON.parse(project);
                     good(project.children);
                     return;
-                });
+                })
+                .catch(error => bad("Error: Unable to get the directory list in the project"));
         });
     }
 
+    /**
+     * Create a folder under the project in remote
+     * @param projectID
+     * @param folderName
+     * @returns {Promise}
+     */
+    static createFolderInsideProject(projectID, folderName) {
+        return new Promise(function (good, bad) {
+            return ImportExportService.checkRemoteFolderPath(projectID, folderName)
+                .then(response => {
+                    if(response == false){
+                        return APIUtils.webstudioRawRequest(
+                            "POST",
+                            "/api/studio/v1/projects/" + projectID + "/workspace/folders/addAction",
+                            {
+                                name: folderName
+                            });
+                    }
+                    else {
+                        good(response)
+                        return;
+                    }
+                })
+                .then(response => good(response))
+                .catch(error => bad("Error : Unable to create folder inside project"));
+        });
+    }
+
+    static checkRemoteFolderPath(projectID, folderName) {
+        return new Promise(function (good, bad) {
+            return APIUtils.webstudioJsonRequest(
+                "GET",
+                "/api/studio/v1/projects/" + projectID + "/workspace/folders",
+                {})
+                .then(list => {
+                    list = JSON.parse(list);
+                    for (let i = 0; i < list.length; i++) {
+                        let folder = list[i];
+                        if (folder.name == folderName) {
+                            good(folder);
+                            return;
+                        }
+                    }
+                    good(false);
+                    return;
+                });
+        });
+    }
 }
 
 module.exports = ImportExportService;
