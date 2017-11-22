@@ -33,21 +33,21 @@ class ImportExportController {
         return ImportExportService.checkPath(folderPath)
             .then(folder_pathname => {
                 if (program.verbose) {
-                    console.log("Status : checked target folder path");
+                    console.log("INFO : checked target folder path");
                 }
                 copyFolderPathName = folder_pathname;
                 return ImportExportService.checkFolderContents(folder_pathname)
             })
             .then(folder_name => {
                 if (program.verbose) {
-                    console.log("Status : checked folder contents");
+                    console.log("INFO : checked folder contents");
                 }
                 return ProjectService.projectID(projectName)
             })
             .then(projID => {
                 if (program.verbose) {
-                    console.log("Status : retrieved project id");
-                    console.log("Status : trying to import from local folder to project root directory");
+                    console.log("INFO : retrieved project id");
+                    console.log("INFO : trying to import from local folder to project root directory");
                 }
                 return ImportExportService.importFolderContents(projID, copyFolderPathName)
             })
@@ -71,7 +71,7 @@ class ImportExportController {
             .then(t => ProjectService.projectID(projectName))
             .then(projID => {
                 if (program.verbose) {
-                    console.log("Status : checked project ID");
+                    console.log("INFO : checked project ID");
                 }
                 return ImportExportService.exportTestDirectory(projID, directory);
             })
