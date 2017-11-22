@@ -99,7 +99,7 @@ class ImportExportService {
     static checkFolderContents(folder_pathname) {
         return new Promise(function(good, bad) {
             let folderName = path.basename(folder_pathname);
-            let folderContents = fs.readdir(folder_pathname, function(err, files) {
+            return fs.readdir(folder_pathname, function(err, files) {
                 if (err || files.length == 0) {
                     bad("ERROR: This folder is empty!\n");
                     return;
@@ -126,7 +126,12 @@ class ImportExportService {
                     let file = files[i];
                     let fileName = path.parse(file).name;
                     let file_pathname = folderLocation + "/" + file;
-                    promiseArr.push(ImportExportService.importTestContentsHelper(projID,file_pathname,fileName) );
+                    if(fs.lstatSync(file_pathname).isFile()){
+                        promiseArr.push(ImportExportService.importTestContentsHelper(projID,file_pathname,fileName) );
+                    }
+                    else if(fs.lstatSync(file_pathname).isDirectory()){
+                        //promiseArr.push(ImportExportService.importTestContentsHelper(projID,file_pathname,fileName) );
+                    }
                 }
                 return Promise.all(promiseArr)
                     .then(response => good())
