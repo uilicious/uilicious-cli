@@ -332,7 +332,7 @@ class ImportExportService {
                 if (err === 'EEXIST') {
                 }
                 if (program.verbose) {
-                    console.log("Status : creating folder at <"+directory+">");
+                    console.log("Status : creating folder if does not exist at <"+directory+">");
                 }
                 good(directory);
                 return;

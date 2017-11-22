@@ -254,8 +254,9 @@ class TestService {
         }
         if(ngrokUrl && ngrokProperty){
             dataParams = JSON.parse(dataParams);
-            //dataParams.url = ngrokUrl;
-            dataParams[ngrokProperty] = ngrokUrl;
+            if(dataParams[ngrokProperty]){
+                dataParams[ngrokProperty] = ngrokUrl;
+            }
             dataParams = JSON.stringify(dataParams);
         }
         form.data = dataParams;
