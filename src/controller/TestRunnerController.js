@@ -7,6 +7,7 @@
 // npm Dependencies
 const fs = require('fs');
 const util = require('util');
+const rjson = require("relaxed-json");
 
 // Chalk (color) messages for success/error
 const chalk = require('chalk');
@@ -82,11 +83,12 @@ class TestRunnerController {
                     let dataParams;
                     if(options.dataObject!=null){
                         console.log("# Data object is being supplied");
-                        dataParams = options.dataObject;
+                        dataParams = rjson.transform(options.dataObject);
                     }
                     else if(options.dataFile!=null){
                         console.log("# Data object is being supplied from a file");
                         dataParams = TestService.readFileContents(options.dataFile);
+                        dataParams = rjson.transform(dataParams);
                     }
                     else{
                         dataParams = null;
@@ -144,12 +146,13 @@ class TestRunnerController {
                     console.log("# Test ID  : "+scriptID);
                     let dataParams;
                     if(options.dataObject!=null){
-                        console.log("# Data object is being supplied");
-                        dataParams = options.dataObject;
+                        console.log("# Data object is being supplied")
+                        dataParams = rjson.transform(options.dataObject);
                     }
                     else if(options.dataFile!=null){
                         console.log("# Data object is being supplied from a file");
                         dataParams = TestService.readFileContents(options.dataFile);
+                        dataParams = rjson.transform(dataParams);
                     }
                     else{
                         dataParams = null;

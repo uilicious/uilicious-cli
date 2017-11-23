@@ -22,6 +22,7 @@
     "figlet": "^1.1.2",
     "form-data": "^2.3.1",
     "ngrok": "^2.2.23",
+    "relaxed-json": "^1.0.1",
     "request": "=2.81.0",
     "request-promise": "^4.2.2"
   },
