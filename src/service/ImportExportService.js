@@ -156,6 +156,9 @@ class ImportExportService {
         }
         else if (fs.lstatSync(nodeLocation).isFile()) {
             ImportExportService.importTestContentsHelper(projID, nodeLocation, nodeName)
+                .catch(errors => {
+                    console.log(error(errors));
+                });
         }
     }
 
@@ -184,7 +187,7 @@ class ImportExportService {
                     good();
                     return;
                 })
-                .catch(error => bad(error));
+                .catch(errors => bad(errors));
         });
     }
 
