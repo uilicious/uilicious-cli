@@ -218,9 +218,6 @@ class ImportExportService {
      */
     static exportTestDirectory(projID, directory) {
         return new Promise(function(good, bad) {
-            if (program.verbose) {
-                console.log("INFO : downloading directory list");
-            }
             return ImportExportService.directoryList(projID)
                 .then(rootDirMap => {
                     let promiseArr = [];
@@ -261,6 +258,9 @@ class ImportExportService {
                 }
             }
             else if(root_folder.typeName == "TEST"){
+                if (program.verbose) {
+                    console.log("INFO : downloading test script ("+root_folder.name+")");
+                }
                 return ImportExportService.getScript(projID, root_folder.id)
                     .then(fileContent => {
                         return ImportExportService.exportTestFile(directory, root_folder.name, fileContent);
