@@ -130,7 +130,17 @@ class ImportExportService {
                         promiseArr.push(ImportExportService.importTestContentsHelper(projID, nodeLocation, nodeName));
                     }
                     else if(fs.lstatSync(nodeLocation).isDirectory()){
-                        ImportExportService.importDirectoryNodeToDirectoryPath(projID, nodeLocation, nodeName);
+                        const read = (dir) =>
+                            fs.readdirSync(dir)
+                                .reduce((files, file) =>
+                                        fs.statSync(path.join(dir, file)).isDirectory() ?
+                                            files.concat(read(path.join(dir, file))) :
+                                            files.concat(path.join(dir, file)),
+                                    []);
+                        read(nodeLocation).forEach(function (node) {
+                            var nodeName = node.substr(node.lastIndexOf("/")+1).replace(".js","");
+                            promiseArr.push(ImportExportService.importTestContentsHelper(projID, node, nodeName));
+                        });
                     }
                 }
                 return Promise.all(promiseArr)
@@ -138,28 +148,6 @@ class ImportExportService {
                     .catch(error => bad(error));
             });
         });
-    }
-
-    static importDirectoryNodeToDirectoryPath(projID, nodeLocation, nodeName) {
-        if( nodeLocation == null ) {
-            return;
-        }
-        if (fs.lstatSync(nodeLocation).isDirectory()) {
-                    fs.readdir(nodeLocation, function(err, files) {
-                        for (var i = 0; i < files.length; i++) {
-                            let file = files[i];
-                            let fileName = path.parse(file).name;
-                            let file_pathname = nodeLocation + "/" + file;
-                            ImportExportService.importDirectoryNodeToDirectoryPath(projID, file_pathname, file);
-                        }
-                    });
-        }
-        else if (fs.lstatSync(nodeLocation).isFile()) {
-            ImportExportService.importTestContentsHelper(projID, nodeLocation, nodeName)
-                .catch(errors => {
-                    console.log(error(errors));
-                });
-        }
     }
 
     /**
@@ -183,6 +171,9 @@ class ImportExportService {
                     return ImportExportService.importTestUnderFolder(projID, testName, copyFileContent);
                 })
                 .then(response => {
+                    if (program.verbose) {
+                        console.log("INFO : Uploading test script ("+fileName+") ");
+                    }
                     good();
                     return;
                 })
@@ -228,7 +219,7 @@ class ImportExportService {
     static exportTestDirectory(projID, directory) {
         return new Promise(function(good, bad) {
             if (program.verbose) {
-                console.log("Status : downloading directory list");
+                console.log("INFO : downloading directory list");
             }
             return ImportExportService.directoryList(projID)
                 .then(rootDirMap => {
@@ -240,7 +231,7 @@ class ImportExportService {
                     return Promise.all(promiseArr)
                         .then(response => {
                             if (program.verbose) {
-                                console.log("Status : saved tests scripts to your local directory");
+                                console.log("INFO : saved tests scripts to your local directory");
                             }
                             good();
                         })
@@ -365,7 +356,7 @@ class ImportExportService {
                 if (err === 'EEXIST') {
                 }
                 if (program.verbose) {
-                    console.log("Status : creating folder if does not exist at <"+directory+">");
+                    console.log("INFO : creating folder if does not exist at <"+directory+">");
                 }
                 good(directory);
                 return;
