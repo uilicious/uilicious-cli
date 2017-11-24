@@ -38,7 +38,8 @@ class ProjectService {
                     }
                     console.error(error("ERROR: Project Name not found: " + projectName));
                     process.exit(1);
-                });
+                })
+                .catch(errors => bad(errors));
         });
     }
 
@@ -48,16 +49,13 @@ class ProjectService {
 
     /**
      * Get a list of projects, in the following format [ { id, title, logoUrl }]
-     * @return {*}
+     * @returns {Promise.<TResult>}
      */
     static projectList() {
         return APIUtils.webstudioJsonRequest(
             "GET",
             "/api/studio/v1/projects",
-            {})
-            .then(data => {
-                return data;
-            });
+            {});
     }
 }
 

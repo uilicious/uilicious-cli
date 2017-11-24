@@ -43,7 +43,7 @@ class APIUtils {
 
 		// The actual API call, with promise object
 		return new Promise(function(good, bad) {
-			request(option, function( err, res, body ) {
+			return request(option, function( err, res, body ) {
 				if (err) {
 					throw new Error("Unexpected error for URL request : " + url + " -> " + err);
 					process.exit(1);
@@ -84,7 +84,7 @@ class APIUtils {
 
 		// The actual API call, with promise object
 		return new Promise(function(good, bad) {
-			request(option, function( err, res, body ) {
+			return request(option, function( err, res, body ) {
 				if (err) {
 					throw new Error("Unexpected error for URL request : " + url + " -> " + err);
 				} else {
@@ -114,22 +114,10 @@ class APIUtils {
 		return new Promise(function(good, bad) {
 			return APIUtils.rawRequestData(method, url, inData)
                 .then(data => {
-                    try {
-					    good(data);
-					    return;
-                    } catch(err) {
-                        console.error("---- Error trace ----");
-                        console.error(err);
-                        console.error("---- HTTP response data ----");
-                        console.error(data);
-                        console.error("---- HTTP request URL ----");
-                        console.error(url);
-                        console.error("---- HTTP request data ----");
-                        console.error(inData);
-                        console.error("---- End of error report ----");
-                        process.exit(1);
-                    }
-			    },bad);
+                    good(data);
+                    return;
+                })
+                .catch(errors => bad(errors));
 		});
 	}
 
@@ -146,23 +134,11 @@ class APIUtils {
 		// Calling rawRequest, and parsing the good result as JSON
 		return new Promise(function(good, bad) {
 			return APIUtils.TestRequestData(method, url, inData)
-                .then(function(data) {
-                    try {
+                .then(data => {
                         good(JSON.parse(data));
                         return;
-                    } catch(err) {
-                        console.error("---- Error trace ----");
-                        console.error(err);
-                        console.error("---- HTTP response data ----");
-                        console.error(data);
-                        console.error("---- HTTP request URL ----");
-                        console.error(url);
-                        console.error("---- HTTP request data ----");
-                        console.error(inData);
-                        console.error("---- End of error report ----");
-                        process.exit(1);
-                    }
-                },bad);
+                })
+                .catch(errors => bad(errors));
 		});
 	}
 
@@ -209,7 +185,8 @@ class APIUtils {
                         good(_fullHostURL);
                         return;
                     }
-                });
+                })
+                .catch(errors => bad("ERROR: an error occurred while processing the request"));
         });
     }
 
@@ -228,7 +205,8 @@ class APIUtils {
                 .then(response => {
                     good(response);
                     return;
-                });
+                })
+				.catch(errors => bad(errors));
 		});
 	}
 
@@ -246,7 +224,8 @@ class APIUtils {
                 .then(response => {
                     good(response);
                     return;
-                });
+                })
+                .catch(errors => bad(errors));
 		});
 	}
 
@@ -264,7 +243,8 @@ class APIUtils {
                 .then(data => {
                     good(data);
                     return;
-                });
+                })
+                .catch(errors => bad("ERROR: an error occurred while processing the request"));
 		});
 	}
 }

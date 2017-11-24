@@ -176,14 +176,13 @@ class ImportExportService {
             return ImportExportService.readFileContents(file_pathname)
                 .then(file_content => {
                     copyFileContent = file_content;
-                    return ImportExportService.checkTest(projID, fileName)})
+                    return ImportExportService.checkTest(projID, fileName);
+                })
                 .then(testName => {
                     copyTestName= testName;
-                    return ImportExportService.importTestUnderFolder(projID, testName, copyFileContent)})
+                    return ImportExportService.importTestUnderFolder(projID, testName, copyFileContent);
+                })
                 .then(response => {
-                    if (program.verbose) {
-                        console.log("Status : uploading test script to remote project");
-                    }
                     good();
                     return;
                 })
@@ -203,7 +202,6 @@ class ImportExportService {
      * @return {Promise.<TResult>}
      */
     static importTestUnderFolder(projectID, testName, testContent) {
-
         return APIUtils.webstudioRawRequest(
             "POST",
             "/api/studio/v1/projects/" + projectID + "/workspace/tests/addAction",
@@ -344,14 +342,14 @@ class ImportExportService {
     static makeFolder(folderName, directory) {
         return new Promise(function(good, bad) {
             let newDirectory = directory + "/" + folderName;
-            fs.mkdir(newDirectory, function(err) {
+            return fs.mkdir(newDirectory, function(err) {
                 if (err === 'EEXIST') {
                     console.error(error("ERROR: This folder <"+ folderName +"> exists.\nPlease use another directory.\n"));
                     process.exit(1);
                 }
+                good(newDirectory);
+                return;
             });
-            good(newDirectory);
-            return;
         });
     }
 
@@ -497,7 +495,8 @@ class ImportExportService {
                     }
                     good(false);
                     return;
-                });
+                })
+                .catch(errors => bad(errors));
         });
     }
 }
