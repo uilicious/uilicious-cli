@@ -144,7 +144,7 @@ class TestRunnerController {
                 })
                 .then(scriptID =>  {
                     console.log("# Test ID  : "+scriptID);
-                    let dataParams;
+                    let dataParams = {};
                     if(options.dataObject!=null){
                         console.log("# Data object is being supplied")
                         dataParams = rjson.transform(options.dataObject);

@@ -252,13 +252,21 @@ class TestService {
         if (options.width != null) {
             form.width = options.width;
         }
-        dataParams = JSON.parse(dataParams);
+        if(dataParams){
+            dataParams = JSON.parse(dataParams);
+            form.data = dataParams;
+            console.log(form);
+        }
         if(ngrokUrl && options.ngrokParam){
-            if(dataParams[options.ngrokParam]){
+            if(!dataParams){
+                dataParams = {};
                 dataParams[options.ngrokParam] = ngrokUrl;
             }
+            else {
+                dataParams[options.ngrokParam] = ngrokUrl;
+            }
+            form.data = dataParams;
         }
-        form.data = dataParams;
         // Return promise obj
         return new Promise(function(good, bad) {
             return APIUtils.webstudioJsonRequest(
