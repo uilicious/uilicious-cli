@@ -252,12 +252,11 @@ class TestService {
         if (options.width != null) {
             form.width = options.width;
         }
+        dataParams = JSON.parse(dataParams);
         if(ngrokUrl && options.ngrokParam){
-            dataParams = JSON.parse(dataParams);
             if(dataParams[options.ngrokParam]){
                 dataParams[options.ngrokParam] = ngrokUrl;
             }
-            dataParams = JSON.stringify(dataParams);
         }
         form.data = dataParams;
         // Return promise obj
