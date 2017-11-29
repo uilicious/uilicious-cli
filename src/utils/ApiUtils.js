@@ -135,7 +135,7 @@ class APIUtils {
 		return new Promise(function(good, bad) {
 			return APIUtils.TestRequestData(method, url, inData)
                 .then(data => {
-                        good(JSON.parse(data));
+                        good(data);
                         return;
                 })
                 .catch(errors => bad(errors));

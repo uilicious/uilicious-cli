@@ -207,17 +207,16 @@ class TestService {
      */
     static testID(projID, testPath) {
         return new Promise(function (good, bad) {
-
             while (testPath.startsWith("/")) {
                 testPath = testPath.substr(1);
             }
-
             return APIUtils.webstudioTestRequest(
                 "GET",
                 "/api/studio/v1/projects/" + projID + "/workspace/tests",
                 {path: testPath}
                 )
                 .then(tests => {
+                    tests = JSON.parse(tests);
                     for (var i = 0; i < tests.length; i++) {
                         let test = tests[i];
                         if (test.path === testPath) {
@@ -225,9 +224,10 @@ class TestService {
                             return;
                         }
                     }
-                    console.error(error("ERROR: Unable to find test script: '" + testPath + "'\n"));
-                    process.exit(1);
-                });
+                    bad("ERROR: Unable to find test script: '" + testPath +"'");
+                    return;
+                })
+                .catch(errors => bad(errors));
         });
     }
 
@@ -255,7 +255,6 @@ class TestService {
         if(dataParams){
             dataParams = JSON.parse(dataParams);
             form.data = dataParams;
-            console.log(form);
         }
         if(ngrokUrl && options.ngrokParam){
             if(!dataParams){
@@ -281,7 +280,8 @@ class TestService {
                     }
                     bad("Missing Test Run ID/Invalid JSON format");
                     return;
-                });
+                })
+                .catch(errors => bad(errors));
         });
     }
 
@@ -298,7 +298,8 @@ class TestService {
             )
             .then(data => {
                 return data;
-            });
+            })
+            .catch(errors => bad(errors));
     }
 
     /**
