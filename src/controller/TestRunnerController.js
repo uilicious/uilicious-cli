@@ -37,7 +37,6 @@ class TestRunnerController {
         if (options.save != null) {
             let copyProjectId;
             let copyTestDirectory;
-            let copyngrokUrl;
             return TestService.makeDir(options.save)
                 .then(testDirectory => {
                     // Test log functionality
@@ -63,37 +62,14 @@ class TestRunnerController {
                     console.log("#");
 
                     return ProjectService.projectID(projectName)})
-                .then(projID => {
-                    console.log("# Project ID : "+projID);
-                    copyProjectId=projID;
-                    if(options.ngrokPort != null) {
-                        return TestService.connectToNgrok(options.ngrokPort)
-                            .then(ngrokUrl => {
-                                console.log("# Ngrok Url : " + ngrokUrl);
-                                copyngrokUrl = ngrokUrl;
-                                return TestService.testID(projectId, scriptPath)
-                            });
-                    }
-                    else {
-                        return TestService.testID(projectId, scriptPath);
-                    }
+                .then(projectId => {
+                    console.log("# Project ID : "+projectId);
+                    copyProjectId = projectId;
+                    return TestService.testID(projectId, scriptPath);
                 })
                 .then(scriptID =>  {
                     console.log("# Test ID  : "+scriptID);
-                    let dataParams;
-                    if(options.dataObject!=null){
-                        console.log("# Data object is being supplied");
-                        dataParams = rjson.transform(options.dataObject);
-                    }
-                    else if(options.dataFile!=null){
-                        console.log("# Data object is being supplied from a file");
-                        dataParams = TestService.readFileContents(options.dataFile);
-                        dataParams = rjson.transform(dataParams);
-                    }
-                    else{
-                        dataParams = null;
-                    }
-                    return TestService.runTest(copyProjectId, scriptID, dataParams, copyngrokUrl, options)})
+                    return TestService.runTest(copyProjectId, scriptID, options)})
                 .then(postID => {
                     console.log("# Test run ID: "+postID);
                     console.log("#");
@@ -105,9 +81,6 @@ class TestRunnerController {
                     console.log("");
                     TestService.outputStatus(response.steps);
                     TestService.processErrors(response.steps);
-                    if(copyngRokUrl!=null){
-                        TestService.disconnectNgrok();
-                    }
                     console.log("")
                     console.log("Test Info saved in "+copyTestDirectory+"\n");
                 })
@@ -125,39 +98,15 @@ class TestRunnerController {
             console.log("# Test Path : " + scriptPath);
             console.log("#");
             let copyProjectId;
-            let copyngrokUrl;
             return ProjectService.projectID(projectName)
                 .then(projectId => {
                     console.log("# Project ID : "+projectId);
                     copyProjectId=projectId;
-                    if(options.ngrokPort != null) {
-                        return TestService.connectToNgrok(options.ngrokPort)
-                            .then(ngrokUrl => {
-                                console.log("# Ngrok Url : " + ngrokUrl);
-                                copyngrokUrl = ngrokUrl;
-                                return TestService.testID(projectId, scriptPath)
-                            });
-                    }
-                    else {
-                        return TestService.testID(projectId, scriptPath);
-                    }
+                    return TestService.testID(projectId, scriptPath);
                 })
                 .then(scriptID =>  {
                     console.log("# Test ID  : "+scriptID);
-                    let dataParams = {};
-                    if(options.dataObject!=null){
-                        console.log("# Data object is being supplied")
-                        dataParams = rjson.transform(options.dataObject);
-                    }
-                    else if(options.dataFile!=null){
-                        console.log("# Data object is being supplied from a file");
-                        dataParams = TestService.readFileContents(options.dataFile);
-                        dataParams = rjson.transform(dataParams);
-                    }
-                    else{
-                        dataParams = null;
-                    }
-                    return TestService.runTest(copyProjectId, scriptID, dataParams, copyngrokUrl, options)})
+                    return TestService.runTest(copyProjectId, scriptID, options)})
                 .then(postID => {
                     console.log("# Test run ID: "+postID);
                     console.log("#");
@@ -169,9 +118,6 @@ class TestRunnerController {
                     console.log("");
                     TestService.outputStatus(response.steps);
                     TestService.processErrors(response.steps);
-                    if(copyngrokUrl){
-                        TestService.disconnectNgrok();
-                    }
                 })
                 .catch(errors => {
                     console.error(error(errors));

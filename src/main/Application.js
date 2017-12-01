@@ -55,11 +55,7 @@ function CLIApp() {
         .option('-wi, --width <optional>', 'width of browser')
         .option('-ht, --height <optional>', 'height of browser')
 		.option('-s, --save <directory>', 'Set the directory path to save test log.')
-        .option('--dataObject <directory>', 'Set the directory path to save test log.')
-        .option('--dataFile <directory>', 'Set the directory path to save test log.')
-        .option('--ngrokPort <optional>', 'Set your localhost port number for ngrok to access it publicly')
-        .option('--ngrokParam <optional>', 'Override url param value for DataObject')
-		.description('Run a test from a project.')
+       	.description('Run a test from a project.')
 		.action(TestRunnerController.main);
 
 	// end with parse to parse through the input.txt

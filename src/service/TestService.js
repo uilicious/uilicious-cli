@@ -240,7 +240,7 @@ class TestService {
      * @param options
      * @returns {Promise}
      */
-    static runTest(projID, testID, dataParams, ngrokUrl, options) {
+    static runTest(projID, testID, options) {
         // Get the browser config
         let form = {};
         if (options.browser != null) {
@@ -251,20 +251,6 @@ class TestService {
         }
         if (options.width != null) {
             form.width = options.width;
-        }
-        if(dataParams){
-            dataParams = JSON.parse(dataParams);
-            form.data = dataParams;
-        }
-        if(ngrokUrl && options.ngrokParam){
-            if(!dataParams){
-                dataParams = {};
-                dataParams[options.ngrokParam] = ngrokUrl;
-            }
-            else {
-                dataParams[options.ngrokParam] = ngrokUrl;
-            }
-            form.data = dataParams;
         }
         // Return promise obj
         return new Promise(function(good, bad) {
