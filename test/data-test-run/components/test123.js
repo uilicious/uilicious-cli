@@ -1,2 +1,2 @@
-I.goTo(DATA.url);
-I.see(DATA.name);
+I.goTo("https://uilicious.com/");
+I.see("Uilicious");

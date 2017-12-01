@@ -2,10 +2,9 @@
 -------------------
 
 ```
-$ ./test/run.js <username> <password> <folder>
+$ ./test/run.js <username> <password>
 ```
 
 ## Parameters
 * <username> - username of account
 * <password> - password of account
-* <folder> - folder to be executed
