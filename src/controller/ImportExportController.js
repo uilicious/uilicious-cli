@@ -13,8 +13,8 @@ const program = require('commander');
 
 // Module Dependencies (non-npm)
 const ProjectService = require('../service/ProjectService');
-const FolderService = require('../service/FolderService');
 const ImportExportService = require('../service/ImportExportService');
+const APIUtils = require('../utils/ApiUtils');
 
 class ImportExportController {
 
@@ -30,7 +30,8 @@ class ImportExportController {
      */
     static importFolderHelper(projectName, folderPath, options) {
         let copyFolderPathName;
-        return ImportExportService.checkPath(folderPath)
+        return APIUtils.getFullHostURL()
+            .then(t => ImportExportService.checkPath(folderPath))
             .then(folder_pathname => {
                 if (program.verbose) {
                     console.log("INFO : checked target folder path");
@@ -67,8 +68,9 @@ class ImportExportController {
      */
     static exportFolderHelper(projectName, directory) {
         //create folder does not exist
-        return ImportExportService.makeFolderIfNotExist(directory)
-            .then(t => ProjectService.projectID(projectName))
+        return APIUtils.getFullHostURL()
+            .then(response => ImportExportService.makeFolderIfNotExist(directory))
+            .then(response => ProjectService.projectID(projectName))
             .then(projID => {
                 if (program.verbose) {
                     console.log("INFO : checked project ID");

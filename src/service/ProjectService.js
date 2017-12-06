@@ -11,7 +11,7 @@ const success = chalk.green;
 
 // Module Dependencies (non-npm)
 const APIUtils = require('../utils/ApiUtils');
-
+const api = require('../utils/api');
 class ProjectService {
 
     //------------------------------------------------------------------------------
@@ -26,13 +26,14 @@ class ProjectService {
      */
     static projectID(projectName) {
         return new Promise(function(good, bad) {
-            return ProjectService.projectList()
-                .then(list => {
-                    list = JSON.parse(list);
+            return api.project.list({fieldList:["_oid", "name"]})
+                .then(response => {
+                    response = JSON.parse(response);
+                    let list = response.result;
                     for (let i=0; i<list.length; ++i) {
                         let project = list[i];
-                        if (project.title == projectName) {
-                            good(project.id);
+                        if (project.name == projectName) {
+                            good(project._oid);
                             return;
                         }
                     }

@@ -17,7 +17,7 @@ const success = chalk.green;
 
 // Module Dependencies (non-npm)
 const APIUtils = require('../utils/ApiUtils');
-
+const api = require('../utils/api');
 class ImportExportService {
 
     //----------------------------------------------------------------------------
@@ -71,16 +71,15 @@ class ImportExportService {
     static checkTest(projID, filePathname) {
         return new Promise(function(good, bad) {
             let testName = path.parse(filePathname).name;
-            return APIUtils.webstudioJsonRequest(
-                "GET",
-                "/api/studio/v1/projects/" + projID + "/workspace/tests",
-                { name: testName })
-                .then(list => {
-                    list = JSON.parse(list);
-                    for (let i = 0; i < list.length; i++) {
-                        let item = list[i];
+            testName="/"+testName;
+            return api.project.file.query({projectID:projID})
+                .then(response => {
+                    response = JSON.parse(response);
+                    response = response.result.children;
+                    for (let i = 0; i < response.length; i++) {
+                        let item = response[i];
                         if (item.name == testName) {
-                            bad("ERROR: This test '" + testName + "' exists. Please use another name!\n");
+                            bad("ERROR: This test '" + path.parse(filePathname).name + "' exists. Please use another name!\n");
                             return;
                         }
                     }
@@ -159,16 +158,11 @@ class ImportExportService {
      */
     static importTestContentsHelper(projID, file_pathname, fileName){
         return new Promise(function (good,bad) {
-            let copyFileContent;
-            let copyTestName;
             return ImportExportService.readFileContents(file_pathname)
                 .then(file_content => {
-                    copyFileContent = file_content;
-                    return ImportExportService.checkTest(projID, fileName);
-                })
-                .then(testName => {
-                    copyTestName= testName;
-                    return ImportExportService.importTestUnderFolder(projID, testName, copyFileContent);
+                    var override = true+"";
+                    return api.project.file.put({projectID:projID, filePath:path.parse(file_pathname).name,
+                        content: file_content, override:override });
                 })
                 .then(response => {
                     if (program.verbose) {
@@ -179,30 +173,6 @@ class ImportExportService {
                 })
                 .catch(errors => bad(errors));
         });
-    }
-
-    //----------------------------------------------------------------------------
-    // Import API Functions
-    //----------------------------------------------------------------------------
-
-    /**
-     * Create a new test by importing it under a folder in a project
-     * @param projectID
-     * @param testName
-     * @param testContent
-     * @return {Promise.<TResult>}
-     */
-    static importTestUnderFolder(projectID, testName, testContent) {
-        return APIUtils.webstudioRawRequest(
-            "POST",
-            "/api/studio/v1/projects/" + projectID + "/workspace/tests/addAction",
-            {
-                name: testName,
-                script: testContent
-            })
-            .then(data => {
-                return data;
-            });
     }
 
     //----------------------------------------------------------------------------
@@ -220,6 +190,7 @@ class ImportExportService {
         return new Promise(function(good, bad) {
             return ImportExportService.directoryList(projID)
                 .then(rootDirMap => {
+                    console.log(rootDirMap);
                     let promiseArr = [];
                     for (var i = 0; i < rootDirMap.length; i++) {
                         let root_folder = rootDirMap[i];
@@ -233,7 +204,8 @@ class ImportExportService {
                             good();
                         })
                         .catch(error => bad(error));
-                });
+                })
+                .catch(errors => bad(errors));
         });
     }
 
@@ -428,7 +400,11 @@ class ImportExportService {
                 )
                 .then(project => {
                     project = JSON.parse(project);
-                    good(project.children);
+                    if(project.children){
+                        good(project.children);
+                        return;
+                    }
+                    bad("Error: Unable to get the directory list in the project");
                     return;
                 })
                 .catch(error => bad("Error: Unable to get the directory list in the project"));

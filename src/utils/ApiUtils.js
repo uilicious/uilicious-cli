@@ -186,7 +186,7 @@ class APIUtils {
                         return;
                     }
                 })
-                .catch(errors => bad("ERROR: an error occurred while processing the request"));
+                .catch(errors => bad("ERROR: an error occurred during authentication"));
         });
     }
 

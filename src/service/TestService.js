@@ -16,7 +16,7 @@ const success = chalk.green;
 
 // Module Dependencies (non-npm)
 const APIUtils = require('../utils/ApiUtils');
-
+const api = require('../utils/api');
 /// Output test caching, this is to prevent duplicates
 /// in test steps from appearing on screen
 ///
@@ -36,20 +36,17 @@ class TestService {
      * @return {Promise}
      */
     static pollForResult(runTestID) {
-
         // Call API every 2000ms
         let pollInterval = 2000;
-
         return new Promise(function(good, bad) {
             function actualPoll() {
                 setTimeout(function() {
-                    return TestService.getResult(runTestID)
+                  return api.project.testrun.get({id:runTestID})
                         .then(res => {
                             res = JSON.parse(res);
                             // Everytime the result is received,
                             // Update the screen for the latest status updates
                             TestService.processResultSteps(res.steps);
-
                             // Wait for test status (success/failure) and
                             // then return the full results
                             if (res.status == 'success' || res.status == 'failure') {
@@ -59,7 +56,7 @@ class TestService {
                             else {
                                 actualPoll();
                             }
-                        })
+                        }).catch(errors => bad("ERROR: Error occurred while getting the test result"))
                 }, pollInterval);
             }
             actualPoll();
@@ -84,13 +81,13 @@ class TestService {
         }
         // Display this log if no errors
         if (errorCount == 0) {
-            console.log("Test successful with no errors.");
+            return "Test successful with no errors.";
         }
         // Display this log if there are errors
         if (errorCount == 1) {
-            console.log("Test failed with " + errorCount + " error.");
+            return "Test failed with " + errorCount + " error.";
         } else if (errorCount > 1) {
-            console.log("Test failed with " + errorCount + " errors.");
+            return "Test failed with " + errorCount + " errors.";
         }
     }
 
@@ -107,7 +104,7 @@ class TestService {
             let step = stepArr[idx];
             totalTime+=step.time;
         }
-        console.log("Total time to execute the test : " + totalTime.toFixed(2) + "s");
+        return "Total time to execute the test : " + totalTime.toFixed(2) + "s";
 
     }
 
@@ -210,16 +207,13 @@ class TestService {
             while (testPath.startsWith("/")) {
                 testPath = testPath.substr(1);
             }
-            return APIUtils.webstudioTestRequest(
-                "GET",
-                "/api/studio/v1/projects/" + projID + "/workspace/tests",
-                {path: testPath}
-                )
+            return api.project.file.get({projectID:projID, filePath:testPath})
                 .then(tests => {
                     tests = JSON.parse(tests);
+                    tests = tests.result.children;
                     for (var i = 0; i < tests.length; i++) {
                         let test = tests[i];
-                        if (test.path === testPath) {
+                        if (test.name === testPath) {
                             good(test.id);
                             return;
                         }
@@ -227,7 +221,7 @@ class TestService {
                     bad("ERROR: Unable to find test script: '" + testPath +"'");
                     return;
                 })
-                .catch(errors => bad(errors));
+                .catch(errors => bad("ERROR: error occurred while finding the test script in the project"));
         });
     }
 
@@ -240,7 +234,7 @@ class TestService {
      * @param options
      * @returns {Promise}
      */
-    static runTest(projID, testID, options) {
+    static runTest(projID, scriptName, options) {
         // Get the browser config
         let form = {};
         if (options.browser != null) {
@@ -254,20 +248,17 @@ class TestService {
         }
         // Return promise obj
         return new Promise(function(good, bad) {
-            return APIUtils.webstudioJsonRequest(
-                "POST",
-                "/api/studio/v1/projects/" + projID + "/workspace/tests/" + testID + "/runAction?cli=true",
-                form)
+            return api.project.runAction({projectID:projID, runFile:scriptName})
                 .then(res => {
                     res = JSON.parse(res);
-                    if ( res.id != null ) {
-                        good(res.id);
+                    if(res.testRunIDs[0]){
+                        good(res.testRunIDs[0]);
                         return;
                     }
                     bad("Missing Test Run ID/Invalid JSON format");
                     return;
                 })
-                .catch(errors => bad(errors));
+                .catch(errors => bad("Missing Test Run ID/Invalid JSON format"));
         });
     }
 

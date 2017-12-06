@@ -18,6 +18,7 @@ const success = chalk.green;
 const CLIUtils = require('../utils/CliUtils');
 const ProjectService = require('../service/ProjectService');
 const TestService = require('../service/TestService');
+const APIUtils = require('../utils/ApiUtils');
 
 class TestRunnerController {
 
@@ -34,6 +35,9 @@ class TestRunnerController {
      *@return {Promise.<TResult>}
      */
     static main(projectName, scriptPath, options) {
+
+
+
         if (options.save != null) {
             let copyProjectId;
             let copyTestDirectory;
@@ -60,26 +64,27 @@ class TestRunnerController {
                     console.log("# Project Name: " + projectName);
                     console.log("# Test Path : " + scriptPath);
                     console.log("#");
-
-                    return ProjectService.projectID(projectName)})
+                    return APIUtils.getFullHostURL()})
+                .then(response => {
+                    console.log("# Log In Successful");
+                    console.log("#");
+                    return ProjectService.projectID(projectName);
+                })
                 .then(projectId => {
                     console.log("# Project ID : "+projectId);
-                    copyProjectId = projectId;
-                    return TestService.testID(projectId, scriptPath);
+                    return TestService.runTest(projectId, scriptPath, options)
                 })
-                .then(scriptID =>  {
-                    console.log("# Test ID  : "+scriptID);
-                    return TestService.runTest(copyProjectId, scriptID, options)})
                 .then(postID => {
                     console.log("# Test run ID: "+postID);
                     console.log("#");
                     console.log("");
-                    return TestService.pollForResult(postID)})
+                    return TestService.pollForResult(postID)
+                })
                 .then(response => {
                     console.log("");
-                    TestService.outputTotalTestRunningTime(response.steps);
+                    console.log(TestService.outputTotalTestRunningTime(response.steps));
                     console.log("");
-                    TestService.outputStatus(response.steps);
+                    console.log(TestService.outputStatus(response.steps));
                     TestService.processErrors(response.steps);
                     console.log("")
                     console.log("Test Info saved in "+copyTestDirectory+"\n");
@@ -97,26 +102,26 @@ class TestRunnerController {
             console.log("# Project Name: " + projectName);
             console.log("# Test Path : " + scriptPath);
             console.log("#");
-            let copyProjectId;
-            return ProjectService.projectID(projectName)
+            return APIUtils.getFullHostURL()
+                .then(response => {
+                    console.log("# Log In Successful");
+                    return ProjectService.projectID(projectName);
+                })
                 .then(projectId => {
                     console.log("# Project ID : "+projectId);
-                    copyProjectId=projectId;
-                    return TestService.testID(projectId, scriptPath);
+                    return TestService.runTest(projectId, scriptPath, options)
                 })
-                .then(scriptID =>  {
-                    console.log("# Test ID  : "+scriptID);
-                    return TestService.runTest(copyProjectId, scriptID, options)})
                 .then(postID => {
                     console.log("# Test run ID: "+postID);
                     console.log("#");
                     console.log("");
-                    return TestService.pollForResult(postID)})
+                    return TestService.pollForResult(postID)
+                })
                 .then(response => {
                     console.log("");
-                    TestService.outputTotalTestRunningTime(response.steps);
+                    console.log(TestService.outputTotalTestRunningTime(response.steps));
                     console.log("");
-                    TestService.outputStatus(response.steps);
+                    console.log(TestService.outputStatus(response.steps));
                     TestService.processErrors(response.steps);
                 })
                 .catch(errors => {
