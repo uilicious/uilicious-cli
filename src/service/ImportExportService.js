@@ -116,7 +116,7 @@ class ImportExportService {
      * @param folder_pathname
      * @return {Promise}
      */
-    static importFolderContents(projID, folder_pathname) {
+    static importFolderContents(projID, folder_pathname, options) {
         return new Promise(function(good, bad) {
             let folderLocation = path.resolve(folder_pathname);
             return fs.readdir(folder_pathname, function(err, files) {
@@ -126,7 +126,7 @@ class ImportExportService {
                     let nodeName = path.parse(file).name;
                     let nodeLocation = folderLocation + "/" + file;
                     if(fs.lstatSync(nodeLocation).isFile()){
-                        promiseArr.push(ImportExportService.importTestContentsHelper(projID, nodeLocation, nodeName));
+                        promiseArr.push(ImportExportService.importTestContentsHelper(projID, nodeLocation, nodeName, options));
                     }
                     else if(fs.lstatSync(nodeLocation).isDirectory()){
                         const read = (dir) =>
@@ -138,7 +138,7 @@ class ImportExportService {
                                     []);
                         read(nodeLocation).forEach(function (node) {
                             var nodeName = node.substr(node.lastIndexOf("/")+1).replace(".js","");
-                            promiseArr.push(ImportExportService.importTestContentsHelper(projID, node, nodeName));
+                            promiseArr.push(ImportExportService.importTestContentsHelper(projID, node, nodeName, options));
                         });
                     }
                 }
@@ -156,13 +156,27 @@ class ImportExportService {
      * @param fileName
      * @return {Promise}
      */
-    static importTestContentsHelper(projID, file_pathname, fileName){
+    static importTestContentsHelper(projID, file_pathname, fileName, options){
         return new Promise(function (good,bad) {
             return ImportExportService.readFileContents(file_pathname)
                 .then(file_content => {
-                    var override = true+"";
+                    var override;
+                    if(options.overwrite){
+                        if(options.overwrite == "y"){
+                            override = "true";
+                        }
+                        else if(options.overwrite == "n"){
+                            override = "false";
+                        }
+                        else{
+                            override = "false";
+                        }
+                    }
+                    else{
+                        override = "false";
+                    }
                     return api.project.file.put({projectID:projID, filePath:path.parse(file_pathname).name,
-                        content: file_content, override:override });
+                        content: file_content, overwrite:override });
                 })
                 .then(response => {
                     if (program.verbose) {

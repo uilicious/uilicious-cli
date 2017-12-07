@@ -34,7 +34,8 @@ function CLIApp() {
     program
         .command('import <projname> <folder_path>')
         .description('Import test scripts to a project from a local directory.')
-        .action(function(projname, folder_path, options) {
+        .option('--overwrite <optional>', 'Overwrite test script(s) [y/f]')
+		.action(function(projname, folder_path, options) {
         	ImportExportController.importFolderHelper(projname, folder_path, options);
         });
 

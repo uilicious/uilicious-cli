@@ -37,20 +37,20 @@ class ImportExportController {
                     console.log("INFO : checked target folder path");
                 }
                 copyFolderPathName = folder_pathname;
-                return ImportExportService.checkFolderContents(folder_pathname)
+                return ImportExportService.checkFolderContents(folder_pathname);
             })
             .then(folder_name => {
                 if (program.verbose) {
                     console.log("INFO : checked folder contents");
                 }
-                return ProjectService.projectID(projectName)
+                return ProjectService.projectID(projectName);
             })
             .then(projID => {
                 if (program.verbose) {
                     console.log("INFO : retrieved project id");
                     console.log("INFO : trying to import from local folder to project root directory");
                 }
-                return ImportExportService.importFolderContents(projID, copyFolderPathName)
+                return ImportExportService.importFolderContents(projID, copyFolderPathName, options);
             })
             .then(response => {
                 console.log(success("Import successful! test(s) created under Project <"+ projectName +">" ));
