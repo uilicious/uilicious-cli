@@ -43,21 +43,6 @@ class ProjectService {
                 .catch(errors => bad(errors));
         });
     }
-
-    //------------------------------------------------------------------------------
-    //	Project API Functions
-    //------------------------------------------------------------------------------
-
-    /**
-     * Get a list of projects, in the following format [ { id, title, logoUrl }]
-     * @returns {Promise.<TResult>}
-     */
-    static projectList() {
-        return APIUtils.webstudioJsonRequest(
-            "GET",
-            "/api/studio/v1/projects",
-            {});
-    }
 }
 
 module.exports = ProjectService;

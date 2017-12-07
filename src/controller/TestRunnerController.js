@@ -35,11 +35,7 @@ class TestRunnerController {
      *@return {Promise.<TResult>}
      */
     static main(projectName, scriptPath, options) {
-
-
-
         if (options.save != null) {
-            let copyProjectId;
             let copyTestDirectory;
             return TestService.makeDir(options.save)
                 .then(testDirectory => {
@@ -64,7 +60,7 @@ class TestRunnerController {
                     console.log("# Project Name: " + projectName);
                     console.log("# Test Path : " + scriptPath);
                     console.log("#");
-                    return APIUtils.getFullHostURL()})
+                    return APIUtils.login()})
                 .then(response => {
                     console.log("# Log In Successful");
                     console.log("#");
@@ -102,7 +98,7 @@ class TestRunnerController {
             console.log("# Project Name: " + projectName);
             console.log("# Test Path : " + scriptPath);
             console.log("#");
-            return APIUtils.getFullHostURL()
+            return APIUtils.login()
                 .then(response => {
                     console.log("# Log In Successful");
                     return ProjectService.projectID(projectName);

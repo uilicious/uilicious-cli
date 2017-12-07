@@ -30,7 +30,7 @@ class ImportExportController {
      */
     static importFolderHelper(projectName, folderPath, options) {
         let copyFolderPathName;
-        return APIUtils.getFullHostURL()
+        return APIUtils.login()
             .then(t => ImportExportService.checkPath(folderPath))
             .then(folder_pathname => {
                 if (program.verbose) {
@@ -68,7 +68,7 @@ class ImportExportController {
      */
     static exportFolderHelper(projectName, directory) {
         //create folder does not exist
-        return APIUtils.getFullHostURL()
+        return APIUtils.login()
             .then(response => ImportExportService.makeFolderIfNotExist(directory))
             .then(response => ProjectService.projectID(projectName))
             .then(projID => {

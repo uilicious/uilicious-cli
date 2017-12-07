@@ -18,137 +18,12 @@ class APIUtils {
 		process.exit(1);
 	}
 
-	/**
-     * Makes a POST or GET request, with the given form object
-     * and return its JSON result in a promise
-     * @param method "POST" or "GET" method
-     * @param url
-     * @param data
-     * @param callback
-     * @return {Promise.<TResult>}
-     */
-	static rawRequestData(method, url, data) {
-
-		// Option / parameter parsing
-		var option = {
-			url : url,
-			method : method,
-            jar : api._core.getCookieJar()
-		};
-		if ( method == "GET" ) {
-			option.qs = data;
-		} else {
-			option.form = data;
-		}
-
-		// The actual API call, with promise object
-		return new Promise(function(good, bad) {
-			return request(option, function( err, res, body ) {
-				if (err) {
-					throw new Error("Unexpected error for URL request : " + url + " -> " + err);
-					process.exit(1);
-				} else {
-					try {
-						good(body);
-						return;
-					} catch(err) {
-						throw new Error("Invalid data (JSON) format for URL request : " + url + " -> " + body);
-                        process.exit(1);
-					}
-				}
-			});
-		});
-	}
-
-    /**
-     * Makes a POST or GET request for test requests, with the given form object (strictly for test requests)
-     * and return its JSON result in a promise
-     * @param method
-     * @param url
-     * @param data
-     * @param callback
-     * @return {Promise.<TResult>}
-     * @constructor
-     */
-	static TestRequestData(method, url, data) {
-
-		// Option / parameter parsing
-		var option = {
-			url : url,
-			method : method,
-            jar : api._core.getCookieJar()
-		};
-		if ( method == "GET" || method == "POST") {
-			option.form = data;
-		}
-
-		// The actual API call, with promise object
-		return new Promise(function(good, bad) {
-			return request(option, function( err, res, body ) {
-				if (err) {
-					throw new Error("Unexpected error for URL request : " + url + " -> " + err);
-				} else {
-					try {
-						good(body);
-						return;
-					} catch(err) {
-						throw new Error("Invalid data (JSON) format for URL request : " + url + " -> " + body);
-					}
-				}
-			});
-		});
-	}
-
-
-    /**
-     * Makes a GET or POST request, with the given form object
-     * and return its JSON result in a promise
-     * @param method
-     * @param url
-     * @param inData
-     * @param callback
-     * @return {Promise.<TResult>}
-     */
-	static jsonRequest(method, url, inData) {
-		// Calling rawRequest, and parsing the good result as JSON
-		return new Promise(function(good, bad) {
-			return APIUtils.rawRequestData(method, url, inData)
-                .then(data => {
-                    good(data);
-                    return;
-                })
-                .catch(errors => bad(errors));
-		});
-	}
-
-    /**
-     * Debug the request and response
-     * @param method
-     * @param url
-     * @param inData
-     * @param callback
-     * @return {Promise.<TResult>}
-     * @constructor
-     */
-	static TestRequest(method, url, inData) {
-		// Calling rawRequest, and parsing the good result as JSON
-		return new Promise(function(good, bad) {
-			return APIUtils.TestRequestData(method, url, inData)
-                .then(data => {
-                        good(data);
-                        return;
-                })
-                .catch(errors => bad(errors));
-		});
-	}
-
     /**
      * Does a login check,set cookies and provides the actual server URL to call API
      * silently terminates, with an error message if it fails
      * @return {Promise}
      */
-	static getFullHostURL() {
-
+	static login() {
 		if ( _fullHostURL != null ) {
 		    return Promise.resolve(_fullHostURL);
 		}
@@ -172,7 +47,7 @@ class APIUtils {
                 api._core.baseURL("https://api.uilicious.com/");
             }
             return api.account.login({loginName:program.user, password: program.pass})
-                .then(response =>{
+                .then(response => {
                     return api.account.hostURL();
                 })
                 .then(data => {
@@ -189,64 +64,6 @@ class APIUtils {
                 .catch(errors => bad("ERROR: an error occurred during authentication"));
         });
     }
-
-    /**
-     * Does a JSON request to web-studio instance of the client
-     * @param method
-     * @param webPath
-     * @param params
-     * @param callback
-     * @return {Promise.<TResult>}
-     */
-	static webstudioJsonRequest(method, webPath, params) {
-		return new Promise(function(good, bad) {
-			return APIUtils.getFullHostURL()
-                .then(hostURL=> APIUtils.jsonRequest(method, hostURL+webPath, params))
-                .then(response => {
-                    good(response);
-                    return;
-                })
-				.catch(errors => bad(errors));
-		});
-	}
-
-    /**
-     * Does a request to web-studio for test run
-     * @param method
-     * @param webPath
-     * @param params
-     * @return {Promise}
-     */
-	static webstudioTestRequest(method, webPath, params) {
-		return new Promise(function(good, bad) {
-			return APIUtils.getFullHostURL()
-                .then(hostURL=> APIUtils.TestRequest(method, hostURL+webPath, params))
-                .then(response => {
-                    good(response);
-                    return;
-                })
-                .catch(errors => bad(errors));
-		});
-	}
-
-    /**
-     * Does a RAW request to web-studio instance of the client
-     * @param method
-     * @param webPath
-     * @param params
-     * @return {Promise}
-     */
-	static webstudioRawRequest(method, webPath, params) {
-		return new Promise(function(good, bad) {
-			return APIUtils.getFullHostURL()
-                .then(hostURL=> APIUtils.rawRequestData(method, hostURL+webPath, params))
-                .then(data => {
-                    good(data);
-                    return;
-                })
-                .catch(errors => bad("ERROR: an error occurred while processing the request"));
-		});
-	}
 }
 
 module.exports = APIUtils;

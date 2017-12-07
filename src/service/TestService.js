@@ -4,18 +4,13 @@
 */
 
 // npm Dependencies
-const program = require('commander');
 const fs = require('fs');
-const path = require('path');
-const ngrok = require('ngrok');
-
 // Chalk (color) messages for success/error
 const chalk = require('chalk');
 const error = chalk.red;
 const success = chalk.green;
 
 // Module Dependencies (non-npm)
-const APIUtils = require('../utils/ApiUtils');
 const api = require('../utils/api');
 /// Output test caching, this is to prevent duplicates
 /// in test steps from appearing on screen
@@ -177,55 +172,6 @@ class TestService {
     }
 
     /**
-     * Read contents from file in local directory
-     * @param file_pathname
-     * @return {Promise}
-     */
-    static readFileContents(file_pathname) {
-        let fileLocation = path.resolve(file_pathname);
-        let fileContent = fs.readFileSync(fileLocation, 'utf-8');
-        if (fileLocation.indexOf(fileContent) > -1) {
-            console.log("ERROR: There is nothing in this file!\n");
-        } else {
-            return fileContent;
-        }
-    }
-
-    //------------------------------------------------------------------------------
-    // Test API Functions
-    //------------------------------------------------------------------------------
-
-    /**
-     * Returns the test ID (if found), given the project ID AND test webPath
-     * Also can be used to return node ID for test
-     * @param projID
-     * @param testPath
-     * @return {Promise}
-     */
-    static testID(projID, testPath) {
-        return new Promise(function (good, bad) {
-            while (testPath.startsWith("/")) {
-                testPath = testPath.substr(1);
-            }
-            return api.project.file.get({projectID:projID, filePath:testPath})
-                .then(tests => {
-                    tests = JSON.parse(tests);
-                    tests = tests.result.children;
-                    for (var i = 0; i < tests.length; i++) {
-                        let test = tests[i];
-                        if (test.name === testPath) {
-                            good(test.id);
-                            return;
-                        }
-                    }
-                    bad("ERROR: Unable to find test script: '" + testPath +"'");
-                    return;
-                })
-                .catch(errors => bad("ERROR: error occurred while finding the test script in the project"));
-        });
-    }
-
-    /**
      * Runs a test, and returns the run GUID
      * @param projID
      * @param testID
@@ -255,57 +201,11 @@ class TestService {
                         good(res.testRunIDs[0]);
                         return;
                     }
-                    bad("Missing Test Run ID/Invalid JSON format");
+                    bad("ERROR: Invalid Test Run ID/Invalid JSON format");
                     return;
                 })
-                .catch(errors => bad("Missing Test Run ID/Invalid JSON format"));
+                .catch(errors => bad("ERROR: Invalid Test Run ID/Invalid JSON format"));
         });
-    }
-
-    /**
-     * Get result from the ID which is generated when a new test is ran
-     * @param runTestID
-     * @return {*}
-     */
-    static getResult(runTestID) {
-        return APIUtils.webstudioJsonRequest(
-            "GET",
-            "/api/v0/test/result",
-            { id : runTestID }
-            )
-            .then(data => {
-                return data;
-            })
-            .catch(errors => bad(errors));
-    }
-
-    /**
-     * connect localhost project to ngrok to access it from public url
-     * @param port
-     * @returns {Promise}
-     */
-    static connectToNgrok(port){
-        return new Promise(function (good, bad) {
-            return ngrok.connect(port, function (err, url) {
-                if(err){
-                    good("Unable to connect Ngrok");
-                    return;
-                }
-                else{
-                    good(url);
-                    return;
-                }
-            });
-        });
-    }
-
-    /**
-     * disconnect the  tunnel from ngrok
-     * @returns {Promise}
-     */
-    static disconnectNgrok(){
-        ngrok.disconnect();
-        ngrok.kill();
     }
 
 }
