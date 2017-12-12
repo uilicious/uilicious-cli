@@ -275,7 +275,7 @@ class ImportExportService {
             }
             return ImportExportService.makeFolderIfNotExist(directory)
                 .then(reesponse => {
-                    let filePathName = path.resolve(directory) + "/" + test_name + ".js";
+                    let filePathName = path.resolve(directory) + "/" + test_name;
                     return fs.writeFile(filePathName, file_content, function(err) {
                         if (err) {
                             console.error(error("ERROR: No such file/directory found"));
