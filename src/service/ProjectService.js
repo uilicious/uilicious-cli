@@ -40,7 +40,7 @@ class ProjectService {
                     console.error(error("ERROR: Project Name not found: " + projectName));
                     process.exit(1);
                 })
-                .catch(errors => bad(errors));
+                .catch(errors => bad("ERROR: An error occurred while retrieving project ID "));
         });
     }
 }

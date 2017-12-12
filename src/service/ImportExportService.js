@@ -63,34 +63,6 @@ class ImportExportService {
     }
 
     /**
-     * Check for duplicate Test name
-     * @param projID
-     * @param filePathname
-     * @return {Promise}
-     */
-    static checkTest(projID, filePathname) {
-        return new Promise(function(good, bad) {
-            let testName = path.parse(filePathname).name;
-            testName="/"+testName;
-            return api.project.file.query({projectID:projID})
-                .then(response => {
-                    response = JSON.parse(response);
-                    response = response.result.children;
-                    for (let i = 0; i < response.length; i++) {
-                        let item = response[i];
-                        if (item.name == testName) {
-                            bad("ERROR: This test '" + path.parse(filePathname).name + "' exists. Please use another name!\n");
-                            return;
-                        }
-                    }
-                    good(testName);
-                    return;
-                }
-            );
-        });
-    }
-
-    /**
      * Check folder contents and return folder name if folder is not empty
      * @param folder_pathname
      * @return {Promise}
