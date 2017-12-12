@@ -270,15 +270,15 @@ class ImportExportService {
         return new Promise(function (good, bad) {
             if(test_name.indexOf("/") !=-1){
                 var lastSlashIndex = test_name.lastIndexOf("/");
-                directory = directory+"/"+ test_name.substr(0,lastSlashIndex);
+                directory = directory+test_name.substr(0,lastSlashIndex);
                 test_name = test_name.substr(lastSlashIndex+1);
             }
-            return ImportExportService.makeFolderIfNotExist(directory)
+            return ImportExportService.mkDirByPathSync(directory)
                 .then(reesponse => {
                     let filePathName = path.resolve(directory) + "/" + test_name;
                     return fs.writeFile(filePathName, file_content, function(err) {
                         if (err) {
-                            console.error(error("ERROR: No such file/directory found"));
+                            console.error(error("ERROR: Unable to create directory/test-file"));
                             process.exit(1);
                         }
                         good("File <" + test_name + "> successfully saved in " + directory);
@@ -327,6 +327,31 @@ class ImportExportService {
                 return;
             });
        });
+    }
+    static mkDirByPathSync(targetDir, {isRelativeToScript = false} = {}) {
+        return new Promise(function (good, bad) {
+            const sep = path.sep;
+            const initDir = path.isAbsolute(targetDir) ? sep : '';
+            const baseDir = isRelativeToScript ? __dirname : '.';
+
+            targetDir.split(sep).reduce((parentDir, childDir) => {
+                const curDir = path.resolve(baseDir, parentDir, childDir);
+                try {
+                    fs.mkdirSync(curDir);
+                } catch (err) {
+                    if (err.code == 'EEXIST') {
+                        good();
+                        return;
+                    }
+                    console.log(err);
+                    bad();
+                    return;
+                }
+                good (curDir);
+                return;
+            }, initDir);
+        })
+
     }
 }
 
