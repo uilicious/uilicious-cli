@@ -174,9 +174,7 @@ class TestService {
     /**
      * Runs a test, and returns the run GUID
      * @param projID
-     * @param testID
-     * @param dataParams
-     * @param ngrokUrl
+     * @param scriptName
      * @param options
      * @returns {Promise}
      */
