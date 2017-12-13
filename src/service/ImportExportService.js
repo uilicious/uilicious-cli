@@ -7,7 +7,7 @@
 // npm Dependencies
 const fs = require('fs');
 const path = require('path');
-
+const mkdirp = require('mkdirp');
 const program = require('commander');
 
 // Chalk (color) messages for success/error
@@ -268,13 +268,17 @@ class ImportExportService {
      */
     static exportTestFile(directory, test_name, file_content) {
         return new Promise(function (good, bad) {
+            var lastChar = directory.substr(-1);
+            if (lastChar == '/') {
+                directory = directory.substr(0, directory.length-1);
+            }
             if(test_name.indexOf("/") !=-1){
                 var lastSlashIndex = test_name.lastIndexOf("/");
                 directory = directory+test_name.substr(0,lastSlashIndex);
                 test_name = test_name.substr(lastSlashIndex+1);
             }
             return ImportExportService.mkDirByPathSync(directory)
-                .then(reesponse => {
+                .then(response => {
                     let filePathName = path.resolve(directory) + "/" + test_name;
                     return fs.writeFile(filePathName, file_content, function(err) {
                         if (err) {
@@ -328,30 +332,24 @@ class ImportExportService {
             });
        });
     }
-    static mkDirByPathSync(targetDir, {isRelativeToScript = false} = {}) {
-        return new Promise(function (good, bad) {
-            const sep = path.sep;
-            const initDir = path.isAbsolute(targetDir) ? sep : '';
-            const baseDir = isRelativeToScript ? __dirname : '.';
 
-            targetDir.split(sep).reduce((parentDir, childDir) => {
-                const curDir = path.resolve(baseDir, parentDir, childDir);
-                try {
-                    fs.mkdirSync(curDir);
-                } catch (err) {
-                    if (err.code == 'EEXIST') {
-                        good();
-                        return;
-                    }
-                    console.log(err);
-                    bad();
+    /**
+     * create a directory with full path
+     * @param targetDir
+     * @returns {Promise}
+     */
+    static mkDirByPathSync(targetDir) {
+        return new Promise(function (good, bad) {
+            return mkdirp(targetDir, function (err) {
+                if (err){
+                    bad(err);
                     return;
                 }
-                good (curDir);
+                good();
                 return;
-            }, initDir);
-        })
+            });
 
+        });
     }
 }
 
