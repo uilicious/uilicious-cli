@@ -147,7 +147,7 @@ class ImportExportService {
                     else{
                         override = "false";
                     }
-                    return api.project.file.put({projectID:projID, filePath:path.parse(file_pathname).name,
+                    return api.project.file.put({projectID:projID, filePath:fileName+".js",
                         content: file_content, overwrite:override });
                 })
                 .then(response => {
