@@ -192,6 +192,7 @@ class TestService {
         if (options.width != null) {
             form.width = options.width;
         }
+        scriptName = scriptName.concat(".test.js");
         // Return promise obj
         return new Promise(function(good, bad) {
             return api.project.runAction({projectID:projID, runFile:scriptName})
