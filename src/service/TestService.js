@@ -5,6 +5,9 @@
 
 // npm Dependencies
 const fs = require('fs');
+const path = require('path');
+const rjson = require("relaxed-json");
+const ngrok = require('ngrok');
 // Chalk (color) messages for success/error
 const chalk = require('chalk');
 const error = chalk.red;
@@ -172,28 +175,96 @@ class TestService {
     }
 
     /**
+     * Connect localhost project to ngrok to access it from public url
+     * @param port
+     * @returns {Promise}
+     */
+    static connectToNgrok(port){
+        return new Promise(function (good, bad) {
+            return ngrok.connect(port, function (err, url) {
+                if(err){
+                    good("Unable to connect Ngrok");
+                    return;
+                }
+                else{
+                    good(url);
+                    return;
+                }
+            });
+        });
+    }
+
+    /**
+     * disconnect the  tunnel from ngrok
+     */
+    static disconnectNgrok(){
+        ngrok.disconnect();
+        ngrok.kill()
+    }
+
+    /**
+     * Read file Contents
+     * @param file_pathname
+     * @returns {String}
+     */
+    static readFileContents(file_pathname) {
+        let fileLocation = path.resolve(file_pathname);
+        let fileContent = fs.readFileSync(fileLocation, 'utf-8');
+        if (fileLocation.indexOf(fileContent) > -1) {
+            console.log("ERROR: There is nothing in this file!\n");
+        }
+        else {
+            return fileContent;
+        }
+    }
+
+    /**
      * Runs a test, and returns the run GUID
      * @param projID
      * @param scriptName
      * @param options
      * @returns {Promise}
      */
-    static runTest(projID, scriptName, options) {
+    static runTest(projID, scriptName, ngrokUrl, options) {
         // Get the browser config
         let form = {};
-        if (options.browser != null) {
+        if (options.browser == null) {
+            form.browser = "chrome";
+        }
+        else {
             form.browser = options.browser;
         }
-        if (options.height != null) {
+        if (options.height == null) {
+            form.height = "1020px";
+        }
+        else {
             form.height = options.height;
         }
-        if (options.width != null) {
+        if (options.width == null) {
+            form.width = "1360px";
+        }
+        else {
             form.width = options.width;
+        }
+        if(options.dataObject!=null){
+            form.data = rjson.transform(options.dataObject);
+        }
+        else if(options.dataFile!=null){
+            form.data = rjson.transform(TestService.readFileContents(options.dataFile));
+        }
+        else {
+            form.data = "{}";
+        }
+        if(ngrokUrl && options.ngrokParam){
+            var jsonObject = JSON.parse(form.data);
+            jsonObject[options.ngrokParam] = ngrokUrl;
+            form.data = JSON.stringify(jsonObject);
         }
         scriptName = scriptName.concat(".test.js");
         // Return promise obj
         return new Promise(function(good, bad) {
-            return api.project.runAction({projectID:projID, runFile:scriptName})
+            return api.project.runAction({projectID:projID, runFile:scriptName, browser: form.browser, height:form.height,
+                width:form.width, data:form.data})
                 .then(res => {
                     res = JSON.parse(res);
                     if(res.testRunIDs[0]){

@@ -37,6 +37,7 @@ class TestRunnerController {
     static main(projectName, scriptPath, options) {
         if (options.save != null) {
             let copyTestDirectory;
+            let copyNgrokUrl;
             return TestService.makeDir(options.save)
                 .then(testDirectory => {
                     // Test log functionality
@@ -64,11 +65,21 @@ class TestRunnerController {
                 .then(response => {
                     console.log("# Log In Successful");
                     console.log("#");
-                    return ProjectService.projectID(projectName);
+                    if(options.ngrokPort != null) {
+                        return TestService.connectToNgrok(options.ngrokPort)
+                            .then(ngrokUrl => {
+                                console.log("# Ngrok Url : " + ngrokUrl);
+                                copyNgrokUrl = ngrokUrl;
+                                return ProjectService.projectID(projectName);
+                            });
+                    }
+                    else {
+                        return ProjectService.projectID(projectName);
+                    }
                 })
                 .then(projectId => {
                     console.log("# Project ID : "+projectId);
-                    return TestService.runTest(projectId, scriptPath, options)
+                    return TestService.runTest(projectId, scriptPath, copyNgrokUrl, options)
                 })
                 .then(postID => {
                     console.log("# Test run ID: "+postID);
@@ -82,11 +93,17 @@ class TestRunnerController {
                     console.log("");
                     console.log(TestService.outputStatus(response.steps));
                     TestService.processErrors(response.steps);
+                    if(copyNgrokUrl){
+                        TestService.disconnectNgrok();
+                    }
                     console.log("")
                     console.log("Test Info saved in "+copyTestDirectory+"\n");
                 })
                 .catch(errors => {
                     console.error(error(errors));
+                    if(copyNgrokUrl){
+                        TestService.disconnectNgrok();
+                    }
                 });
         }
         else {
@@ -98,14 +115,26 @@ class TestRunnerController {
             console.log("# Project Name: " + projectName);
             console.log("# Test Path : " + scriptPath);
             console.log("#");
+            let copyNgrokUrl;
             return APIUtils.login()
                 .then(response => {
                     console.log("# Log In Successful");
-                    return ProjectService.projectID(projectName);
+                    if(options.ngrokPort != null) {
+                        return TestService.connectToNgrok(options.ngrokPort)
+                            .then(ngrokUrl => {
+                                console.log("# Ngrok Url : " + ngrokUrl);
+                                copyNgrokUrl = ngrokUrl;
+                                return ProjectService.projectID(projectName);
+                            });
+                    }
+                    else {
+                        return ProjectService.projectID(projectName);
+                    }
+
                 })
                 .then(projectId => {
                     console.log("# Project ID : "+projectId);
-                    return TestService.runTest(projectId, scriptPath, options)
+                    return TestService.runTest(projectId, scriptPath, copyNgrokUrl, options)
                 })
                 .then(postID => {
                     console.log("# Test run ID: "+postID);
@@ -119,9 +148,15 @@ class TestRunnerController {
                     console.log("");
                     console.log(TestService.outputStatus(response.steps));
                     TestService.processErrors(response.steps);
+                    if(copyNgrokUrl){
+                        TestService.disconnectNgrok();
+                    }
                 })
                 .catch(errors => {
                     console.error(error(errors));
+                    if(copyNgrokUrl){
+                        TestService.disconnectNgrok();
+                    }
                 });
         }
     }
