@@ -1,7 +1,7 @@
-/*
-* TestService class that provides functionality for CRUD operations
-* to be performed by the test
-*/
+/**
+ * TestService class that provides functionality for test running operations
+ * @author Shahin (shahin@uilicious.com)
+ */
 
 // npm Dependencies
 const fs = require('fs');
