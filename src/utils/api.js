@@ -456,7 +456,7 @@ var api = (function() {
         "project.testrun.list" : [],
         "project.get" : [],
         "project.list" : [],
-        "project.runAction" : [],
+        "project.testrun.start" : [],
         "project.file.get" : [],
         "job.quota" : [],
         "stripe.subscribe" : [],

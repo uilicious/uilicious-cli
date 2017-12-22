@@ -96,7 +96,7 @@ class TestRunnerController {
                     if(copyNgrokUrl){
                         TestService.disconnectNgrok();
                     }
-                    console.log("")
+                    console.log("");
                     console.log("Test Info saved in "+copyTestDirectory+"\n");
                 })
                 .catch(errors => {

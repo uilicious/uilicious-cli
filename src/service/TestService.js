@@ -44,11 +44,11 @@ class TestService {
                             res = JSON.parse(res);
                             // Everytime the result is received,
                             // Update the screen for the latest status updates
-                            TestService.processResultSteps(res.steps);
+                            TestService.processResultSteps(res.result.result.steps);
                             // Wait for test status (success/failure) and
                             // then return the full results
-                            if (res.status == 'success' || res.status == 'failure') {
-                                good(res);
+                            if (res.result.result.status == 'success' || res.result.result.status == 'failure') {
+                                good(res.result.result);
                                 return;
                             }
                             else {
@@ -263,10 +263,11 @@ class TestService {
         scriptName = scriptName.concat(".test.js");
         // Return promise obj
         return new Promise(function(good, bad) {
-            return api.project.runAction({projectID:projID, runFile:scriptName, browser: form.browser, height:form.height,
+            return api.project.testrun.start({projectID:projID, runFile:scriptName, browser: form.browser, height:form.height,
                 width:form.width, data:form.data})
                 .then(res => {
                     res = JSON.parse(res);
+                    res = res.result;
                     if(res.testRunIDs[0]){
                         good(res.testRunIDs[0]);
                         return;
