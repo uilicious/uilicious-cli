@@ -34,7 +34,7 @@ class ImportExportService {
             let fileLocation = path.resolve(file_pathname);
             let fileContent = fs.readFileSync(fileLocation, 'utf-8');
             if (fileLocation.indexOf(fileContent) > -1) {
-                console.error(error("ERROR: There is nothing in this file!\n"));
+                console.error(error("ERROR: There is nothing in this file!<"+fileLocation+">"));
                 process.exit(1);
             } else {
                 good(fileContent);
