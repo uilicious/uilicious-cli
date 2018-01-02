@@ -311,7 +311,7 @@ class ImportExportService {
      */
     static exportTestFile(directory, test_name, file_content) {
         return new Promise(function (good,bad) {
-            let filePathName = path.resolve(directory) + "/" + test_name + ".js";
+            let filePathName = path.resolve(directory) + "/" + test_name +".test"+ ".js";
             let fileName = test_name + ".js";
             return fs.writeFile(filePathName, file_content, function(err) {
                 if (err) {
