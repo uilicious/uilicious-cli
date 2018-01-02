@@ -99,7 +99,9 @@ class ImportExportService {
                     let nodeLocation = folderLocation + "/" + file;
                     if(fs.lstatSync(nodeLocation).isFile()){
                         nodeName = nodeName.concat(".js");
-                        promiseArr.push(ImportExportService.importTestContentsHelper(projID, nodeLocation, nodeName, options));
+                        if (!(/(^|\/)\.[^\/\.]/g).test(nodeName)) {
+                            promiseArr.push(ImportExportService.importTestContentsHelper(projID, nodeLocation, nodeName, options));
+                        }
                     }
                     else if(fs.lstatSync(nodeLocation).isDirectory()){
                         const read = (dir) =>
@@ -111,7 +113,9 @@ class ImportExportService {
                                     []);
                         read(nodeLocation).forEach(function (node) {
                             let filePathName = node.replace(folderLocation,"");
-                            promiseArr.push(ImportExportService.importTestContentsHelper(projID, node, filePathName, options));
+                            if (!(/(^|\/)\.[^\/\.]/g).test(filePathName)) {
+                                promiseArr.push(ImportExportService.importTestContentsHelper(projID, node, filePathName, options));
+                            }
                         });
                     }
                 }
