@@ -140,7 +140,7 @@ class ImportExportService {
                     var override;
                     if(options.overwrite){
                         if(options.overwrite == "y"){
-                            override = "true";
+                            override = "True";
                         }
                         else if(options.overwrite == "n"){
                             override = "false";
