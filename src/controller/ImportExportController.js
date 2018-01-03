@@ -50,7 +50,15 @@ class ImportExportController {
                     console.log("INFO : retrieved project id");
                     console.log("INFO : trying to import from local folder to project root directory");
                 }
-                return ImportExportService.importFolderContents(projID, copyFolderPathName, options);
+                if(projID) {
+                    return ImportExportService.importFolderContents(projID, copyFolderPathName, options);
+                }
+                else {
+                    return ProjectService.createProject(projectName)
+                        .then(projectID => {
+                            return ImportExportService.importFolderContents(projectID, copyFolderPathName, options);
+                        });
+                }
             })
             .then(response => {
                 console.log(success("Import successful! test(s) created under Project <"+ projectName +">" ));
