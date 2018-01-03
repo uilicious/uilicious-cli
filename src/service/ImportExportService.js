@@ -162,7 +162,17 @@ class ImportExportService {
                     good();
                     return;
                 })
-                .catch(errors => bad(errors));
+                .catch(errors => {
+                    errors = JSON.parse(errors.error);
+                    if(errors.ERROR.code === 'FILE_ALREADY_EXISTS'){
+                        console.log(error("INFO: Existing File Found -> Skipping"));
+                        good();
+                        return;
+                    }
+                    bad("ERROR: An error occurred while uploading the test script");
+                    return;
+
+                });
         });
     }
 
