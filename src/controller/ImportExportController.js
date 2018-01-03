@@ -63,7 +63,7 @@ class ImportExportController {
             .then(response => {
                 console.log(success("Import successful! test(s) created under Project <"+ projectName +">" ));
             })
-            .catch(errors =>{
+            .catch(errors => {
                 console.log(error(errors));
             });
     }
@@ -83,12 +83,18 @@ class ImportExportController {
                 if (program.verbose) {
                     console.log("INFO : checked project ID");
                 }
-                return ImportExportService.exportTestDirectory(projID, directory);
+                if(projID){
+                    return ImportExportService.exportTestDirectory(projID, directory);
+                }
+                else{
+                    console.log(error('ERROR: Project name was not found'));
+                    process.exit(1);
+                }
             })
             .then(response => {
                 console.log(success("Project has successfully exported to <"+directory+">"));
             })
-            .catch(errors =>{
+            .catch(errors => {
                 console.log(error(errors));
             });
     }

@@ -156,7 +156,10 @@ class ImportExportService {
                         content: file_content, overwrite:override });
                 })
                 .then(response => {
-                    if (program.verbose) {
+                    if (program.verbose &&  options.overwrite) {
+                        console.log("INFO : Uploading test script ("+fileName+") with overwrite mode enabled");
+                    }
+                    else if (program.verbose) {
                         console.log("INFO : Uploading test script ("+fileName+") ");
                     }
                     good();
@@ -183,7 +186,6 @@ class ImportExportService {
     /**
      * Export children(tests) of folder
      * @param projID
-     * @param folderID
      * @param directory
      * @return {Promise}
      */
@@ -330,7 +332,6 @@ class ImportExportService {
 
     /**
      * create a folder if does not exist
-     * @param folderName
      * @param directory
      * @return {Promise}
      */

@@ -78,8 +78,14 @@ class TestRunnerController {
                     }
                 })
                 .then(projectId => {
-                    console.log("# Project ID : "+projectId);
-                    return TestService.runTest(projectId, scriptPath, copyNgrokUrl, options)
+                    if(projectId){
+                        console.log("# Project ID : "+projectId);
+                        return TestService.runTest(projectId, scriptPath, copyNgrokUrl, options);
+                    }
+                    else{
+                        console.log(error("ERROR: Project name was not found"));
+                        process.exit(1);
+                    }
                 })
                 .then(postID => {
                     console.log("# Test run ID: "+postID);
@@ -133,8 +139,14 @@ class TestRunnerController {
 
                 })
                 .then(projectId => {
-                    console.log("# Project ID : "+projectId);
-                    return TestService.runTest(projectId, scriptPath, copyNgrokUrl, options)
+                    if(projectId){
+                        console.log("# Project ID : "+projectId);
+                        return TestService.runTest(projectId, scriptPath, copyNgrokUrl, options);
+                    }
+                    else{
+                        console.log(error("ERROR: Project name was not found"));
+                        process.exit(1);
+                    }
                 })
                 .then(postID => {
                     console.log("# Test run ID: "+postID);
