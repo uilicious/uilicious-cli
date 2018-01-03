@@ -37,10 +37,27 @@ class ProjectService {
                             return;
                         }
                     }
-                    console.error(error("ERROR: Project Name not found: " + projectName));
-                    process.exit(1);
+                    good();
+                    return;
                 })
                 .catch(errors => bad("ERROR: An error occurred while retrieving project ID "));
+        });
+    }
+
+    /**
+     * Create a new Project and return project id
+     * @param projectName
+     * @return {Promise}
+     */
+    static createProject(projectName) {
+        return new Promise(function(good, bad) {
+            return api.project.new({name:projectName})
+                .then(response => {
+                    response = JSON.parse(response);
+                    good(response.result);
+                    return;
+                })
+                .catch(errors => bad("ERROR: An error occurred while creating a new project "));
         });
     }
 }
