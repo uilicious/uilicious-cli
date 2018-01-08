@@ -301,14 +301,25 @@ class ImportExportService {
             return ImportExportService.mkDirByPathSync(directory)
                 .then(response => {
                     let filePathName = path.resolve(directory) + "/" + test_name;
-                    return fs.writeFile(filePathName, file_content, function(err) {
-                        if (err) {
-                            console.error(error("ERROR: Unable to create directory/test-file"));
-                            process.exit(1);
-                        }
-                        good("File <" + test_name + "> successfully saved in " + directory);
-                        return;
-                    });
+                    if (filePathName.endsWith(".js")){
+                        return fs.writeFile(filePathName, file_content, function(err) {
+                            if (err) {
+                                console.error(error("ERROR: Unable to create directory/test-file"));
+                                process.exit(1);
+                            }
+                            good("File <" + test_name + "> successfully saved in " + directory);
+                            return;
+                        });
+                    }
+                    else {
+                        return fs.writeFile(filePathName, file_content, 'binary', function(err) {
+                            if (err) {
+                                console.error(error("ERROR: Unable to create media file"));
+                            }
+                            good("File <" + test_name + "> successfully saved in " + directory);
+                            return;
+                        });
+                    }
                 })
                 .catch(errors => bad("ERROR: An error occurred while saving the file to local directory"));
         });
