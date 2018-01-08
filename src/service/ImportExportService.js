@@ -165,7 +165,7 @@ class ImportExportService {
                         console.log("INFO : Uploading test script ("+fileName+") with overwrite mode enabled");
                     }
                     else if (program.verbose) {
-                        console.log("INFO : Uploading test script ("+fileName+") ");
+                        console.log("INFO : uploading test script ("+fileName+") ");
                     }
                     good();
                     return;
@@ -173,7 +173,7 @@ class ImportExportService {
                 .catch(errors => {
                     errors = JSON.parse(errors.error);
                     if(errors.ERROR.code === 'FILE_ALREADY_EXISTS'){
-                        console.log(error("INFO: Existing File Found -> Skipping"));
+                        console.log(error("INFO : existing File Found -> Skipping"));
                         good();
                         return;
                     }

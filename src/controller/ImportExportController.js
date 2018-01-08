@@ -37,23 +37,19 @@ class ImportExportController {
                     console.log("INFO : checked target folder path");
                 }
                 copyFolderPathName = folder_pathname;
-                return ImportExportService.checkFolderContents(folder_pathname);
-            })
-            .then(folder_name => {
-                if (program.verbose) {
-                    console.log("INFO : checked folder contents");
-                }
                 return ProjectService.projectID(projectName);
             })
             .then(projID => {
                 if (program.verbose) {
-                    console.log("INFO : retrieved project id");
-                    console.log("INFO : trying to import from local folder to project root directory");
+                    console.log("INFO : fetching project id");
                 }
                 if(projID) {
+                    console.log("INFO : trying to import from local folder to project root directory");
                     return ImportExportService.importFolderContents(projID, copyFolderPathName, options);
                 }
                 else {
+                    console.log("INFO : creating new project<"+projectName+">");
+                    console.log("INFO : trying to import from local folder to project root directory");
                     return ProjectService.createProject(projectName)
                         .then(projectID => {
                             return ImportExportService.importFolderContents(projectID, copyFolderPathName, options);
@@ -87,7 +83,7 @@ class ImportExportController {
                     return ImportExportService.exportTestDirectory(projID, directory);
                 }
                 else{
-                    console.log(error('ERROR: Project name was not found'));
+                    console.log(error('ERROR : Project name was not found'));
                     process.exit(1);
                 }
             })
