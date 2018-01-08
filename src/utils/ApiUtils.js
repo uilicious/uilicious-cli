@@ -48,17 +48,15 @@ class APIUtils {
             }
             return api.account.login({loginName:program.user, password: program.pass})
                 .then(response => {
-                    return api.account.hostURL();
-                })
-                .then(data => {
-                    var obj = JSON.parse(data);
-                    if ( obj.result == false ) {
-                        console.error("ERROR: Unable to login - Invalid username/password");
-                        process.exit(1);
-                    } else {
-                        _fullHostURL = obj.result;
-                        good(_fullHostURL);
+                    response = JSON.parse(response);
+                    if(response.result == true)
+                    {
+                        good();
                         return;
+                    }
+                    else{
+                        bad("ERROR: "+response.INFO);
+                        return
                     }
                 })
                 .catch(errors => bad("ERROR: an error occurred during authentication"));

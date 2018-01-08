@@ -174,7 +174,6 @@ class ImportExportService {
                     }
                     bad("ERROR: An error occurred while uploading the test script");
                     return;
-
                 });
         });
     }
