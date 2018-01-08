@@ -34,8 +34,8 @@ class ImportExportService {
             let fileLocation = path.resolve(file_pathname);
             let fileContent = fs.readFileSync(fileLocation, 'utf-8');
             if (fileLocation.indexOf(fileContent) > -1) {
-                console.error(error("ERROR: There is nothing in this file!<"+fileLocation+">"));
-                process.exit(1);
+                good("//an empty file");
+                return;
             } else {
                 good(fileContent);
                 return;
@@ -71,10 +71,15 @@ class ImportExportService {
         return new Promise(function(good, bad) {
             let folderName = path.basename(folder_pathname);
             return fs.readdir(folder_pathname, function(err, files) {
-                if (err || files.length == 0) {
-                    bad("ERROR: This folder is empty!\n");
+                if (files.length == 0) {
+                    good(folderName);
                     return;
-                } else {
+                }
+                else if (err){
+                    bad("ERROR: An error encountered while reading from folder<"+folderName+">");
+                    return;
+                }
+                else {
                     good(folderName);
                     return;
                 }
