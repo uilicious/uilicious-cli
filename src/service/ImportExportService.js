@@ -266,7 +266,21 @@ class ImportExportService {
                         return ImportExportService.exportTestFile(directory, root_folder.name, fileContent);
                     })
                     .then(response => good(response))
-                    .catch(errors => bad(errors))
+                    .catch(errors => bad(errors));
+            }
+            else if(root_folder.typeName == "FILE") {
+                if (program.verbose) {
+                    console.log("INFO : downloading file ("+root_folder.name+")");
+                }
+                return ImportExportService.getScript(projID, root_folder.id)
+                    .then(fileContent => {
+                        console.log(fileContent);
+                        return fs.writeFile(path.resolve(directory) + "/"+root_folder.name, fileContent, function(err) {
+
+                        });
+                    })
+                    .then(response => good(response))
+                    .catch(errors => bad(errors));
             }
         });
     }
@@ -298,6 +312,16 @@ class ImportExportService {
             return ImportExportService.getScript(projID, dirNode.id)
                 .then(fileContent => {
                     return ImportExportService.exportTestFile(localDirPath, dirNode.name, fileContent);
+                });
+        }
+        else if(dirNode.typeName == "FILE") {
+            if (program.verbose) {
+                console.log("INFO : downloading file ("+dirNode.name+")");
+            }
+            return ImportExportService.getScript(projID, dirNode.id) // TO:DO = get file
+                .then(fileContent => {
+                    return fs.writeFile(path.resolve(localDirPath) + "/"+dirNode.name, fileContent, function(err) {
+                    });
                 });
         }
     }
