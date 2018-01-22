@@ -1,3 +1,5 @@
+var pkg = require("../../package.json");
+
 /**
  * Application class is handles all the commands in the terminal
  * and call respected controller to respond to the request
@@ -24,7 +26,7 @@ function CLIApp() {
 
 	// Basic CLI parameters handling
 	program
-		.version('1.3.13')
+		.version(pkg.version || "no specified")
 		.option('-u, --user <required>', 'username')
 		.option('-p, --pass <required>', 'password')
 		.option('-v, --verbose', 'display details log')
