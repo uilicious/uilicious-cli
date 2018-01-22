@@ -11,7 +11,7 @@ const success = chalk.green;
 
 // Module Dependencies (non-npm)
 const APIUtils = require('../utils/ApiUtils');
-
+const api = require('../utils/api');
 class ProjectService {
 
     //------------------------------------------------------------------------------
@@ -26,38 +26,39 @@ class ProjectService {
      */
     static projectID(projectName) {
         return new Promise(function(good, bad) {
-            return ProjectService.projectList()
-                .then(list => {
+            return api.project.list({fieldList:["_oid", "name"]})
+                .then(response => {
+                    response = JSON.parse(response);
+                    let list = response.result;
                     for (let i=0; i<list.length; ++i) {
                         let project = list[i];
-                        if (project.title == projectName) {
-                            good(project.id);
+                        if (project.name == projectName) {
+                            good(project._oid);
                             return;
                         }
                     }
-                    console.error(error("ERROR: Project Name not found: " + projectName));
-                    process.exit(1);
-                });
+                    good();
+                    return;
+                })
+                .catch(errors => bad("ERROR: An error occurred while retrieving project ID "));
         });
     }
 
-    //------------------------------------------------------------------------------
-    //	Project API Functions
-    //------------------------------------------------------------------------------
-
     /**
-     * Get a list of projects, in the following format [ { id, title, logoUrl }]
-     * @return {*}
+     * Create a new Project and return project id
+     * @param projectName
+     * @return {Promise}
      */
-    static projectList() {
-        return APIUtils.webstudioJsonRequest(
-            "GET",
-            "/api/studio/v1/projects",
-            {}
-            )
-            .then(callback => {
-                return callback;
-            });
+    static createProject(projectName) {
+        return new Promise(function(good, bad) {
+            return api.project.new({name:projectName})
+                .then(response => {
+                    response = JSON.parse(response);
+                    good(response.result);
+                    return;
+                })
+                .catch(errors => bad("ERROR: An error occurred while creating a new project "));
+        });
     }
 }
 

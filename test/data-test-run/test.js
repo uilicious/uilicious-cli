@@ -1,26 +1,16 @@
-// /**
-//  * Created by tadapatrisonika on 6/7/17.
-//  */
+ /**
+  * Created by tadapatrisonika on 6/7/17.
+  * Modified by Shahin (shahin@uilicious.com)
+  */
 const path = require('path');
 
-var projectName = "uilicious-cli-test-"+randomString(6);
+var projectName = "hello-world";
 var file_pathName = path.resolve("./test/data-test-run/components/test123.js");
-var data_pathName = path.resolve("./test/data-test-run/components/data.json");
 var testName = "test123";
-
-
-//Create a project
-assert.containsAllValues(
-	runUiliciousCli("create-project", projectName),
-	[
-		projectName
-	],
-	"CREATE a new project"
-);
 
 //Import a test that contains a test script to run
 assert.containsAllValues(
-	runUiliciousCli("import-test", projectName, file_pathName),
+	runUiliciousCli("import", projectName, file_pathName),
 	[
 
 	],
@@ -29,7 +19,7 @@ assert.containsAllValues(
 
 //Import a data-test that contains the data object to help run the test script
 assert.containsAllValues(
-	runUiliciousCli("run", projectName, testName, "--datafile", data_pathName),
+	runUiliciousCli("run", projectName, testName),
 	[
 
 	],

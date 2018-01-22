@@ -29,11 +29,19 @@ Name   | Command | Parameters
 --width | -w `<parameter>` | Width of browser (optional)
 --height | -h `<parameter>` | Height of browser (optional)
 
-## Listing
+## Import Test Script(s)
+
+Use the `import` command to import a local folder consists of test script(s) under the root path of a project .
+```bash
+uilicious-cli -u <username> -p <password> import <project_name> <local_test_directory>
 ```
-$ uilicious-cli list
+
+## Export Test Script
+
+Use the `export` command to export everything from a project .
+```bash
+uilicious-cli -u <username> -p <password> export <project_name> <save_to_local_directory>
 ```
-List all projects available.
 
 ## Running
 ```

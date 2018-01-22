@@ -7,6 +7,8 @@
 // npm Dependencies
 const fs = require('fs');
 const path = require('path');
+const mkdirp = require('mkdirp');
+const program = require('commander');
 
 // Chalk (color) messages for success/error
 const chalk = require('chalk');
@@ -14,9 +16,7 @@ const error = chalk.red;
 const success = chalk.green;
 
 // Module Dependencies (non-npm)
-const APIUtils = require('../utils/ApiUtils');
-const ProjectCRUD = require('../service/ProjectService');
-const folderCRUD = require('../service/FolderService');
+const api = require('../utils/api');
 
 class ImportExportService {
 
@@ -34,8 +34,8 @@ class ImportExportService {
             let fileLocation = path.resolve(file_pathname);
             let fileContent = fs.readFileSync(fileLocation, 'utf-8');
             if (fileLocation.indexOf(fileContent) > -1) {
-                console.error(error("ERROR: There is nothing in this file!\n"));
-                process.exit(1);
+                good("//an empty file");
+                return;
             } else {
                 good(fileContent);
                 return;
@@ -63,34 +63,6 @@ class ImportExportService {
     }
 
     /**
-     * Check for duplicate Test name
-     * @param projID
-     * @param filePathname
-     * @return {Promise}
-     */
-    static checkTest(projID, filePathname) {
-        return new Promise(function(good, bad) {
-            let testName = path.parse(filePathname).name;
-            APIUtils.webstudioJsonRequest(
-                "GET",
-                "/api/studio/v1/projects/" + projID + "/workspace/tests",
-                { name: testName },
-                function (list) {
-                    for (let i = 0; i < list.length; i++) {
-                        let item = list[i];
-                        if (item.name == testName) {
-                            console.error(error("ERROR: This test '" + testName + "' exists.\nPlease use another name!\n"));
-                            process.exit(1);
-                        }
-                    }
-                    good(testName);
-                    return;
-                }
-            );
-        });
-    }
-
-    /**
      * Check folder contents and return folder name if folder is not empty
      * @param folder_pathname
      * @return {Promise}
@@ -98,11 +70,16 @@ class ImportExportService {
     static checkFolderContents(folder_pathname) {
         return new Promise(function(good, bad) {
             let folderName = path.basename(folder_pathname);
-            let folderContents = fs.readdir(folder_pathname, function(err, files) {
-                if (err || files.length == 0) {
-                    console.error(error("ERROR: This folder is empty!\n"));
-                    process.exit(1);
-                } else {
+            return fs.readdir(folder_pathname, function(err, files) {
+                if (files.length == 0) {
+                    good(folderName);
+                    return;
+                }
+                else if (err){
+                    bad("ERROR: An error encountered while reading from folder<"+folderName+">");
+                    return;
+                }
+                else {
                     good(folderName);
                     return;
                 }
@@ -112,82 +89,98 @@ class ImportExportService {
 
     /**
      * Import folder contents
-     * @param projname
-     * @param foldername
+     * @param projID
      * @param folder_pathname
      * @return {Promise}
      */
-    static importFolderContents(projname, foldername, folder_pathname) {
+    static importFolderContents(projID, folder_pathname, options) {
         return new Promise(function(good, bad) {
             let folderLocation = path.resolve(folder_pathname);
-            let folderContents = fs.readdir(folder_pathname, function(err, files) {
+            return fs.readdir(folder_pathname, function(err, files) {
+                let promiseArr = [];
                 for (var i = 0; i < files.length; i++) {
                     let file = files[i];
-                    let fileName = path.parse(file).name;
-                    let fileLocation = folderLocation + "/" + file;
-                    ImportExportService.importTestUnderFolderHelper(projname,fileLocation,foldername);
+                    let nodeName = path.parse(file).name;
+                    let nodeLocation = folderLocation + "/" + file;
+                    if(fs.lstatSync(nodeLocation).isFile()){
+                        nodeName = nodeName.concat(".js");
+                        if (!(/(^|\/)\.[^\/\.]/g).test(nodeName)) {
+                            promiseArr.push(ImportExportService.importTestContentsHelper(projID, nodeLocation, nodeName, options));
+                        }
+                    }
+                    else if(fs.lstatSync(nodeLocation).isDirectory()){
+                        const read = (dir) =>
+                            fs.readdirSync(dir)
+                                .reduce((files, file) =>
+                                        fs.statSync(path.join(dir, file)).isDirectory() ?
+                                            files.concat(read(path.join(dir, file))) :
+                                            files.concat(path.join(dir, file)),
+                                    []);
+                        read(nodeLocation).forEach(function (node) {
+                            let filePathName = node.replace(folderLocation,"");
+                            if (!(/(^|\/)\.[^\/\.]/g).test(filePathName)) {
+                                promiseArr.push(ImportExportService.importTestContentsHelper(projID, node, filePathName, options));
+                            }
+                        });
+                    }
                 }
-                good(true);
-                return;
-            })
+                return Promise.all(promiseArr)
+                    .then(response => good())
+                    .catch(error => bad(error));
+            });
         });
     }
 
     /**
-     * Import test script under a folder
-     * @param projname
+     * This will create a single promise which will be pushed to promise Array
+     * @param projID
      * @param file_pathname
-     * @param foldername
-     * @return {Promise.<boolean>}
+     * @param fileName
+     * @return {Promise}
      */
-    static importTestUnderFolderHelper(projname, file_pathname, foldername) {
-        let copyFileContent;
-        let copyProjectId;
-        let copyNodeId;
-        let copyTestName;
-        return ImportExportService.readFileContents(file_pathname)
-            .then(file_content => {
-                copyFileContent = file_content;
-                return ProjectCRUD.projectID(projname)})
-            .then(projID => {
-                copyProjectId=projID;
-                return folderCRUD.nodeID(projID, foldername)})
-            .then(nodeId => {
-                copyNodeId = nodeId;
-                return ImportExportService.checkTest(copyProjectId, file_pathname)})
-            .then(testName => {
-                copyTestName= testName;
-                return ImportExportService.importTestUnderFolder(copyProjectId, copyNodeId, testName, copyFileContent)})
-            .then(response => true)
-            .catch(error => {
-                console.error("Error: Error occurred while importing the Test Folder : "+error+"'\n");
-            });
-    }
-
-    //----------------------------------------------------------------------------
-    // Import API Functions
-    //----------------------------------------------------------------------------
-
-    /**
-     * Create a new test by importing it under a folder in a project
-     * @param projectID
-     * @param nodeID
-     * @param testName
-     * @param testContent
-     * @return {*}
-     */
-    static importTestUnderFolder(projectID, nodeID, testName, testContent) {
-        return APIUtils.webstudioRawRequest(
-            "POST",
-            "/api/studio/v1/projects/" + projectID + "/workspace/tests/addAction",
-            {
-                name: testName,
-                parentId: nodeID,
-                script: testContent
-            })
-            .then(data=> {
-                return data;
-            });
+    static importTestContentsHelper(projID, file_pathname, fileName, options){
+        return new Promise(function (good,bad) {
+            return ImportExportService.readFileContents(file_pathname)
+                .then(file_content => {
+                    var override;
+                    if(options.overwrite){
+                        if(options.overwrite == "y"){
+                            override = "True";
+                        }
+                        else if(options.overwrite == "n"){
+                            override = "false";
+                        }
+                        else{
+                            override = "false";
+                        }
+                    }
+                    else{
+                        override = "false";
+                    }
+                    return api.project.file.put({projectID:projID, filePath:fileName,
+                        content: file_content, overwrite:override });
+                })
+                .then(response => {
+                    if (program.verbose &&  options.overwrite) {
+                        console.log("INFO : Uploading test script ("+fileName+") with overwrite mode enabled");
+                    }
+                    else if (program.verbose) {
+                        console.log("INFO : uploading test script ("+fileName+") ");
+                    }
+                    good();
+                    return;
+                })
+                .catch(errors => {
+                    errors = JSON.parse(errors.error);
+                    if(errors.ERROR.code === 'FILE_ALREADY_EXISTS'){
+                        console.log(error("INFO : existing File Found -> Skipping"));
+                        good();
+                        return;
+                    }
+                    bad("ERROR: An error occurred while uploading the test script");
+                    return;
+                });
+        });
     }
 
     //----------------------------------------------------------------------------
@@ -197,25 +190,63 @@ class ImportExportService {
     /**
      * Export children(tests) of folder
      * @param projID
-     * @param folderID
      * @param directory
      * @return {Promise}
      */
-    static exportTestDirectory(projID, folderID, directory) {
+    static exportTestDirectory(projID, directory) {
         return new Promise(function(good, bad) {
-            return ImportExportService.getDirectoryMapByID(projID, folderID)
-                .then(dirNode => {
-                    if (dirNode) {
-                        ImportExportService.exportDirectoryNodeToDirectoryPath(projID, dirNode, directory);
-                        good(true);
-                        return;
-                    } else {
-                        bad(false);
-                        return;
+            return api.project.file.query({projectID:projID, type:"list"})
+                .then(rootDirMap => {
+                    rootDirMap = JSON.parse(rootDirMap);
+                    rootDirMap = rootDirMap.result;
+
+                    let promiseArr = [];
+                    for (var i = 0; i < rootDirMap.length; i++) {
+                        let root_folder = rootDirMap[i];
+                        if(root_folder.type == "file")
+                        {
+                            promiseArr.push(ImportExportService.exportHelper(projID, root_folder, directory) );
+                        }
                     }
-                });
+                    return Promise.all(promiseArr)
+                        .then(response => {
+                            if (program.verbose) {
+                                console.log("INFO : saved tests scripts to your local directory");
+                            }
+                            good();
+                        })
+                        .catch(error => bad(error));
+                   console.log(rootDirMap);
+                   good();
+                   return;
+                })
+                .catch(errors => bad(errors));
         });
     }
+
+    /**
+     * Export helper function
+     * @param projID
+     * @param root_folder
+     * @param directory
+     * @returns {Promise}
+     */
+    static exportHelper(projID, root_folder, directory){
+        return new Promise(function (good, bad) {
+            if (program.verbose) {
+                console.log("INFO : downloading test script ("+root_folder.path+")");
+            }
+            return api.project.file.get({projectID:projID, filePath:root_folder.path})
+                .then(fileContent => {
+                    fileContent = JSON.parse(fileContent);
+                    fileContent = fileContent.result;
+                    return ImportExportService.exportTestFile(directory, root_folder.path, fileContent);
+                })
+                .then(response => good(response))
+                .catch(errors => bad(errors));
+        });
+    }
+
 
     /**
      * Recursively scans the directory node, and export the folders / files when needed
@@ -227,10 +258,9 @@ class ImportExportService {
         if( dirNode == null ) {
             return;
         }
-        if (dirNode.typeName == "FOLDER") {
-
+        if (dirNode.type == "folder") {
             // makeSureDirectoryExists(localDirPath);
-            ImportExportService.makeFolder(dirNode.name, localDirPath)
+            return ImportExportService.makeFolder(dirNode.name, localDirPath)
                 .then(t => {
                     var nextPath = localDirPath + "/" + dirNode.name;
                     let folder_children = dirNode.children;
@@ -240,9 +270,13 @@ class ImportExportService {
                     }
                 });
         }
-        else if (dirNode.typeName == "TEST") {
-            ImportExportService.getScript(projID, dirNode.id)
-                .then(fileContent => ImportExportService.exportTestFile(localDirPath, dirNode.name, fileContent));
+        else if (dirNode.type == "file") {
+            return api.project.file.get({projectID:projID, filePath:root_folder.path})
+                .then(fileContent => {
+                    fileContent = JSON.parse(fileContent);
+                    fileContent = fileContent.result;
+                    return ImportExportService.exportTestFile(localDirPath, dirNode.path, fileContent);
+                });
         }
     }
 
@@ -254,20 +288,41 @@ class ImportExportService {
      * @return {Promise}
      */
     static exportTestFile(directory, test_name, file_content) {
-        return new Promise(function (good,bad) {
-            let filePathName = path.resolve(directory) + "/" + test_name + ".js";
-            let fileName = test_name + ".js";
-            fs.writeFile(filePathName, file_content, function(err) {
-                if (err) {
-                    console.error(error(err));
-                    process.exit(1);
-                }
-                good("File <" + fileName + "> successfully saved in " + directory);
-                return;
-                //console.log(success("File <" + fileName + "> successfully saved in " + directory));
-            });
-        })
-
+        return new Promise(function (good, bad) {
+            var lastChar = directory.substr(-1);
+            if (lastChar == '/') {
+                directory = directory.substr(0, directory.length-1);
+            }
+            if(test_name.indexOf("/") !=-1){
+                var lastSlashIndex = test_name.lastIndexOf("/");
+                directory = directory+test_name.substr(0,lastSlashIndex);
+                test_name = test_name.substr(lastSlashIndex+1);
+            }
+            return ImportExportService.mkDirByPathSync(directory)
+                .then(response => {
+                    let filePathName = path.resolve(directory) + "/" + test_name;
+                    if (filePathName.endsWith(".js")){
+                        return fs.writeFile(filePathName, file_content, function(err) {
+                            if (err) {
+                                console.error(error("ERROR: Unable to create directory/test-file"));
+                                process.exit(1);
+                            }
+                            good("File <" + test_name + "> successfully saved in " + directory);
+                            return;
+                        });
+                    }
+                    else {
+                        return fs.writeFile(filePathName, file_content, 'binary', function(err) {
+                            if (err) {
+                                console.error(error("ERROR: Unable to create media file"));
+                            }
+                            good("File <" + test_name + "> successfully saved in " + directory);
+                            return;
+                        });
+                    }
+                })
+                .catch(errors => bad("ERROR: An error occurred while saving the file to local directory"));
+        });
     }
 
     /**
@@ -279,110 +334,54 @@ class ImportExportService {
     static makeFolder(folderName, directory) {
         return new Promise(function(good, bad) {
             let newDirectory = directory + "/" + folderName;
-            fs.mkdir(newDirectory, function(err) {
+            return fs.mkdir(newDirectory, function(err) {
                 if (err === 'EEXIST') {
                     console.error(error("ERROR: This folder <"+ folderName +"> exists.\nPlease use another directory.\n"));
                     process.exit(1);
                 }
+                good(newDirectory);
+                return;
             });
-            good(newDirectory);
-            return;
         });
     }
 
     /**
-     * Get the directory map, using the projectID and folderID
-     * @param projID
-     * @param folderID
+     * create a folder if does not exist
+     * @param directory
      * @return {Promise}
      */
-    static getDirectoryMapByID(projID, folderID) {
+    static makeFolderIfNotExist(directory) {
         return new Promise(function(good, bad) {
-            ImportExportService.directoryList(projID)
-                .then(rootDirMap=> {
-                    for (var i = 0; i < rootDirMap.length; i++) {
-                        let root_folder = rootDirMap[i];
-                        if (root_folder.id == folderID) {
-                            if (folderID != null) {
-                                good(ImportExportService.findSubDirectoryByID(root_folder, folderID));
-                                return;
-                            } else {
-                                good(rootDirMap);
-                                return;
-                            }
-                        }
-                    }
-                });
-        });
-    }
-
-    /**
-     * Does a recursive search on the parentDir object, and its children
-     * @param parentDir
-     * @param folderID
-     * @return {*}
-     */
-    static findSubDirectoryByID(parentDir, folderID) {
-        if( parentDir.typeName == "FOLDER" ) {
-            if( parentDir.id == folderID ) {
-                return parentDir;
-            }
-            // @childrenList (children of directory)
-            var childrenList = parentDir.children;
-            for (var i = 0; i < childrenList.length; i++) {
-                var validatedChildNode = ImportExportService.findSubDirectoryByID(childrenList[i], folderID);
-                if (validatedChildNode != null) {
-                    // @return folder
-                    return validatedChildNode;
+            return fs.mkdir(directory, function(err) {
+                if (err === 'EEXIST') {
                 }
-            }
-        }
-        return null;
-    }
-
-    //----------------------------------------------------------------------------
-    // Export API Functions
-    //----------------------------------------------------------------------------
-
-    /**
-     * Get content of script from a test
-     * @param projectID
-     * @param testID
-     * @return {Promise}
-     */
-    static getScript(projectID, testID) {
-        return new Promise(function(good, bad) {
-            APIUtils.webstudioRawRequest(
-                "GET",
-                "/api/studio/v1/projects/" + projectID + "/workspace/tests/" + testID + "/script",
-                {})
-                .then(data => {
-                    good(data);
-                    return;
-                });
-        });
+                if (program.verbose) {
+                    console.log("INFO : creating folder if does not exist at <"+directory+">");
+                }
+                good(directory);
+                return;
+            });
+       });
     }
 
     /**
-     * Get the directory of a project
-     * @param projectID
-     * @param callback
-     * @return {Promise.<TResult>}
+     * create a directory with full path
+     * @param targetDir
+     * @returns {Promise}
      */
-    static directoryList(projectID) {
-        return new Promise(function(good, bad) {
-            APIUtils.webstudioJsonRequest(
-                "GET",
-                "/api/studio/v1/projects/" + projectID + "/workspace/directory",
-                {}
-                )
-                .then(project => {
-                    good(project.children);
+    static mkDirByPathSync(targetDir) {
+        return new Promise(function (good, bad) {
+            return mkdirp(targetDir, function (err) {
+                if (err){
+                    bad(err);
                     return;
-                });
+                }
+                good();
+                return;
+            });
+
         });
     }
-
 }
 
 module.exports = ImportExportService;

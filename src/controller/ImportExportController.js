@@ -9,10 +9,12 @@ const chalk = require('chalk');
 const error = chalk.red;
 const success = chalk.green;
 
+const program = require('commander');
+
 // Module Dependencies (non-npm)
 const ProjectService = require('../service/ProjectService');
-const FolderService = require('../service/FolderService');
 const ImportExportService = require('../service/ImportExportService');
+const APIUtils = require('../utils/ApiUtils');
 
 class ImportExportController {
 
@@ -26,50 +28,70 @@ class ImportExportController {
      * @param folderPath
      * @return {Promise.<TResult>}
      */
-    static importFolderHelper(projectName, folderPath) {
+    static importFolderHelper(projectName, folderPath, options) {
         let copyFolderPathName;
-        let copyFolderName;
-        let copyProjectId;
-        return ImportExportService.checkPath(folderPath)
+        return APIUtils.login()
+            .then(t => ImportExportService.checkPath(folderPath))
             .then(folder_pathname => {
+                if (program.verbose) {
+                    console.log("INFO : checked target folder path");
+                }
                 copyFolderPathName = folder_pathname;
-                return ImportExportService.checkFolderContents(folder_pathname) })
-            .then(folder_name => {
-                copyFolderName = folder_name;
-                return ProjectService.projectID(projectName)})
+                return ProjectService.projectID(projectName);
+            })
             .then(projID => {
-                copyProjectId=projID;
-                return FolderService.checkFolder(projID, copyFolderName)})
-            .then(folder_name => {
-                copyFolderName=folder_name;
-                return FolderService.createFolder(copyProjectId, folder_name)})
+                if (program.verbose) {
+                    console.log("INFO : fetching project id");
+                }
+                if(projID) {
+                    console.log("INFO : trying to import from local folder to project root directory");
+                    return ImportExportService.importFolderContents(projID, copyFolderPathName, options);
+                }
+                else {
+                    console.log("INFO : creating new project<"+projectName+">");
+                    console.log("INFO : trying to import from local folder to project root directory");
+                    return ProjectService.createProject(projectName)
+                        .then(projectID => {
+                            return ImportExportService.importFolderContents(projectID, copyFolderPathName, options);
+                        });
+                }
+            })
             .then(response => {
-                return ImportExportService.importFolderContents(projectName, copyFolderName, copyFolderPathName)})
-            .then(response=> {
-                console.log(success("Import successful! Test created under Folder <" + copyFolderName
-                    + "> under Project <" + projectName+">" ));})
-            .catch(error =>{
-                console.error("Error: error occurred while importing folder : "+error+"'\n");
+                console.log(success("Import successful! test(s) created under Project <"+ projectName +">" ));
+            })
+            .catch(errors => {
+                console.log(error(errors));
             });
     }
 
     /**
      * Export folder and its test scripts
      * @param projectName
-     * @param folderName
      * @param directory
      * @return {Promise.<TResult>}
      */
-    static exportFolderHelper(projectName, folderName, directory) {
-        let copyProjectId;
-        return ProjectService.projectID(projectName)
+    static exportFolderHelper(projectName, directory) {
+        //create folder does not exist
+        return APIUtils.login()
+            .then(response => ImportExportService.makeFolderIfNotExist(directory))
+            .then(response => ProjectService.projectID(projectName))
             .then(projID => {
-                copyProjectId = projID;
-                return FolderService.nodeID(projID, folderName)})
-            .then(folderID => ImportExportService.exportTestDirectory(copyProjectId, folderID, directory))
-            .then(t => console.log(success("Folder has been exported successfully to <"+directory+">")))
-            .catch(error =>{
-                console.log("Error: "+error+"'\n");
+                if (program.verbose) {
+                    console.log("INFO : checked project ID");
+                }
+                if(projID){
+                    return ImportExportService.exportTestDirectory(projID, directory);
+                }
+                else{
+                    console.log(error('ERROR : Project name was not found'));
+                    process.exit(1);
+                }
+            })
+            .then(response => {
+                console.log(success("Project has successfully exported to <"+directory+">"));
+            })
+            .catch(errors => {
+                console.log(error(errors));
             });
     }
 }

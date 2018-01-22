@@ -7,6 +7,7 @@
 // npm Dependencies
 const fs = require('fs');
 const util = require('util');
+const rjson = require("relaxed-json");
 
 // Chalk (color) messages for success/error
 const chalk = require('chalk');
@@ -17,6 +18,7 @@ const success = chalk.green;
 const CLIUtils = require('../utils/CliUtils');
 const ProjectService = require('../service/ProjectService');
 const TestService = require('../service/TestService');
+const APIUtils = require('../utils/ApiUtils');
 
 class TestRunnerController {
 
@@ -34,8 +36,8 @@ class TestRunnerController {
      */
     static main(projectName, scriptPath, options) {
         if (options.save != null) {
-            let copyProjectId;
             let copyTestDirectory;
+            let copyNgrokUrl;
             return TestService.makeDir(options.save)
                 .then(testDirectory => {
                     // Test log functionality
@@ -59,32 +61,55 @@ class TestRunnerController {
                     console.log("# Project Name: " + projectName);
                     console.log("# Test Path : " + scriptPath);
                     console.log("#");
-
-                    return ProjectService.projectID(projectName)})
-                .then(projID => {
-                    console.log("# Project ID : "+projID);
-                    copyProjectId=projID;
-                    return TestService.testID(projID, scriptPath)})
-                .then(scriptID =>  {
-                    console.log("# Test ID  : "+scriptID);
-                    let dataParams = null;
-                    return TestService.runTest(copyProjectId, scriptID, dataParams)})
+                    return APIUtils.login()})
+                .then(response => {
+                    console.log("# Log In Successful");
+                    console.log("#");
+                    if(options.ngrokPort != null) {
+                        return TestService.connectToNgrok(options.ngrokPort)
+                            .then(ngrokUrl => {
+                                console.log("# Ngrok Url : " + ngrokUrl);
+                                copyNgrokUrl = ngrokUrl;
+                                return ProjectService.projectID(projectName);
+                            });
+                    }
+                    else {
+                        return ProjectService.projectID(projectName);
+                    }
+                })
+                .then(projectId => {
+                    if(projectId){
+                        console.log("# Project ID : "+projectId);
+                        return TestService.runTest(projectId, scriptPath, copyNgrokUrl, options);
+                    }
+                    else{
+                        console.log(error("ERROR: Project name was not found"));
+                        process.exit(1);
+                    }
+                })
                 .then(postID => {
                     console.log("# Test run ID: "+postID);
                     console.log("#");
                     console.log("");
-                    return TestService.pollForResult(postID)})
+                    return TestService.pollForResult(postID)
+                })
                 .then(response => {
                     console.log("");
-                    TestService.outputTotalTestRunningTime(response.steps);
+                    console.log(TestService.outputTotalTestRunningTime(response.steps));
                     console.log("");
-                    TestService.outputStatus(response.steps);
+                    console.log(TestService.outputStatus(response.steps));
                     TestService.processErrors(response.steps);
-                    console.log("")
+                    if(copyNgrokUrl){
+                        TestService.disconnectNgrok();
+                    }
+                    console.log("");
                     console.log("Test Info saved in "+copyTestDirectory+"\n");
                 })
-                .catch(error => {
-                    console.log("Error: "+error);
+                .catch(errors => {
+                    console.error(error(errors));
+                    if(copyNgrokUrl){
+                        TestService.disconnectNgrok();
+                    }
                 });
         }
         else {
@@ -96,30 +121,54 @@ class TestRunnerController {
             console.log("# Project Name: " + projectName);
             console.log("# Test Path : " + scriptPath);
             console.log("#");
-            let copyProjectId;
-            return ProjectService.projectID(projectName)
+            let copyNgrokUrl;
+            return APIUtils.login()
+                .then(response => {
+                    console.log("# Log In Successful");
+                    if(options.ngrokPort != null) {
+                        return TestService.connectToNgrok(options.ngrokPort)
+                            .then(ngrokUrl => {
+                                console.log("# Ngrok Url : " + ngrokUrl);
+                                copyNgrokUrl = ngrokUrl;
+                                return ProjectService.projectID(projectName);
+                            });
+                    }
+                    else {
+                        return ProjectService.projectID(projectName);
+                    }
+
+                })
                 .then(projectId => {
-                    console.log("# Project ID : "+projectId);
-                    copyProjectId=projectId;
-                    return TestService.testID(projectId, scriptPath)})
-                .then(scriptID =>  {
-                    console.log("# Test ID  : "+scriptID);
-                    let dataParams = null;
-                    return TestService.runTest(copyProjectId, scriptID, dataParams)})
+                    if(projectId){
+                        console.log("# Project ID : "+projectId);
+                        return TestService.runTest(projectId, scriptPath, copyNgrokUrl, options);
+                    }
+                    else{
+                        console.log(error("ERROR: Project name was not found"));
+                        process.exit(1);
+                    }
+                })
                 .then(postID => {
                     console.log("# Test run ID: "+postID);
                     console.log("#");
                     console.log("");
-                    return TestService.pollForResult(postID)})
+                    return TestService.pollForResult(postID)
+                })
                 .then(response => {
                     console.log("");
-                    TestService.outputTotalTestRunningTime(response.steps);
+                    console.log(TestService.outputTotalTestRunningTime(response.steps));
                     console.log("");
-                    TestService.outputStatus(response.steps);
+                    console.log(TestService.outputStatus(response.steps));
                     TestService.processErrors(response.steps);
+                    if(copyNgrokUrl){
+                        TestService.disconnectNgrok();
+                    }
                 })
-                .catch(error => {
-                    console.error(error(error));
+                .catch(errors => {
+                    console.error(error(errors));
+                    if(copyNgrokUrl){
+                        TestService.disconnectNgrok();
+                    }
                 });
         }
     }

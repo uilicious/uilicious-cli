@@ -1,20 +1,20 @@
-/*
-* TestService class that provides functionality for CRUD operations
-* to be performed by the test
-*/
+/**
+ * TestService class that provides functionality for test running operations
+ * @author Shahin (shahin@uilicious.com)
+ */
 
 // npm Dependencies
-const program = require('commander');
 const fs = require('fs');
-
+const path = require('path');
+const rjson = require("relaxed-json");
+const ngrok = require('ngrok');
 // Chalk (color) messages for success/error
 const chalk = require('chalk');
 const error = chalk.red;
 const success = chalk.green;
 
 // Module Dependencies (non-npm)
-const APIUtils = require('../utils/ApiUtils');
-
+const api = require('../utils/api');
 /// Output test caching, this is to prevent duplicates
 /// in test steps from appearing on screen
 ///
@@ -34,29 +34,27 @@ class TestService {
      * @return {Promise}
      */
     static pollForResult(runTestID) {
-
         // Call API every 2000ms
         let pollInterval = 2000;
-
         return new Promise(function(good, bad) {
             function actualPoll() {
                 setTimeout(function() {
-                    return TestService.getResult(runTestID)
+                  return api.project.testrun.get({id:runTestID})
                         .then(res => {
+                            res = JSON.parse(res);
                             // Everytime the result is received,
                             // Update the screen for the latest status updates
-                            TestService.processResultSteps(res.steps);
-
+                            TestService.processResultSteps(res.result.result.steps);
                             // Wait for test status (success/failure) and
                             // then return the full results
-                            if (res.status == 'success' || res.status == 'failure') {
-                                good(res);
+                            if (res.result.result.status == 'success' || res.result.result.status == 'failure') {
+                                good(res.result.result);
                                 return;
                             }
                             else {
                                 actualPoll();
                             }
-                        })
+                        }).catch(errors => bad("ERROR: Error occurred while getting the test result"))
                 }, pollInterval);
             }
             actualPoll();
@@ -81,13 +79,13 @@ class TestService {
         }
         // Display this log if no errors
         if (errorCount == 0) {
-            console.log("Test successful with no errors.");
+            return "Test successful with no errors.";
         }
         // Display this log if there are errors
         if (errorCount == 1) {
-            console.log("Test failed with " + errorCount + " error.");
+            return "Test failed with " + errorCount + " error.";
         } else if (errorCount > 1) {
-            console.log("Test failed with " + errorCount + " errors.");
+            return "Test failed with " + errorCount + " errors.";
         }
     }
 
@@ -104,7 +102,7 @@ class TestService {
             let step = stepArr[idx];
             totalTime+=step.time;
         }
-        console.log("Total time to execute the test : " + totalTime.toFixed(2) + "s");
+        return "Total time to execute the test : " + totalTime.toFixed(2) + "s";
 
     }
 
@@ -165,106 +163,122 @@ class TestService {
         return new Promise(function(good, bad) {
             let testRun = new Date().toString();
             let testDirectory = directory + "TestRun " + testRun;
-            fs.mkdir(testDirectory, function(err) {
+            return fs.mkdir(testDirectory, function(err) {
                 if (err) {
                     console.log(error("Error: An error occurred while creating the directory, Please specify a valid path"));
                     process.exit(1);
                 }
+                good(testDirectory);
+                return;
             });
-            good(testDirectory);
-            return;
         });
     }
 
-    //------------------------------------------------------------------------------
-    // Test API Functions
-    //------------------------------------------------------------------------------
+    /**
+     * Connect localhost project to ngrok to access it from public url
+     * @param port
+     * @returns {Promise}
+     */
+    static connectToNgrok(port){
+        return new Promise(function (good, bad) {
+            return ngrok.connect(port, function (err, url) {
+                if(err){
+                    good("Unable to connect Ngrok");
+                    return;
+                }
+                else{
+                    good(url);
+                    return;
+                }
+            });
+        });
+    }
 
     /**
-     * Returns the test ID (if found), given the project ID AND test webPath
-     * Also can be used to return node ID for test
-     * @param projID
-     * @param testPath
-     * @return {Promise}
+     * disconnect the  tunnel from ngrok
      */
-    static testID(projID, testPath) {
-        return new Promise(function (good, bad) {
+    static disconnectNgrok(){
+        ngrok.disconnect();
+        ngrok.kill()
+    }
 
-            while (testPath.startsWith("/")) {
-                testPath = testPath.substr(1);
-            }
-
-            return APIUtils.webstudioTestRequest(
-                "GET",
-                "/api/studio/v1/projects/" + projID + "/workspace/tests",
-                {path: testPath}
-                )
-                .then(tests => {
-                    for (var i = 0; i < tests.length; i++) {
-                        let test = tests[i];
-                        if (test.path === testPath) {
-                            good(test.id);
-                            return;
-                        }
-                    }
-                    console.error(error("ERROR: Unable to find test script: '" + testPath + "'\n"));
-                    process.exit(1);
-                });
-        });
+    /**
+     * Read file Contents
+     * @param file_pathname
+     * @returns {String}
+     */
+    static readFileContents(file_pathname) {
+        let fileLocation = path.resolve(file_pathname);
+        let fileContent = fs.readFileSync(fileLocation, 'utf-8');
+        if (fileLocation.indexOf(fileContent) > -1) {
+            console.log("ERROR: There is nothing in this file!\n");
+        }
+        else {
+            return fileContent;
+        }
     }
 
     /**
      * Runs a test, and returns the run GUID
      * @param projID
-     * @param testID
-     * @param dataParams
-     * @return {Promise}
+     * @param scriptName
+     * @param options
+     * @returns {Promise}
      */
-    static runTest(projID, testID, dataParams) {
+    static runTest(projID, scriptName, ngrokUrl, options) {
         // Get the browser config
         let form = {};
-        if (program.browser != null) {
-            form.browser = program.browser;
+        if (options.browser == null) {
+            form.browser = "chrome";
         }
-        if (program.height != null) {
-            form.height = program.height;
+        else {
+            form.browser = options.browser;
         }
-        if (program.width != null) {
-            form.width = program.width;
+        if (options.height == null) {
+            form.height = "1020px";
         }
-        form.data = dataParams;
-
+        else {
+            form.height = options.height;
+        }
+        if (options.width == null) {
+            form.width = "1360px";
+        }
+        else {
+            form.width = options.width;
+        }
+        if(options.dataObject!=null){
+            form.data = rjson.transform(options.dataObject);
+        }
+        else if(options.dataFile!=null){
+            form.data = rjson.transform(TestService.readFileContents(options.dataFile));
+        }
+        else {
+            form.data = "{}";
+        }
+        if(ngrokUrl && options.ngrokParam){
+            var jsonObject = JSON.parse(form.data);
+            jsonObject[options.ngrokParam] = ngrokUrl;
+            form.data = JSON.stringify(jsonObject);
+        }
+        scriptName = scriptName.concat(".test.js");
         // Return promise obj
         return new Promise(function(good, bad) {
-            APIUtils.webstudioJsonRequest(
-                "POST",
-                "/api/studio/v1/projects/" + projID + "/workspace/tests/" + testID + "/runAction?cli=true",
-                form)
+            return api.project.testrun.start({projectID:projID, runFile:scriptName, browser: form.browser, height:form.height,
+                width:form.width, data:form.data})
                 .then(res => {
-                    if ( res.id != null ) {
-                        good(res.id);
+                    res = JSON.parse(res);
+                    res = res.result;
+                    if(res.testRunIDs[0]){
+                        good(res.testRunIDs[0]);
                         return;
                     }
-                    throw new Error(error("Missing Test Run ID/Invalid JSON format"));
-                });
+                    bad("ERROR: Invalid Test Run ID/Invalid JSON format");
+                    return;
+                })
+                .catch(errors => bad("ERROR: Invalid Test Run ID/Invalid JSON format"));
         });
     }
 
-    /**
-     * Get result from the ID which is generated when a new test is ran
-     * @param runTestID
-     * @return {*}
-     */
-    static getResult(runTestID) {
-        return APIUtils.webstudioJsonRequest(
-            "GET",
-            "/api/v0/test/result",
-            { id : runTestID }
-            )
-            .then(callback => {
-                return callback;
-            });
-    }
 }
 
 module.exports = TestService;

@@ -27,33 +27,40 @@ function CLIApp() {
 		.version('1.3.13')
 		.option('-u, --user <required>', 'username')
 		.option('-p, --pass <required>', 'password')
-		// .option('-d, --directory <optional>', 'Output directory path to use')
-		.option('-b, --browser <optional>', 'browser [Chrome/Firefox]')
-		.option('-w, --width <optional>', 'width of browser')
-		.option('-ht, --height <optional>', 'height of browser')
+		.option('-v, --verbose', 'display details log')
 		.option('--apiHost <optional>','API host');
 
     // Import as Folder
     program
         .command('import <projname> <folder_path>')
-        .description('Import a folder.')
-        .action(function(projname, folder_path, options) {
-        	ImportExportController.importFolderHelper(projname, folder_path);
+        .description('Import test scripts to a project from a local directory.')
+        .option('--overwrite <optional>', 'Overwrite test script(s) [y/f]')
+		.action(function(projname, folder_path, options) {
+        	ImportExportController.importFolderHelper(projname, folder_path, options);
         });
 
 	// Export Test Folder
 	program
-		.command('export <projname> <folder_name> <directory>')
-		.description('Export a folder.')
-		.action(ImportExportController.exportFolderHelper);
+		.command('export <projname> <directory>')
+		.description('Export test scrips to a local target directory.')
+		.action(function (projname, directory, options) {
+            ImportExportController.exportFolderHelper(projname, directory);
+        });
 
 	// -----------------------------
 	// 	Commands for running tests
 	// -----------------------------
 	program
 		.command('run <projname> <scriptpath>')
+        .option('-br, --browser <optional>', 'browser [Chrome/Firefox]')
+        .option('-wi, --width <optional>', 'width of browser')
+        .option('-ht, --height <optional>', 'height of browser')
 		.option('-s, --save <directory>', 'Set the directory path to save test log.')
-		.description('Run a test from a project.')
+        .option('--dataObject <optional>', 'JSON data object to be supplied into the test script')
+        .option('--dataFile <directory>', 'A file contains JSON data object to be supplied into the test script')
+        .option('--ngrokPort <optional>', 'Set your localhost port number for ngrok to access it publicly')
+        .option('--ngrokParam <optional>', 'Override url param value for DataObject')
+        .description('Run a test from a project.')
 		.action(TestRunnerController.main);
 
 	// end with parse to parse through the input.txt
@@ -65,6 +72,11 @@ function CLIApp() {
 		program.parse([process.argv[0], process.argv[1], '-h']);
 		process.exit(0);
 	}
+
+    if(program.user==null || program.pass==null){
+        console.error("Error: --user or --pass parameter can not leave empty");
+        process.exit(1);
+    }
 	//  else {
 	// 	// Warn about invalid commands
 	// 	let validCommands = program.commands.map(function(cmd){
