@@ -264,7 +264,7 @@ class TestService {
         // Return promise obj
         return new Promise(function(good, bad) {
             return api.project.testrun.start({projectID:projID, runFile:scriptName, browser: form.browser, height:form.height,
-                width:form.width, data:form.data})
+                width:form.width, data:form.data, cli:"true"})
                 .then(res => {
                     res = JSON.parse(res);
                     res = res.result;
