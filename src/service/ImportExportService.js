@@ -143,18 +143,10 @@ class ImportExportService {
             return ImportExportService.readFileContents(file_pathname)
                 .then(file_content => {
                     var override;
-                    if(options.overwrite){
-                        if(options.overwrite == "y"){
-                            override = "True";
-                        }
-                        else if(options.overwrite == "n"){
-                            override = "false";
-                        }
-                        else{
-                            override = "false";
-                        }
+                    if(options.overwrite) {
+                        override = "True";
                     }
-                    else{
+                    else {
                         override = "false";
                     }
                     return api.project.file.put({projectID:projID, filePath:fileName,
