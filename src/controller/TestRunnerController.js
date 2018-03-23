@@ -110,6 +110,7 @@ class TestRunnerController {
                     if(copyNgrokUrl){
                         TestService.disconnectNgrok();
                     }
+                    process.exit(1);
                 });
         }
         else {
@@ -169,6 +170,7 @@ class TestRunnerController {
                     if(copyNgrokUrl){
                         TestService.disconnectNgrok();
                     }
+                    process.exit(1);
                 });
         }
     }
