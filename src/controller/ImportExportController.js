@@ -61,6 +61,7 @@ class ImportExportController {
             })
             .catch(errors => {
                 console.log(error(errors));
+                process.exit(1);
             });
     }
 
@@ -92,6 +93,7 @@ class ImportExportController {
             })
             .catch(errors => {
                 console.log(error(errors));
+                process.exit(1);
             });
     }
 }
