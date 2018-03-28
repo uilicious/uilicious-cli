@@ -480,6 +480,7 @@ var api = (function() {
         "stripe.plans.get" : [],
         "project.new" : [],
         "project.testrun.image.get" : [],
+        "project.testrun.images.download" : [],
         "group.admin.removeMembershipRole" : [],
         "account.hostURL" : [],
         "account.logout" : [],

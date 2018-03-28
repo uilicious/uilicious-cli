@@ -38,6 +38,7 @@ class TestRunnerController {
         if (options.save != null) {
             let copyTestDirectory;
             let copyNgrokUrl;
+            let copyTestRunId;
             return TestService.makeDir(options.save)
                 .then(testDirectory => {
                     // Test log functionality
@@ -88,6 +89,7 @@ class TestRunnerController {
                     }
                 })
                 .then(postID => {
+                    copyTestRunId = postID;
                     console.log("# Test run ID: "+postID);
                     console.log("#");
                     console.log("");
@@ -104,6 +106,9 @@ class TestRunnerController {
                     }
                     console.log("");
                     console.log("Test Info saved in "+copyTestDirectory+"\n");
+                    return TestService.downloadTestRunImages(copyTestRunId, copyTestDirectory);
+                }).then(response => {
+                    console.log(response);
                 })
                 .catch(errors => {
                     console.error(error(errors));
