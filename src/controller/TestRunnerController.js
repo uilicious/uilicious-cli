@@ -39,11 +39,11 @@ class TestRunnerController {
             let copyTestDirectory;
             let copyNgrokUrl;
             let copyTestRunId;
-            return TestService.makeDir(options.save)
+            return TestService.makeDirIfNotExists(options.save)
                 .then(testDirectory => {
                     // Test log functionality
                     copyTestDirectory = testDirectory;
-                    let testLog = testDirectory + '/log.txt';
+                    let testLog = testDirectory +(new Date()).getTime()+"-"+ 'log.txt';
                     const logFile = fs.createWriteStream(testLog, {
                         flags: 'a',
                         defaultEncoding: 'utf8'
@@ -105,7 +105,7 @@ class TestRunnerController {
                         TestService.disconnectNgrok();
                     }
                     console.log("");
-                    console.log("Test Info saved in "+copyTestDirectory+"\n");
+                    console.log("Successfully saved the test run log under <"+copyTestDirectory+">\n");
                     return TestService.downloadTestRunImages(copyTestRunId, copyTestDirectory);
                 }).then(response => {
                     console.log(response);
