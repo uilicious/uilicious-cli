@@ -290,12 +290,12 @@ class TestService {
      * @param saveToDir
      * @returns {Promise<any>}
      */
-    static downloadTestRunImages(testRunId, saveToDir){
+    static downloadTestRunImages(testRunId, saveToDir, currentUnixTimestamp) {
         // Under the Test run result folder the following file will be created
         if (!saveToDir.endsWith("/")) {
             saveToDir = saveToDir + "/";
         }
-        let savedZipFile = saveToDir+(new Date()).getTime()+"-"+"testRunImages.zip";
+        let savedZipFile = saveToDir+currentUnixTimestamp+"-"+"images.zip";
         let fileWriteStream = fs.createWriteStream(savedZipFile);
 
         // Return the promise

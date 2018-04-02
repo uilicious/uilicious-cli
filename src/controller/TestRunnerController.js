@@ -106,7 +106,7 @@ class TestRunnerController {
                         TestService.disconnectNgrok();
                     }
                     console.log("");
-                    console.log("Successfully saved the test run log under <"+copyTestDirectory+">\n");
+                    console.log("Successfully saved the test run log to <"+copyTestDirectory+currentUnixTimestamp+"-log.txt"+">\n");
                     return TestService.downloadTestRunImages(copyTestRunId, copyTestDirectory, currentUnixTimestamp);
                 }).then(response => {
                     console.log(response);
