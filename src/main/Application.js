@@ -57,7 +57,7 @@ function CLIApp() {
         .option('-br, --browser <optional>', 'browser [Chrome/Firefox]')
         .option('-wi, --width <optional>', 'width of browser')
         .option('-ht, --height <optional>', 'height of browser')
-		.option('-s, --save <directory>', 'Set the directory path to save test log.')
+		.option('-s, --save <directory>', 'Set the directory path to save test log and images.')
         .option('--dataObject <optional>', 'JSON data object to be supplied into the test script')
         .option('--dataFile <directory>', 'A file contains JSON data object to be supplied into the test script')
         .option('--ngrokPort <optional>', 'Set your localhost port number for ngrok to access it publicly')

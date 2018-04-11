@@ -155,22 +155,27 @@ class TestService {
     }
 
     /**
-     * Make local directory to save the test report and screenshots
+     * Make local directory to save the test report and screenshots if not exists
      * @param directory
      * @return {Promise}
      */
-    static makeDir(directory) {
+    static makeDirIfNotExists(directory) {
         return new Promise(function(good, bad) {
-            let testRun = new Date().toString();
-            let testDirectory = directory + "TestRun " + testRun;
-            return fs.mkdir(testDirectory, function(err) {
-                if (err) {
-                    console.log(error("Error: An error occurred while creating the directory, Please specify a valid path"));
-                    process.exit(1);
-                }
-                good(testDirectory);
-                return;
-            });
+            if (!directory.endsWith("/")) {
+                directory = directory + "/";
+            }
+            if (!fs.existsSync(directory)) {
+                return fs.mkdir(directory, function (err) {
+                    if (err) {
+                        console.log(error("Error: An error occurred while creating the directory, Please specify a valid path"));
+                        process.exit(1);
+                    }
+                    good(directory);
+                    return;
+                });
+            }
+            good(directory);
+            return;
         });
     }
 
@@ -276,6 +281,34 @@ class TestService {
                     return;
                 })
                 .catch(errors => bad("ERROR: Invalid Test Run ID/Invalid JSON format"));
+        });
+    }
+
+    /**
+     * Download test run images and saved to local directory as .zip file
+     * @param testRunId
+     * @param saveToDir
+     * @returns {Promise<any>}
+     */
+    static downloadTestRunImages(testRunId, saveToDir, currentUnixTimestamp) {
+        // Under the Test run result folder the following file will be created
+        if (!saveToDir.endsWith("/")) {
+            saveToDir = saveToDir + "/";
+        }
+        let savedZipFile = saveToDir+currentUnixTimestamp+"-"+"images.zip";
+        let fileWriteStream = fs.createWriteStream(savedZipFile);
+
+        // Return the promise
+        return new Promise(function (good, bad) {
+            return api.project.testrun.images.download({id: testRunId}).pipe(fileWriteStream)
+                .on('error', function (err) {
+                    bad("ERROR: An error occurred during download and save test run images.");
+                    return;
+                })
+                .on('close', function (data) {
+                    good("Successfully downloaded the test run images and saved to <"+savedZipFile+">");
+                    return;
+                });
         });
     }
 
