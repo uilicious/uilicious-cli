@@ -7,6 +7,7 @@
 // npm Dependencies
 const fs = require('fs');
 const path = require('path');
+const request = require('request');
 const mkdirp = require('mkdirp');
 const program = require('commander');
 
@@ -149,8 +150,20 @@ class ImportExportService {
                     else {
                         override = "false";
                     }
-                    return api.project.file.put({projectID:projID, filePath:fileName,
+
+
+                    // Do not import hidden file
+                    if (fileName.startsWith(".")) {
+                        return good();
+                    }
+					// Media file must be uploaded separately
+					else if (fileName.endsWith(".jpg") || fileName.endsWith(".png")) {
+						return ImportExportService.uploadRawFile(projID, file_pathname, fileName, override, options);
+					}
+                    else {
+                        return api.project.file.put({projectID:projID, filePath:fileName,
                         content: file_content, overwrite:override });
+                    }
                 })
                 .then(response => {
                     if (program.verbose &&  options.overwrite) {
@@ -173,6 +186,47 @@ class ImportExportService {
                     return;
                 });
         });
+    }
+
+	/**
+     * Other than test script will will be upload using this helper function
+	 * @param projID
+	 * @param file_pathname
+	 * @param fileName
+	 * @param options
+	 * @returns {Promise<any>}
+	 */
+    static uploadRawFile(projID, file_pathname, fileName, override, options) {
+        return new Promise( function (good, bad) {
+
+            var r = request.post(api._core.baseURL() + "/project/file/put", function optionalCallback (err, httpResponse, body) {
+				if (err) {
+					console.log(error("ERROR : Unable to upload "+fileName+""));
+					return good();
+				}
+
+				body = JSON.parse(body);
+				if (body.ERROR && body.ERROR.code === "FILE_ALREADY_EXISTS") {
+					console.log(error("INFO : existing File Found -> Skipping"));
+					return good();
+                }
+
+				if (program.verbose &&  options.overwrite) {
+					console.log("INFO : Uploading test script ("+fileName+") with overwrite mode enabled");
+				}
+				else if (program.verbose) {
+					console.log("INFO : uploading test script ("+fileName+") ");
+				}
+				return good();
+			});
+			var form = r.form();
+			form.append('projectID', projID);
+			form.append('filePath', fileName);
+			form.append('overwrite', override);
+			form.append('content', fs.createReadStream(path.resolve(file_pathname)));
+
+			r.jar(api._core.getCookieJar());
+		});
     }
 
     //----------------------------------------------------------------------------
