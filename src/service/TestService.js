@@ -280,7 +280,12 @@ class TestService {
                     bad("ERROR: Invalid Test Run ID/Invalid JSON format");
                     return;
                 })
-                .catch(errors => bad("ERROR: Invalid Test Run ID/Invalid JSON format"));
+                .catch(res => {
+                    if (res.error.indexOf('FILE_NOT_FOUND') !== -1) {
+                        return bad("ERROR: Test file not found");
+                    }
+                    return bad("ERROR: Invalid Test Run ID/Invalid JSON format");
+				});
         });
     }
 
