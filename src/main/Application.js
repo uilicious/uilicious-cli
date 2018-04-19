@@ -35,7 +35,7 @@ function CLIApp() {
     // Import as Folder
     program
         .command('import <projname> <folder_path>')
-        .description('Import test scripts to a project from a local directory.')
+        .description('Upload test scripts into a project from a local directory.')
         .option('--overwrite', 'Overwrite test script(s)')
 		.action(function(projname, folder_path, options) {
         	ImportExportController.importFolderHelper(projname, folder_path, options);
@@ -44,7 +44,7 @@ function CLIApp() {
 	// Export Test Folder
 	program
 		.command('export <projname> <directory>')
-		.description('Export test scrips to a local target directory.')
+		.description('Download test scripts to a local target directory.')
 		.action(function (projname, directory, options) {
             ImportExportController.exportFolderHelper(projname, directory);
         });
