@@ -44,6 +44,32 @@ class ProjectService {
         });
     }
 
+	/**
+	 * Fetch the project ID for a git project,
+	 * silently terminates, with an error message if it fails
+	 * @param projectName
+	 * @return {Promise}
+	 */
+	static fetchGitProjectByName(projectName) {
+		return new Promise(function(good, bad) {
+			return api.git.project.list({fieldList:["_oid", "name","url" ,"testDir"]})
+				.then(response => {
+					response = JSON.parse(response);
+					let list = response.result;
+					for (let i=0; i<list.length; ++i) {
+						let project = list[i];
+						if (project.name == projectName) {
+							good(project);
+							return;
+						}
+					}
+					good();
+					return;
+				})
+				.catch(errors => bad("ERROR: An error occurred while retrieving project ID "));
+		});
+	}
+
     /**
      * Create a new Project and return project id
      * @param projectName
