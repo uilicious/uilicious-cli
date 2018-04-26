@@ -208,9 +208,8 @@ class TestRunnerController {
 			})
 			.then(project => {
 				let projectId = project._oid;
-				console.log("# Project Id :" + projectId);
 				console.log("# Test dir :" + project.testDir);
-				console.log("# Project url : " + project.url);
+				console.log("# Git url : " + project.url);
 
 				if (options.ngrokPort != null) {
 					return TestService.connectToNgrok(options.ngrokPort)

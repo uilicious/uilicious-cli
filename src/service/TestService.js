@@ -241,13 +241,13 @@ class TestService {
 			form.browser = options.browser;
 		}
 		if (options.height == null) {
-			form.height = "1020px";
+			form.height = "1020";
 		}
 		else {
 			form.height = options.height;
 		}
 		if (options.width == null) {
-			form.width = "1360px";
+			form.width = "1360";
 		}
 		else {
 			form.width = options.width;
@@ -311,13 +311,13 @@ class TestService {
 			form.browser = options.browser;
 		}
 		if (options.height == null) {
-			form.height = "1020px";
+			form.height = "1020";
 		}
 		else {
 			form.height = options.height;
 		}
 		if (options.width == null) {
-			form.width = "1360px";
+			form.width = "1360";
 		}
 		else {
 			form.width = options.width;
