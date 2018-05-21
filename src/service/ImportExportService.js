@@ -101,7 +101,7 @@ class ImportExportService {
                 let promiseArr = [];
                 for (var i = 0; i < files.length; i++) {
                     let file = files[i];
-                    let nodeName = path.parse(file).name+path.parse(file).ext;
+                    let nodeName = path.parse(file).base;
                     let nodeLocation = folderLocation + "/" + file;
                     if(fs.lstatSync(nodeLocation).isFile()){
                         if (!(/(^|\/)\.[^\/\.]/g).test(nodeName)) {
