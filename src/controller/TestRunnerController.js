@@ -300,7 +300,17 @@ class TestRunnerController {
 				TestService.processErrors(response.steps);
 				if (options.ngrokPort != null) {
 					TestService.disconnectNgrok();
+                }
+                
+				// If the test is completed with error
+				// the process should exit with err code 1
+				if (errorCount > 0) {
+					process.exit(1);
 				}
+				else {
+					process.exit(0);
+				}
+
 			}).catch(errors => {
 				console.error(error(errors));
 				if (options.ngrokPort != null) {
