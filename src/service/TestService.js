@@ -63,14 +63,13 @@ class TestService {
 	}
 
 	/**
-	 * Output log for test status and errors after completion
-	 * @param remoteOutputPath
+	 * Count number of error steps in the test
 	 * @param stepArr
 	 */
-	static outputStatus(stepArr) {
+	static countErrorSteps(stepArr) {
 		let errorCount = 0;
 		if (stepArr == null) {
-			return;
+			return errorCount;
 		}
 		for (let idx = 0; idx < stepArr.length; idx++) {
 			let step = stepArr[idx];
@@ -78,16 +77,7 @@ class TestService {
 				errorCount++;
 			}
 		}
-		// Display this log if no errors
-		if (errorCount == 0) {
-			return "Test successful with no errors.";
-		}
-		// Display this log if there are errors
-		if (errorCount == 1) {
-			return "Test failed with " + errorCount + " error.";
-		} else if (errorCount > 1) {
-			return "Test failed with " + errorCount + " errors.";
-		}
+		return errorCount
 	}
 
 	/**
