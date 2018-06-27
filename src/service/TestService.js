@@ -231,13 +231,13 @@ class TestService {
 			form.browser = options.browser;
 		}
 		if (options.height == null) {
-			form.height = "1020px";
+			form.height = "1020";
 		}
 		else {
 			form.height = options.height;
 		}
 		if (options.width == null) {
-			form.width = "1360px";
+			form.width = "1360";
 		}
 		else {
 			form.width = options.width;
@@ -279,6 +279,68 @@ class TestService {
 					}
 					return bad("ERROR: Invalid Test Run ID/Invalid JSON format");
 				});
+		});
+	}
+
+	/**
+	 * Run a test by git commit, and returns the run GUID
+	 * @param projectId
+	 * @param commitHash
+	 * @param runFile
+	 * @param ngrokUrl
+	 * @param options
+	 * @returns {Promise<any>}
+	 */
+	static runTestByGit(projectId, commitHash, runFile, ngrokUrl, options) {
+		// Get the browser config
+		let form = {};
+		if (options.browser == null) {
+			form.browser = "chrome";
+		}
+		else {
+			form.browser = options.browser;
+		}
+		if (options.height == null) {
+			form.height = "1020";
+		}
+		else {
+			form.height = options.height;
+		}
+		if (options.width == null) {
+			form.width = "1360";
+		}
+		else {
+			form.width = options.width;
+		}
+		if(options.dataObject!=null){
+			form.data = rjson.transform(options.dataObject);
+		}
+		else if(options.dataFile!=null){
+			form.data = rjson.transform(TestService.readFileContents(options.dataFile));
+		}
+		else {
+			form.data = "{}";
+		}
+		if(ngrokUrl && options.ngrokParam){
+			let jsonObject = JSON.parse(form.data);
+			jsonObject[options.ngrokParam] = ngrokUrl;
+			form.data = JSON.stringify(jsonObject);
+		}
+		// Return promise obj
+		return new Promise(function(good, bad) {
+			return api.testrun.git.start({
+				projectId: projectId, commitHash: commitHash, runFile:runFile, browser: form.browser,
+				height: form.height, width: form.width, data: form.data, cli: "true"
+			}).then(res => {
+				res = JSON.parse(res);
+				if (res.testRunIDs[0]) {
+					good(res.testRunIDs[0]);
+					return;
+				}
+				bad("ERROR: Invalid Test Run ID/Invalid JSON format");
+				return;
+			})
+				.catch(errors => bad("ERROR: Unable to run the test file"));
 		});
 	}
 

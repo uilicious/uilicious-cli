@@ -228,6 +228,72 @@ class TestRunnerController {
                 });
         }
     }
+
+	/**
+	 * Test will be triggered by git commit from CI services e.g. Travis or Jenkins
+	 * CI service will pass the project name and git commit ID
+	 * @param projectName
+	 * @param commitHash
+	 * @param runFile
+	 * @param options
+	 * @returns {Promise<any>}
+	 */
+	static runByGit(projectName, commitHash, runFile, options) {
+		CLIUtils.banner();
+		CLIUtils.consoleLogTestDate();
+
+		console.log("#");
+		console.log("# Uilicious CLI - Runner");
+		console.log("# Project Name: " + projectName);
+		console.log("# Test file Name : " + runFile);
+		console.log("#");
+
+		return APIUtils.login()
+			.then(response => {
+				console.log("# Log In Successful");
+				console.log("#");
+				return ProjectService.fetchGitProjectByName(projectName);
+			})
+			.then(project => {
+				let projectId = project._oid;
+				console.log("# Test dir :" + project.testDir);
+				console.log("# Git url : " + project.url);
+
+				if (options.ngrokPort != null) {
+					return TestService.connectToNgrok(options.ngrokPort)
+						.then(ngrokUrl => {
+							console.log("# Ngrok Url : " + ngrokUrl);
+							return TestService.runTestByGit(projectId, commitHash, runFile, ngrokUrl, options);
+						});
+				}
+				else {
+					return TestService.runTestByGit(projectId, commitHash, runFile, null, options);
+				}
+
+			})
+			.then(postID => {
+				console.log("# Test run ID: " + postID);
+				console.log("#");
+				console.log("");
+				return TestService.pollForResult(postID)
+			})
+			.then(response => {
+				console.log("");
+				console.log(TestService.outputTotalTestRunningTime(response.steps));
+				console.log("");
+				console.log(TestService.outputStatus(response.steps));
+				TestService.processErrors(response.steps);
+				if (options.ngrokPort != null) {
+					TestService.disconnectNgrok();
+				}
+			}).catch(errors => {
+				console.error(error(errors));
+				if (options.ngrokPort != null) {
+					TestService.disconnectNgrok();
+				}
+				process.exit(1);
+			});
+	}
 }
 
 module.exports = TestRunnerController;
