@@ -35,9 +35,10 @@ class TestRunnerController {
      *@return {Promise.<TResult>}
      */
     static main(projectName, scriptPath, options) {
+        let errorCount;
+        let copyNgrokUrl;
         if (options.save != null) {
             let copyTestDirectory;
-            let copyNgrokUrl;
             let copyTestRunId;
             let currentUnixTimestamp = (new Date()).getTime()+"";
             return TestService.makeDirIfNotExists(options.save)
@@ -102,6 +103,7 @@ class TestRunnerController {
                     console.log("");
                     console.log(TestService.outputStatus(response.steps));
                     TestService.processErrors(response.steps);
+                    errorCount = response.steps.length;
                     if(copyNgrokUrl){
                         TestService.disconnectNgrok();
                     }
@@ -110,6 +112,12 @@ class TestRunnerController {
                     return TestService.downloadTestRunImages(copyTestRunId, copyTestDirectory, currentUnixTimestamp);
                 }).then(response => {
                     console.log(response);
+
+                    // If the test is completed with error
+                    // the process should exit with err code 1
+                    if (errorCount > 0) {
+                        process.exit(1);
+                    }
                 })
                 .catch(errors => {
                     console.error(error(errors));
@@ -128,7 +136,6 @@ class TestRunnerController {
             console.log("# Project Name: " + projectName);
             console.log("# Test Path : " + scriptPath);
             console.log("#");
-            let copyNgrokUrl;
             return APIUtils.login()
                 .then(response => {
                     console.log("# Log In Successful");
@@ -169,6 +176,13 @@ class TestRunnerController {
                     TestService.processErrors(response.steps);
                     if(copyNgrokUrl){
                         TestService.disconnectNgrok();
+                    }
+
+                    errorCount = response.steps.length;
+                    // If the test is completed with error
+                    // the process should exit with err code 1
+                    if (errorCount && errorCount > 0) {
+                        process.exit(1);
                     }
                 })
                 .catch(errors => {

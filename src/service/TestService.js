@@ -146,7 +146,7 @@ class TestService {
 
 				if (outputErrorCache[idx] == null) {
 					outputErrorCache[idx] = step;
-					let stepError = "[Step " + (step.idx + 1) + " - " + step.status + "]: " + step.error.message;
+					let stepError = "[Step " + (step.idx + 1) + " - " + step.status + "]: " + step.error;
 					if (step.status == 'failure') {
 						console.log(stepError);
 					}
