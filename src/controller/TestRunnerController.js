@@ -35,9 +35,10 @@ class TestRunnerController {
      *@return {Promise.<TResult>}
      */
     static main(projectName, scriptPath, options) {
+        let errorCount;
+        let copyNgrokUrl;
         if (options.save != null) {
             let copyTestDirectory;
-            let copyNgrokUrl;
             let copyTestRunId;
             let currentUnixTimestamp = (new Date()).getTime()+"";
             return TestService.makeDirIfNotExists(options.save)
@@ -100,7 +101,22 @@ class TestRunnerController {
                     console.log("");
                     console.log(TestService.outputTotalTestRunningTime(response.steps));
                     console.log("");
-                    console.log(TestService.outputStatus(response.steps));
+
+                    // fetch number of test steps
+                    errorCount = TestService.countErrorSteps(response.steps);
+
+                    // Display this log if no errors
+                    if (errorCount == 0) {
+                        console.log("Test successful with no errors.");
+                    }
+
+                    // Display this log if there are errors
+                    if (errorCount == 1) {
+                        console.log("Test failed with " + errorCount + " error.");
+                    } else if (errorCount > 1) {
+                        console.log("Test failed with " + errorCount + " errors.");
+                    }
+
                     TestService.processErrors(response.steps);
                     if(copyNgrokUrl){
                         TestService.disconnectNgrok();
@@ -110,6 +126,15 @@ class TestRunnerController {
                     return TestService.downloadTestRunImages(copyTestRunId, copyTestDirectory, currentUnixTimestamp);
                 }).then(response => {
                     console.log(response);
+
+                    // If the test is completed with error
+                    // the process should exit with err code 1
+                    if (errorCount > 0) {
+                        process.exit(1);
+                    }
+                    else {
+                        process.exit(0);
+                    }
                 })
                 .catch(errors => {
                     console.error(error(errors));
@@ -128,7 +153,6 @@ class TestRunnerController {
             console.log("# Project Name: " + projectName);
             console.log("# Test Path : " + scriptPath);
             console.log("#");
-            let copyNgrokUrl;
             return APIUtils.login()
                 .then(response => {
                     console.log("# Log In Successful");
@@ -165,10 +189,34 @@ class TestRunnerController {
                     console.log("");
                     console.log(TestService.outputTotalTestRunningTime(response.steps));
                     console.log("");
-                    console.log(TestService.outputStatus(response.steps));
+
+                    // fetch number of test steps
+                    errorCount = TestService.countErrorSteps(response.steps);
+                    
+                    // Display this log if no errors
+                    if (errorCount == 0) {
+                        console.log("Test successful with no errors.");
+                    }
+                    
+                    // Display this log if there are errors
+                    if (errorCount == 1) {
+                        console.log("Test failed with " + errorCount + " error.");
+                    } else if (errorCount > 1) {
+                        console.log ("Test failed with " + errorCount + " errors.");
+                    }
+
                     TestService.processErrors(response.steps);
                     if(copyNgrokUrl){
                         TestService.disconnectNgrok();
+                    }
+                    
+                    // If the test is completed with error
+                    // the process should exit with err code 1
+                    if (errorCount > 0) {
+                        process.exit(1);
+                    }
+                    else {
+                        process.exit(0);
                     }
                 })
                 .catch(errors => {
@@ -199,7 +247,7 @@ class TestRunnerController {
 		console.log("# Project Name: " + projectName);
 		console.log("# Test file Name : " + runFile);
 		console.log("#");
-
+        let errorCount;
 		return APIUtils.login()
 			.then(response => {
 				console.log("# Log In Successful");
@@ -233,7 +281,22 @@ class TestRunnerController {
 				console.log("");
 				console.log(TestService.outputTotalTestRunningTime(response.steps));
 				console.log("");
-				console.log(TestService.outputStatus(response.steps));
+
+				// fetch number of test steps
+				errorCount = TestService.countErrorSteps(response.steps);
+
+				// Display this log if no errors
+				if (errorCount == 0) {
+					console.log("Test successful with no errors.");
+				}
+
+				// Display this log if there are errors
+				if (errorCount == 1) {
+					console.log("Test failed with " + errorCount + " error.");
+				} else if (errorCount > 1) {
+					console.log("Test failed with " + errorCount + " errors.");
+				}
+
 				TestService.processErrors(response.steps);
 				if (options.ngrokPort != null) {
 					TestService.disconnectNgrok();
