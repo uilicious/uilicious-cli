@@ -1,6 +1,6 @@
 {
   "name": "uilicious-cli",
-  "version": "1.6.3",
+  "version": "1.6.4",
   "description": "Uilicious CLI toolchain",
   "main": "uilicious-cli.js",
   "scripts": {
