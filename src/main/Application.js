@@ -54,7 +54,7 @@ function CLIApp() {
 	// -----------------------------
 	program
 		.command('run <projname> <scriptpath>')
-        .option('-br, --browser <optional>', 'browser [Chrome/Firefox]')
+        .option('-br, --browser <optional>', 'browser [chrome/firefox/edge/safari/ie11]')
         .option('-wi, --width <optional>', 'width of browser')
         .option('-ht, --height <optional>', 'height of browser')
 		.option('-s, --save <directory>', 'Set the directory path to save test log and images.')
@@ -64,21 +64,6 @@ function CLIApp() {
         .option('--ngrokParam <optional>', 'Override url param value for DataObject')
         .description('Run a test from a project.')
 		.action(TestRunnerController.main);
-
-	// Run a a test by git
-	program
-		.command('run-by-git <proj_name> <commit_hash> <run_file>')
-		.option('-br, --browser <optional>', 'browser [Chrome/Firefox]')
-		.option('-wi, --width <optional>', 'width of browser')
-		.option('-ht, --height <optional>', 'height of browser')
-		.option('--dataObject <optional>', 'JSON data object to be supplied into the test script')
-		.option('--dataFile <directory>', 'A file contains JSON data object to be supplied into the test script')
-		.option('--ngrokPort <optional>', 'Set your localhost port number for ngrok to access it publicly')
-		.option('--ngrokParam <optional>', 'Override url param value for DataObject')
-		.description('Run a test by git commit.')
-		.action(function (projName, commitHash, runFile, options){
-			TestRunnerController.runByGit(projName, commitHash, runFile, options);
-		});
 
 	// end with parse to parse through the input.txt
 	program.parse(process.argv);
