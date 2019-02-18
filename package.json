@@ -1,6 +1,6 @@
 {
 	"name": "uilicious-go-cli",
-	"version": "2.0.9",
+	"version": "2.0.0",
 	"description": "Uilicious CLI Go distribution",
 	"main": "uilicious-cli.js",
 	"//": [
