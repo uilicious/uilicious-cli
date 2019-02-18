@@ -1,0 +1,3 @@
+[submodule "bin"]
+	path = bin
+	url = http://gitlab.uilicious-dev.com/uilicious/uilicious-cli-go.git

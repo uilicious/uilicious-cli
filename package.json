@@ -1,32 +1,15 @@
 {
-  "name": "uilicious-cli",
-  "version": "1.6.9",
-  "description": "Uilicious CLI toolchain",
-  "main": "uilicious-cli.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-    "Uilicious",
-    "CLI"
-  ],
-  "author": "Uilicious Private Limited",
-  "license": "UNLICENSED",
-  "bin": {
-    "uilicious-cli": "./uilicious-cli.js"
-  },
-  "dependencies": {
-    "chalk": "=2.4.1",
-    "commander": "=2.15.1",
-    "figlet": "=1.2.0",
-    "form-data": "=2.3.2",
-    "mkdirp": "=0.5.1",
-    "ngrok": "=3.0.1",
-    "relaxed-json": "=1.0.1",
-    "request": "=2.87.0",
-    "request-promise": "=4.2.2"
-  },
-  "devDependencies": {
-    "chai": "=4.1.2"
-  }
+	"name": "uilicious-go-cli",
+	"version": "2.0.9",
+	"description": "Uilicious CLI Go distribution",
+	"main": "uilicious-cli.js",
+
+	"//":[
+		"bin maps the command line name to the respective script file",
+		"see : https://medium.com/netscape/a-guide-to-create-a-nodejs-command-line-package-c2166ad0452e"
+	],
+	"bin": {
+		"uilicious-go-cli": "./uilicious-cli.js"
+	},
+	"dependencies": {}
 }
