@@ -1,14 +1,20 @@
 {
-	"name": "uilicious-go-cli",
-	"version": "2.0.0",
-	"description": "Uilicious CLI Go distribution",
+	"name": "uilicious-cli",
+	"version": "2.0.2",
+	"description": "Uilicious CLI toolchain",
 	"main": "uilicious-cli.js",
 	"//": [
 		"bin maps the command line name to the respective script file",
 		"see : https://medium.com/netscape/a-guide-to-create-a-nodejs-command-line-package-c2166ad0452e"
 	],
+	"keywords": [
+		"Uilicious",
+		"CLI"
+	],
+	"author": "Uilicious Private Limited",
+	"license": "UNLICENSED",
 	"bin": {
-		"uilicious-go-cli": "./uilicious-cli.js"
+		"uilicious-cli": "./uilicious-cli.js"
 	},
 	"dependencies": {}
 }
