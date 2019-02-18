@@ -1,5 +1,5 @@
-.DS_STORE
-
-package-lock.json
+.*
+!.gitignore
+!.gitmodules
+!.npmignore
 node_modules
-.idea
