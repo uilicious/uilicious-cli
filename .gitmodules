@@ -1,3 +1,6 @@
 [submodule "bin"]
 	path = bin
 	url = http://gitlab.uilicious-dev.com/uilicious/uilicious-cli-go.git
+[submodule "/Users/Sopnopriyo/Uilicious/uilicious-cli/bin"]
+	path = /Users/Sopnopriyo/Uilicious/uilicious-cli/bin
+	url = git@gitlab.uilicious-dev.com:uilicious/uilicious-cli-go.git

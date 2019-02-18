@@ -3,8 +3,7 @@
 	"version": "2.0.9",
 	"description": "Uilicious CLI Go distribution",
 	"main": "uilicious-cli.js",
-
-	"//":[
+	"//": [
 		"bin maps the command line name to the respective script file",
 		"see : https://medium.com/netscape/a-guide-to-create-a-nodejs-command-line-package-c2166ad0452e"
 	],
