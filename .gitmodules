@@ -1,6 +1,3 @@
-[submodule "/Users/Sopnopriyo/Uilicious/uilicious-cli/bin"]
-	path = /Users/Sopnopriyo/Uilicious/uilicious-cli/bin
-	url = git@gitlab.uilicious-dev.com:uilicious/uilicious-cli-go.git
 [submodule "uilicious-cli-go"]
 	path = uilicious-cli-go
 	url = git@gitlab.uilicious-dev.com:uilicious/uilicious-cli-go.git
