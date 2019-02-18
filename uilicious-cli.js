@@ -46,7 +46,7 @@ if (!(process.platform in PLATFORM_MAPPING)) {
 
 // Get the bin executable path
 // Binary name on Windows has .exe suffix
-var binName = path.join(scriptDirectory, "/bin/uilicious-go-cli");
+var binName = path.join(scriptDirectory, "/bin/uilicious-cli");
 if (process.platform === "win32") {
 	binName += ".exe"
 }
