@@ -76,7 +76,7 @@ Please log in into your Uilicious account and navigate to "User Profile" and cli
 
 Alternatively, you can visit (after login) : [https://user.uilicious.com/profile/accessKeys](https://user.uilicious.com/profile/accessKeys)
 
-![Screenshot of Access Key](uilicious-cli-go/access-key-img.png)
+![Screenshot of Access Key](access-key-img.png)
 
 ## Deprecation Notice
 
