@@ -47,7 +47,7 @@ $ uilicious-cli <command> --help
 
 ## Authentication
 
-You can use your access key or username and password to authentication yourself.
+You can use your access key or username and password to authenticate yourself.
 
 ### Authentication with access key
 
