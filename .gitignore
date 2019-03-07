@@ -2,5 +2,6 @@
 !.gitignore
 !.gitmodules
 !.npmignore
+bfg-*.jar
 node_modules
 uilicious-cli-go
