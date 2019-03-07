@@ -1,6 +1,6 @@
 # UI-licious Command Line Interface
 
-![Example](readme-img/example-cli-output.png)
+![Example](readme-img/uilicious-cli-run-example.png)
 
 [UI-licious](https://uilicious.com) is a tool for development teams to rapidly create and run end-to-end user journey tests for their web applications.
 
