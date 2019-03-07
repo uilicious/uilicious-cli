@@ -74,7 +74,7 @@ $ uilicious-cli run "demo" "/login/test 1" -u <username> -p <password>
 
 ## Commands
 
-> Warning: Please avoid using deprecated aliases for the commands, as they can be removed in the future.
+> **Warning**: Please avoid using deprecated aliases for the commands, as they can be removed in the future.
 
 Name   | **Deprecated** aliases | Purpose
 ------ | ------- | ------------------
