@@ -122,7 +122,7 @@ $ uilicious-cli run "github" "Login" --dataFile "./user-brucewayne.json"
 
 ### Test local applications using `DATA.url` and ngrok
 
-You can localhost applications using uilicious.
+You can test localhost applications using uilicious. The CLI uses ngrok to create a temporary remote url to access your localhost application for testing.
 
 To do so, use the `DATA.url` variable in your test script wherever there's a reference to the url of your application, e.g.
 ```javascript
