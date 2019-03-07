@@ -51,7 +51,8 @@ You can use your access key or username and password to authenticate yourself.
 
 ### Authentication with access key
 
-> Where can I get my access key?
+> **Where can I get my access key?**
+
 > Login to UI-licious Studio, go to "[Account and Billing > Access Key](https://user.uilicious.com/profile/accessKeys)"  to view and regenerate your access key
 
 You can set your access key with the `--key` option when using the cli, e.g.:
