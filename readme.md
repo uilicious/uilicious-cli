@@ -1,6 +1,6 @@
 # UI-licious Command Line Interface
 
-![Example](readme-img/uilicious-cli-run-example.png)
+![Example](https://github.com/uilicious/uilicious-cli/raw/master/readme-img/uilicious-cli-run-example.png)
 
 [UI-licious](https://uilicious.com) is a tool for development teams to rapidly create and run end-to-end user journey tests for their web applications.
 
@@ -35,7 +35,7 @@ Use the `--help` option to list the available commands:
 $ uilicious-cli --help
 ```
 
-![Help](readme-img/uilicious-cli-help.png)
+![Help](https://github.com/uilicious/uilicious-cli/raw/master/readme-img/uilicious-cli-help.png)
 
 To get more information about a single command, use `--help` after the command:
 
@@ -43,7 +43,7 @@ To get more information about a single command, use `--help` after the command:
 $ uilicious-cli <command> --help
 ```
 
-![Run Help](readme-img/uilicious-cli-run-help.png)
+![Run Help](https://github.com/uilicious/uilicious-cli/raw/master/readme-img/uilicious-cli-run-help.png)
 
 ## Authentication
 
