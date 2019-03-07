@@ -13,8 +13,8 @@ This command line interface allows you to run and manage your UI-licious tests t
 The CLI is written in GoLang, and you may install the CLI by downloading the binary distribution or via NPM.
 
 ### Download binaries directly
-[For Linux or MacOS](https://uilicious.com/downloads/cli/uilicious-cli)
-[For Windows](https://uilicious.com/downloads/cli/uilicious-cli.exe)
+* [For Linux or MacOS](https://uilicious.com/downloads/cli/uilicious-cli)
+* [For Windows](https://uilicious.com/downloads/cli/uilicious-cli.exe)
 
 ### Download via npm
 
