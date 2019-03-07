@@ -8,8 +8,6 @@ This command line interface allows you to run and manage your UI-licious tests t
 
 > Note that the UI-licious CLI can only be used with an active subscription of UI-licious.
 
----
-
 ## Installation
 
 The CLI is written in GoLang, and you may install the CLI by downloading the binary distribution or via NPM.
@@ -30,8 +28,6 @@ Run the following to install uilicious-cli globally:
 $ npm install uilicious-cli -g
 ```
 
----
-
 ## Using `--help`
 
 Use the `--help` option to list the available commands:
@@ -48,8 +44,6 @@ $ uilicious-cli <command> --help
 ```
 
 ![Run Help](readme-img/uilicious-cli-run-help.png)
-
----
 
 ## Authentication
 
@@ -76,8 +70,6 @@ You can also use the short form `-u` or `-p`, e.g.:
 ```
 $ uilicious-cli run "demo" "/login/test 1" -u <username> -p <password>
 ```
-
----
 
 ## Commands
 
@@ -149,29 +141,26 @@ For example if you want the url to be set to `DATA.site`, set `--ngrokParam` to 
 $ uilicious-cli run "MyStore" "Login" --ngrokPort 3000 --ngrokParam "site"
 ```
 
----
-
 ## Upload files to a project
 
-`upload` a local folder consisting of test file into an existing uilicious project, or creates the project if it does not exist.
-
+You can upload files from a local directory to an UI-licious project using the `upload` command. If the project does not exists, it will be automatically created:
 ```bash
 uilicious-cli upload <project_name> <local_directory>
 ```
+
 **Additional Options**
 + `--overwrite=false` to disable file overwriting on conflict (enabled by default)
 
----
-
 ## Download files from a project
 
-`download` a uilicious project into a local folder, overwrite duplicate files on conflict
+You can download files from a UI-licious project to a local directory using the `download` command. Files will be overwritten in the destination folder if they already exist.
 
 ```bash
 uilicious-cli download <project_name> <local_directory>
 ```
 
----
+**Additional Options**
++ `--overwrite=false` to disable file overwriting on conflict (enabled by default)
 
 ## Need help?
 
