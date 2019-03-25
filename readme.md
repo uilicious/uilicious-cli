@@ -120,6 +120,16 @@ $ uilicious-cli run "github" "Login" --dataObject {"username":"brucewayne","pass
 $ uilicious-cli run "github" "Login" --dataFile "./user-brucewayne.json"
 ```
 
+### Dataset 
+You can now configure variables for running tests on different environments.
+
+You can manage the datasets in Uilicious Project editor. To run a test using dataset, you need to specify the name of dataset using `--dataset`.
+
+E.g.
+```
+uilicious-cli run Demo demo --dataset "PROD"
+```
+
 ### Test local applications using `DATA.url` and ngrok
 
 You can test localhost applications using uilicious. The CLI uses ngrok to create a temporary remote url to access your localhost application for testing.
