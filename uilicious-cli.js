@@ -22,16 +22,15 @@ const scriptDirectory = __dirname;
 
 // Mapping from Node's `process.arch` to Golang's `$GOARCH`
 const ARCH_MAPPING = {
-	"ia32": "386",
-	"x64": "amd64",
-	// "arm": "arm"
+    "ia32": "386",
+    "x64": "amd64"
 };
 
 // Mapping between Node's `process.platform` to Golang's 
 const PLATFORM_MAPPING = {
-	"darwin": "darwin",
-	"linux": "linux",
-	"win32": "windows"
+    "darwin": "darwin",
+    "linux": "linux",
+    "win32": "windows"
 };
 
 if (!(process.arch in ARCH_MAPPING)) {

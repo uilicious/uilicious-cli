@@ -1,0 +1,3 @@
+[submodule "uilicious-cli-go"]
+	path = uilicious-cli-go
+	url = git@gitlab.uilicious-dev.com:uilicious/uilicious-cli-go.git
