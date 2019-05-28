@@ -23,8 +23,7 @@ const scriptDirectory = __dirname;
 // Mapping from Node's `process.arch` to Golang's `$GOARCH`
 const ARCH_MAPPING = {
     "ia32": "386",
-    "x64": "amd64",
-    "arm": "arm"
+    "x64": "amd64"
 };
 
 // Mapping between Node's `process.platform` to Golang's 
@@ -46,9 +45,13 @@ if (!(process.platform in PLATFORM_MAPPING)) {
 
 // Get the bin executable path
 // Binary name on Windows has .exe suffix
-var binName = path.join(scriptDirectory, "/bin/uilicious-cli");
-if (process.platform === "win32") {
-	binName += ".exe"
+var binName = null
+if(process.platform === "darwin") {
+	binName = path.join(scriptDirectory, "/bin/uilicious-macos");
+} else if(process.platform === "win32") {
+	binName = path.join(scriptDirectory, "/bin/uilicious-windows.exe");
+} else if(process.platform === "linux") {
+	binName = path.join(scriptDirectory, "/bin/uilicious-linux");
 }
 
 // Execute the binary file, and pass forward the arguments
