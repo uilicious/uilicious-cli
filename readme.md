@@ -1,62 +1,182 @@
-## Intro
-The Uilicious CLI is the primary tool used for continuous integration. This CLI contains many options.
-This CLI is exclusive to our paying customers.
+# UI-licious Command Line Interface
+
+![Example](https://github.com/uilicious/uilicious-cli/raw/master/readme-img/uilicious-cli-run-example.png)
+
+[UI-licious](https://uilicious.com) is a tool for development teams to rapidly create and run end-to-end user journey tests for their web applications.
+
+This command line interface allows you to run and manage your UI-licious tests through the command line.
+
+> Note that the UI-licious CLI can only be used with an active subscription of UI-licious.
 
 ## Installation
-Before installing this package, please run this to ensure that npm is updated to the latest version:
+
+The CLI is written in GoLang, and you may install the CLI by downloading the binary distribution or via NPM.
+
+### Download binaries directly
+* [For Linux or MacOS](https://uilicious.com/downloads/cli/uilicious-cli)
+* [For Windows](https://uilicious.com/downloads/cli/uilicious-cli.exe)
+
+### Download via npm
+
+Before installing this package, ensure that npm is updated to the latest version:
 ```
 $ npm install npm@latest -g
 ```
 
-This npm package can be installed by:
+Run the following to install uilicious-cli globally:
 ```
-$ npm install -g uilicious-cli
+$ npm install uilicious-cli -g
+```
+
+## Using `--help`
+
+Use the `--help` option to list the available commands:
+```
+$ uilicious-cli --help
+```
+
+![Help](https://github.com/uilicious/uilicious-cli/raw/master/readme-img/uilicious-cli-help.png)
+
+To get more information about a single command, use `--help` after the command:
+
+```
+$ uilicious-cli <command> --help
+```
+
+![Run Help](https://github.com/uilicious/uilicious-cli/raw/master/readme-img/uilicious-cli-run-help.png)
+
+## Authentication
+
+You can use your access key or username and password to authenticate yourself.
+
+### Authentication with access key
+
+> **Where can I get my access key?**
+
+> Login to UI-licious Studio, go to "[Account and Billing > Access Key](https://user.uilicious.com/profile/accessKeys)"  to view and regenerate your access key
+
+You can set your access key with the `--key` option when using the cli, e.g.:
+```
+$ uilicious-cli run "demo" "/login/test 1" --key <acccess_key>
+```
+
+### Authentication with username and password
+
+Alternative you can authenticate with your username and password, using the `--user` and `--pass` options e.g.
+```
+$ uilicious-cli run "demo" "/login/test 1" --user <username> --pass <password>
+```
+
+You can also use the short form `-u` or `-p`, e.g.:
+```
+$ uilicious-cli run "demo" "/login/test 1" -u <username> -p <password>
 ```
 
 ## Commands
-The list of commands can be retrieved by:
-```
-$ uilicious-cli
-```
 
-## Options
-Name   | Command | Parameters
+> **Warning**: Please avoid using deprecated aliases for the commands, as they can be removed in the future.
+
+Name   | **Deprecated** aliases | Purpose
 ------ | ------- | ------------------
---user | -u `<parameter>` | Username (required)
---pass | -p `<parameter>` | Password (required)
-<!-- --directory | -d `<parameter>` | Output directory path to use (required) -->
---browser | -b `<parameter>` | Browser (optional) [Chrome/Firefox]
---width | -w `<parameter>` | Width of browser (optional)
---height | -h `<parameter>` | Height of browser (optional)
+run    | | Run a test
+download | export | Download a project to a local directory
+upload | import | Upload files from a local directory to a project
 
-## Import Test Script(s)
+---
 
-Use the `import` command to import a local folder consists of test script(s) under the root path of a project .
-```bash
-uilicious-cli -u <username> -p <password> import <project_name> <local_test_directory>
+## Running a test
 ```
-
-## Export Test Script
-
-Use the `export` command to export everything from a project .
-```bash
-uilicious-cli -u <username> -p <password> export <project_name> <save_to_local_directory>
-```
-
-## Running
-```
-$ uilicious-cli run <project_name> <script_path>
+$ uilicious-cli run  <project_name> <script_path> [--browser] [--width] [--height]
 ```
 * `<project_name>` - Name for the project being tested.
 * `<script_path>` - Name of the test script being executed.
 
-**Examples:**
-```
-$ uilicious-cli -u john -p doe123 run "demo" "/login/test 1"
-```
-* `<project_name>` - demo
-* `<script_path>` - /login/test 1
-* `<username>` - john
-* `<password>` - doe123
+**Additional Options**
++ `--browser <browser_name>` options :  e.g. chrome, firefox, edge, safari, ie11 (default "chrome")
++ `--height <browser_height>` height of browser (default "960")
++ `--width <browser_width>` width of browser (default "1280")
 
-Copyright &copy; 2017 Uilicious Private Limited
+### Setting the `DATA` object
+
+The `DATA` object is a special object you can use in the test script for dynamic test data.
+
+You can use the `DATA` object in your script like this:
+```javascript
+// Here's an example to help you get started!
+I.goTo("https://github.com")
+I.click("Sign up")
+I.see("Join GitHub")
+I.fill("Username", DATA.username)
+I.fill("Email", DATA.email)
+I.fill("Password", DATA.password)
+I.click("Create an account")
+```
+
+You can set the `DATA` using a json string using `--dataObject` or by reading from json file using `--dataFile`.
+
+E.g.
+```
+$ uilicious-cli run "github" "Login" --dataObject {"username":"brucewayne","password":"secret","email":"bruce@waynecorp.com"}
+$ uilicious-cli run "github" "Login" --dataFile "./user-brucewayne.json"
+```
+
+### Dataset 
+You can now configure variables for running tests on different environments.
+
+You can manage the datasets in Uilicious Project editor. To run a test using dataset, you need to specify the name of dataset using `--dataset`.
+
+E.g.
+```
+uilicious-cli run Demo demo --dataset "PROD"
+```
+
+### Test local applications using `DATA.url` and ngrok
+
+You can test localhost applications using uilicious. The CLI uses ngrok to create a temporary remote url to access your localhost application for testing.
+
+To do so, use the `DATA.url` variable in your test script wherever there's a reference to the url of your application, e.g.
+```javascript
+I.goTo(DATA.url || "https://mystore.com")
+I.click("Sign up")
+```
+
+To run your test against your local application, set `--ngrokPort` to the port where your application is hosted, e.g. if your application is hosted on 127.0.0.1:3000:
+```
+$ uilicious-cli run "MyStore" "Login" --ngrokPort 3000
+```
+
+If you use to use another variable instead of `DATA.url`, you can use `--ngrokParam` to set the variable name.
+
+For example if you want the url to be set to `DATA.site`, set `--ngrokParam` to `site`, e.g.
+```
+$ uilicious-cli run "MyStore" "Login" --ngrokPort 3000 --ngrokParam "site"
+```
+
+## Upload files to a project
+
+You can upload files from a local directory to an UI-licious project using the `upload` command. If the project does not exists, it will be automatically created:
+```bash
+uilicious-cli upload <project_name> <local_directory>
+```
+
+**Additional Options**
++ `--overwrite=false` to disable file overwriting on conflict (enabled by default)
+
+## Download files from a project
+
+You can download files from a UI-licious project to a local directory using the `download` command. Files will be overwritten in the destination folder if they already exist.
+
+```bash
+uilicious-cli download <project_name> <local_directory>
+```
+
+**Additional Options**
++ `--overwrite=false` to disable file overwriting on conflict (enabled by default)
+
+## Need help?
+
+Contact [support@uilicious.com](mailto:support@uilicious.com)!
+
+---
+
+Copyright &copy; 2019 Uilicious Private Limited
