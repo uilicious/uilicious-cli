@@ -22,15 +22,15 @@ const scriptDirectory = __dirname;
 
 // Mapping from Node's `process.arch` to Golang's `$GOARCH`
 const ARCH_MAPPING = {
-    "ia32": "386",
-    "x64": "amd64"
+	// "ia32": "386", // PS - dropping 32 bit support
+	"x64": "amd64"
 };
 
 // Mapping between Node's `process.platform` to Golang's 
 const PLATFORM_MAPPING = {
-    "darwin": "darwin",
-    "linux": "linux",
-    "win32": "windows"
+	 "darwin": "darwin",
+	 "linux": "linux",
+	 "win32": "windows"
 };
 
 if (!(process.arch in ARCH_MAPPING)) {
@@ -47,11 +47,11 @@ if (!(process.platform in PLATFORM_MAPPING)) {
 // Binary name on Windows has .exe suffix
 var binName = null
 if(process.platform === "darwin") {
-	binName = path.join(scriptDirectory, "/bin/uilicious-macos");
+	binName = path.join(scriptDirectory, "/bin/uilicious-cli-macos");
 } else if(process.platform === "win32") {
-	binName = path.join(scriptDirectory, "/bin/uilicious-windows.exe");
+	binName = path.join(scriptDirectory, "/bin/uilicious-cli-windows.exe");
 } else if(process.platform === "linux") {
-	binName = path.join(scriptDirectory, "/bin/uilicious-linux");
+	binName = path.join(scriptDirectory, "/bin/uilicious-cli-linux");
 }
 
 // Execute the binary file, and pass forward the arguments
@@ -63,10 +63,10 @@ child.stdout.on('data', function(data) {
 	// // It will ignore any empty lines or empty new line breaks.
 	// data = data.toString().split(/(\r?\n)/g);
 	// data.forEach((item, index) => {
-    //     if (data[index] !== '\n' && data[index] !== '') {
-    //         console.log(data[index]);
-    //     }
-    // });
+	//     if (data[index] !== '\n' && data[index] !== '') {
+	//         console.log(data[index]);
+	//     }
+	// });
 });
 child.stderr.on('data', function(data) {
 	process.stderr.write(data);
