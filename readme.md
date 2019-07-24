@@ -14,11 +14,6 @@ The CLI is written in GoLang, and you may install the CLI by downloading the bin
 
 ### Download binaries directly from our github release page
 
-* [v2.2.2](https://github.com/uilicious/uilicious-cli/releases/tag/v2.2.2)
-* [all rleases](https://github.com/uilicious/uilicious-cli/releases)
-
-### Download binaries directly from our github release page
-
 * [v3.0.0](https://github.com/uilicious/uilicious-cli/releases/tag/v3.0.0)
 * [v2.2.2](https://github.com/uilicious/uilicious-cli/releases/tag/v2.2.2)
 * [all releases](https://github.com/uilicious/uilicious-cli/releases)
