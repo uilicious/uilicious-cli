@@ -17,6 +17,12 @@ The CLI is written in GoLang, and you may install the CLI by downloading the bin
 * [v2.2.2](https://github.com/uilicious/uilicious-cli/releases/tag/v2.2.2)
 * [all rleases](https://github.com/uilicious/uilicious-cli/releases)
 
+### Download binaries directly from our github release page
+
+* [v3.0.0](https://github.com/uilicious/uilicious-cli/releases/tag/v3.0.0)
+* [v2.2.2](https://github.com/uilicious/uilicious-cli/releases/tag/v2.2.2)
+* [all releases](https://github.com/uilicious/uilicious-cli/releases)
+
 ### Download via npm
 
 Before installing this package, ensure that npm is updated to the latest version:
@@ -131,27 +137,14 @@ E.g.
 uilicious-cli run Demo demo --dataset "PROD"
 ```
 
-### Test local applications using `DATA.url` and ngrok
+### Test local applications 
 
-You can test localhost applications using uilicious. The CLI uses ngrok to create a temporary remote url to access your localhost application for testing.
+Plese services such as 
 
-To do so, use the `DATA.url` variable in your test script wherever there's a reference to the url of your application, e.g.
-```javascript
-I.goTo(DATA.url || "https://mystore.com")
-I.click("Sign up")
-```
+- https://serveo.net/
+- https://ngrok.com/
 
-To run your test against your local application, set `--ngrokPort` to the port where your application is hosted, e.g. if your application is hosted on 127.0.0.1:3000:
-```
-$ uilicious-cli run "MyStore" "Login" --ngrokPort 3000
-```
-
-If you use to use another variable instead of `DATA.url`, you can use `--ngrokParam` to set the variable name.
-
-For example if you want the url to be set to `DATA.site`, set `--ngrokParam` to `site`, e.g.
-```
-$ uilicious-cli run "MyStore" "Login" --ngrokPort 3000 --ngrokParam "site"
-```
+Native ngrok support is deprecated in v3.0.0 
 
 ## Upload files to a project
 
@@ -160,9 +153,6 @@ You can upload files from a local directory to an UI-licious project using the `
 uilicious-cli upload <project_name> <local_directory>
 ```
 
-**Additional Options**
-+ `--overwrite=false` to disable file overwriting on conflict (enabled by default)
-
 ## Download files from a project
 
 You can download files from a UI-licious project to a local directory using the `download` command. Files will be overwritten in the destination folder if they already exist.
@@ -170,9 +160,6 @@ You can download files from a UI-licious project to a local directory using the 
 ```bash
 uilicious-cli download <project_name> <local_directory>
 ```
-
-**Additional Options**
-+ `--overwrite=false` to disable file overwriting on conflict (enabled by default)
 
 ## Need help?
 
