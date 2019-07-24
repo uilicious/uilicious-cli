@@ -22,7 +22,7 @@ const scriptDirectory = __dirname;
 
 // Mapping from Node's `process.arch` to Golang's `$GOARCH`
 const ARCH_MAPPING = {
-	// "ia32": "386", // PS - dropping 32 bit support
+	"ia32": "386",
 	"x64": "amd64"
 };
 
