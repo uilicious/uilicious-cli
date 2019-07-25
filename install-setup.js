@@ -80,7 +80,7 @@ let binList = [
 ]
 for(let i=0; i<binList.length; ++i) {
 	if( binName != finalBinary[i] ) {
-		fs.unlinkSync(finalBinary[i])
+		fs.unlinkSync(binList[i])
 	}
 }
 
