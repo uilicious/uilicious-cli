@@ -45,14 +45,14 @@ if (!(process.platform in PLATFORM_MAPPING)) {
 // Binary name on Windows has .exe suffix
 var binName = null
 if(process.platform === "darwin") {
-	binName = path.join(scriptDirectory, "/bin/uilicious-cli-macos-32bit");
+	binName = path.join(scriptDirectory, "bin/uilicious-cli-macos-32bit");
 } else if(process.platform === "win32") {
-	binName = path.join(scriptDirectory, "/bin/uilicious-cli-windows-32bit.exe");
+	binName = path.join(scriptDirectory, "bin/uilicious-cli-windows-32bit.exe");
 } else if(process.platform === "linux") {
 	if(process.arch === "x64") {
-		binName = path.join(scriptDirectory, "/bin/uilicious-cli-linux-64bit");
+		binName = path.join(scriptDirectory, "bin/uilicious-cli-linux-64bit");
 	} else {
-		binName = path.join(scriptDirectory, "/bin/uilicious-cli-linux-32bit");
+		binName = path.join(scriptDirectory, "bin/uilicious-cli-linux-32bit");
 	}
 }
 
@@ -73,12 +73,12 @@ fs.symlinkSync( binName, finalBinary );
  * Cleanup of uneeded binary
  */
 let binList = [
-	path.join(scriptDirectory, "/bin/uilicious-cli-macos-32bit"),
-	path.join(scriptDirectory, "/bin/uilicious-cli-windows-32bit.exe"),
-	path.join(scriptDirectory, "/bin/uilicious-cli-linux-64bit"),
-	path.join(scriptDirectory, "/bin/uilicious-cli-linux-32bit")
+	path.join(scriptDirectory, "bin/uilicious-cli-macos-32bit"),
+	path.join(scriptDirectory, "bin/uilicious-cli-windows-32bit.exe"),
+	path.join(scriptDirectory, "bin/uilicious-cli-linux-64bit"),
+	path.join(scriptDirectory, "bin/uilicious-cli-linux-32bit")
 ]
-for(let i=0; i<binList; ++i) {
+for(let i=0; i<binList.length; ++i) {
 	if( binName != finalBinary[i] ) {
 		fs.unlinkSync(finalBinary[i])
 	}
