@@ -71,19 +71,19 @@ fs.symlinkSync( binName, finalBinary );
 
 /**
  * Cleanup of uneeded binary
+ * To consider - if size complains occurs
  */
-let binList = [
-	path.join(scriptDirectory, "bin/uilicious-cli-macos-32bit"),
-	path.join(scriptDirectory, "bin/uilicious-cli-windows-32bit.exe"),
-	path.join(scriptDirectory, "bin/uilicious-cli-linux-64bit"),
-	path.join(scriptDirectory, "bin/uilicious-cli-linux-32bit")
-]
-for(let i=0; i<binList.length; ++i) {
-	let binFile = binList[i];
-	if( finalBinary != binFile ) {
-		if( fs.existsSync(binFile) ) {
-			fs.unlinkSync(binFile)
-		}
-	}
-}
-
+// let binList = [
+// 	path.join(scriptDirectory, "bin/uilicious-cli-macos-32bit"),
+// 	path.join(scriptDirectory, "bin/uilicious-cli-windows-32bit.exe"),
+// 	path.join(scriptDirectory, "bin/uilicious-cli-linux-64bit"),
+// 	path.join(scriptDirectory, "bin/uilicious-cli-linux-32bit")
+// ]
+// for(let i=0; i<binList.length; ++i) {
+// 	let binFile = binList[i];
+// 	if( finalBinary != binFile ) {
+// 		if( fs.existsSync(binFile) ) {
+// 			fs.unlinkSync(binFile)
+// 		}
+// 	}
+// }
