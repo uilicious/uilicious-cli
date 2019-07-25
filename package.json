@@ -3,18 +3,29 @@
 	"version": "3.0.2",
 	"description": "Uilicious CLI toolchain",
 	"main": "uilicious-cli.js",
-	"//": [
-		"bin maps the command line name to the respective script file",
-		"see : https://medium.com/netscape/a-guide-to-create-a-nodejs-command-line-package-c2166ad0452e"
-	],
+	
 	"keywords": [
 		"Uilicious",
 		"CLI"
 	],
 	"author": "Uilicious Private Limited",
 	"license": "UNLICENSED",
+	"dependencies": {},
+
+	"//": [
+		"bin maps the command line name to the respective script file",
+		"see : https://medium.com/netscape/a-guide-to-create-a-nodejs-command-line-package-c2166ad0452e"
+	],
 	"bin": {
-		"uilicious-cli": "./uilicious-cli.js"
+		"uilicious-cli": "./bin/uilicious-bin.exe"
 	},
-	"dependencies": {}
+	"scripts": {
+		"install": "./install-setup.js"
+	},
+
+	"//-cpu-os": [
+		"Ensuring that package is deployed only on compatible platforms"
+	],
+	"cpu" : [ "x64", "ia32" ],
+	"os" :  [ "darwin", "linux", "win32" ]
 }

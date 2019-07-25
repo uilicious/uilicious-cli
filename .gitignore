@@ -1,3 +1,7 @@
+# Ignore the symlink generated uilicious-bin.exe
+bin/uilicious-bin.exe
+
+# General ignores, and counter ignores
 .*
 !.gitignore
 !.gitmodules
