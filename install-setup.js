@@ -79,8 +79,11 @@ let binList = [
 	path.join(scriptDirectory, "bin/uilicious-cli-linux-32bit")
 ]
 for(let i=0; i<binList.length; ++i) {
-	if( binName != finalBinary[i] ) {
-		fs.unlinkSync(binList[i])
+	let binFile = binList[i];
+	if( finalBinary != binFile ) {
+		if( fs.existsSync(binFile) ) {
+			fs.unlinkSync(binFile)
+		}
 	}
 }
 
