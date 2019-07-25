@@ -15,10 +15,7 @@
 		"see : https://medium.com/netscape/a-guide-to-create-a-nodejs-command-line-package-c2166ad0452e"
 	],
 	"bin": {
-		"uilicious-cli": "./bin/uilicious-bin.exe"
-	},
-	"scripts": {
-		"preinstall": "./install-setup.js"
+		"uilicious-cli": "./uilicious-cli.js"
 	},
 	"//-cpu-os": [
 		"Ensuring that package is deployed only on compatible platforms"
