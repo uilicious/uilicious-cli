@@ -20,7 +20,7 @@
 		"uilicious-cli": "./bin/uilicious-bin.exe"
 	},
 	"scripts": {
-		"install": "./install-setup.js"
+		"preinstall": "./install-setup.js"
 	},
 
 	"//-cpu-os": [
