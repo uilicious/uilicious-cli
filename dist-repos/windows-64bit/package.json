@@ -1,6 +1,6 @@
 {
 	"name": "@uilicious/cli-windows-64bit",
-	"version": "3.2.1",
+	"version": "$VERSION",
 	"description": "(Windows 64bit only) Uilicious CLI toolchain",
 	"main": "uilicious-cli.js",
 	"keywords": [
@@ -15,7 +15,7 @@
 		"see : https://medium.com/netscape/a-guide-to-create-a-nodejs-command-line-package-c2166ad0452e"
 	],
 	"bin": {
-		"uilicious-cli": "./uilicious-cli-windows-64bit.exe"
+		"uilicious-cli": "./uilicious-cli-win-64bit.exe"
 	},
 	"//-cpu-os": [
 		"Ensuring that package is deployed only on compatible platforms"

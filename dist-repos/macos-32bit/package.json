@@ -1,6 +1,6 @@
 {
 	"name": "@uilicious/cli-macos-32bit",
-	"version": "3.2.1",
+	"version": "$VERSION",
 	"description": "(Mac OS 32bit only) Uilicious CLI toolchain",
 	"main": "uilicious-cli.js",
 	"keywords": [
