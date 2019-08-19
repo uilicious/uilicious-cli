@@ -1,6 +1,6 @@
 {
 	"name": "uilicious-cli",
-	"version": "3.2.3",
+	"version": "3.2.7",
 	"description": "Uilicious CLI toolchain",
 	"main": "uilicious-cli.js",
 	"keywords": [
@@ -9,13 +9,12 @@
 	],
 	"author": "Uilicious Private Limited",
 	"license": "UNLICENSED",
-	"dependencies": {},
 	"//-bin": [
 		"bin maps the command line name to the respective script file",
 		"see : https://medium.com/netscape/a-guide-to-create-a-nodejs-command-line-package-c2166ad0452e"
 	],
 	"bin": {
-		"uilicious-cli": "./uilicious-cli.js"
+		"uilicious-cli": "./uilicious-cli-dist.exe"
 	},
 	"//-cpu-os": [
 		"Ensuring that package is deployed only on compatible platforms"
@@ -28,5 +27,16 @@
 		"darwin",
 		"linux",
 		"win32"
-	]
+	],
+	"//-optionalDependencies": "I wanted to use this, directly, but the global flag does not pass over",
+	"optionalDependencies": {
+		"@uilicious/cli-linux-32bit": "=3.2.3",
+		"@uilicious/cli-linux-64bit": "=3.2.3",
+		"@uilicious/cli-macos-32bit": "=3.2.3",
+		"@uilicious/cli-macos-64bit": "=3.2.3",
+		"@uilicious/cli-windows-32bit": "=3.2.3",
+		"@uilicious/cli-windows-64bit": "=3.2.3"
+	},
+	"//-postinstall": "so i use postinstall to copy data out - its binary copy to ensure the files remain soft linked",
+	"postinstall": "node ./postinstall.js"
 }
