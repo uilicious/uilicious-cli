@@ -1,7 +1,7 @@
 {
-	"name": "@uilicious/cli-macos-32bit",
-	"version": "3.2.3",
-	"description": "(Mac OS 32bit only) Uilicious CLI toolchain",
+	"name": "@uilicious/cli-windows-32bit",
+	"version": "$VERSION",
+	"description": "(Windows 32bit only) Uilicious CLI toolchain",
 	"main": "uilicious-cli.js",
 	"keywords": [
 		"Uilicious",
@@ -15,7 +15,7 @@
 		"see : https://medium.com/netscape/a-guide-to-create-a-nodejs-command-line-package-c2166ad0452e"
 	],
 	"bin": {
-		"uilicious-cli": "./uilicious-cli-macos-32bit"
+		"uilicious-cli": "./uilicious-cli-win-32bit.exe"
 	},
 	"//-cpu-os": [
 		"Ensuring that package is deployed only on compatible platforms"
@@ -24,6 +24,6 @@
 		"ia32"
 	],
 	"os": [
-		"darwin"
+		"win32"
 	]
 }
