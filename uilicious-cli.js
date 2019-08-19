@@ -47,9 +47,17 @@ if (!(process.platform in PLATFORM_MAPPING)) {
 // Binary name on Windows has .exe suffix
 var binName = null
 if(process.platform === "darwin") {
-	binName = path.join(scriptDirectory, "/bin/uilicious-cli-macos-32bit");
+	if(process.arch === "x64") {
+		binName = path.join(scriptDirectory, "/bin/uilicious-cli-macos-64bit");
+	} else {
+		binName = path.join(scriptDirectory, "/bin/uilicious-cli-macos-32bit");
+	}
 } else if(process.platform === "win32") {
-	binName = path.join(scriptDirectory, "/bin/uilicious-cli-windows-32bit.exe");
+	if(process.arch === "x64") {
+		binName = path.join(scriptDirectory, "/bin/uilicious-cli-windows-64bit.exe");
+	} else {
+		binName = path.join(scriptDirectory, "/bin/uilicious-cli-windows-32bit.exe");
+	}
 } else if(process.platform === "linux") {
 	if(process.arch === "x64") {
 		binName = path.join(scriptDirectory, "/bin/uilicious-cli-linux-64bit");
