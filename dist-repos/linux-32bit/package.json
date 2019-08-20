@@ -1,6 +1,6 @@
 {
 	"name": "@uilicious/cli-linux-32bit",
-	"version": "3.2.3",
+	"version": "3.2.14",
 	"description": "(Linux 32bit only) Uilicious CLI toolchain",
 	"main": "uilicious-cli.js",
 	"keywords": [

@@ -6,9 +6,6 @@ console.log("==== Starting uilicious-cli install setup ====");
  * Node JS wrapper for Uilicious CLI installation
  */
 
-// Load the shelljs module
-const shell = require('shelljs');
-
 // NPM path
 const fs = require('fs');
 const path = require('path');
@@ -48,7 +45,7 @@ if (!(process.platform in PLATFORM_MAPPING)) {
 
 // Get the bin executable path
 // Binary name on Windows has .exe suffix
-var binName = null
+let binName = null
 if(process.platform === "darwin") {
 	if(process.arch === "x64") {
 		binName = path.join(scriptDirectory, "/node_modules/@uilicious/cli-macos-64bit/uilicious-cli-macos-64bit");
@@ -69,8 +66,26 @@ if(process.platform === "darwin") {
 	}
 }
 
+// Check if the file exist
+if( !fs.existsSync(binName) ) {
+	throw "!!! FATAL ERROR : Missing expected dependency file: "+binName;
+}
+
+// The final binary file
+const finalBinaryPath = "./uilicious-cli-dist.exe";
+
+// Lets ensure the execution performance
+if( process.platform !== "win32" ) {
+	fs.chmodSync(finalBinaryPath, 777);
+}
+
 // Lets write the file over
-fs.writeFileSync("./uilicious-cli-dist.exe", fs.readFileSync(binName, { encoding : null }), { encoding : null });
+fs.writeFileSync(finalBinaryPath, fs.readFileSync(binName, { encoding : null }), { encoding : null });
 
 // Ending log
 console.log("==== Completed uilicious-cli install setup ====");
+console.log("-------------------------------------------------------------------------------");
+console.log("To access our CLI help logs, use `uilicious-cli --help`")
+console.log("PS: You can safely ignore all the 'SKIPPING OPTIONAL DEPENDENCY' warnings below");
+console.log("-------------------------------------------------------------------------------");
+
