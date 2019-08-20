@@ -1,0 +1,29 @@
+{
+	"name": "@uilicious/cli-windows-32bit",
+	"version": "3.3.0",
+	"description": "(Windows 32bit only) Uilicious CLI toolchain",
+	"main": "uilicious-cli.js",
+	"keywords": [
+		"Uilicious",
+		"CLI"
+	],
+	"author": "Uilicious Private Limited",
+	"license": "UNLICENSED",
+	"dependencies": {},
+	"//-bin": [
+		"bin maps the command line name to the respective script file",
+		"see : https://medium.com/netscape/a-guide-to-create-a-nodejs-command-line-package-c2166ad0452e"
+	],
+	"bin": {
+		"uilicious-cli": "./uilicious-cli-win-32bit.exe"
+	},
+	"//-cpu-os": [
+		"Ensuring that package is deployed only on compatible platforms"
+	],
+	"cpu": [
+		"ia32"
+	],
+	"os": [
+		"win32"
+	]
+}
