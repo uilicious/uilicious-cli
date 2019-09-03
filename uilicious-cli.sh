@@ -4,10 +4,12 @@
 WORKING_DIR="$( pwd )"
 
 # Echo out a warning message for the fallback
+echo ">"
 echo "> NOTE: This is using a bash script fallback, with working directory of : $WORKING_DIR"
 echo ">"
 echo "> this happens due to npm/system file permission issues, and is known to have possible issues on relative file path"
 echo "> it is recommended to download and use the github release binary version instead at : https://github.com/uilicious/uilicious-cli/releases"
+echo ">"
 
 # Lets get the current script
 MAIN_SCRIPT="${BASH_SOURCE[0]}"
