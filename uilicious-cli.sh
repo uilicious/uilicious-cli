@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Derive the working directory
+WORKING_DIR="$( pwd )"
+
+# Echo out a warning message for the fallback
+echo "> NOTE: This is using a bash script fallback, with working directory of : $WORKING_DIR"
+echo ">"
+echo "> this happens due to npm/system file permission issues, and is known to have possible issues on relative file path"
+echo "> it is recommended to download and use the github release binary version instead at : https://github.com/uilicious/uilicious-cli/releases"
+
 # Lets get the current script
 MAIN_SCRIPT="${BASH_SOURCE[0]}"
 # Get project directory, and normalize it
@@ -34,7 +43,7 @@ cd "$PROJ_DIR"
 CPU_TYPE=$(uname -m)
 OS_TYPE=$(uname)
 
-# Binary file
+# Binary file check
 BIN_FILE=""
 
 # Perform OS / CPU based switching logic for the binary file
@@ -57,6 +66,9 @@ if [[ ! -f "$BIN_FILE" ]]; then
 	echo "!!! FATAL ERROR: Unable to locate CLI binary file - $BIN_FILE"
 	exit 1;
 fi
+
+# Lets restart back to working directory
+cd "$WORKING_DIR"
 
 # Lets forward the parameters to the actual binary file
 "$BIN_FILE" $@

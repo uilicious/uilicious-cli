@@ -1,6 +1,6 @@
 {
 	"name": "@uilicious/cli-windows-32bit",
-	"version": "3.3.0",
+	"version": "3.3.10",
 	"description": "(Windows 32bit only) Uilicious CLI toolchain",
 	"main": "uilicious-cli.js",
 	"keywords": [
