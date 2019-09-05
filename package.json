@@ -1,6 +1,6 @@
 {
 	"name": "uilicious-cli",
-	"version": "3.3.10",
+	"version": "3.3.20",
 	"description": "Uilicious CLI toolchain",
 	"main": "uilicious-cli.js",
 	"keywords": [
@@ -34,12 +34,12 @@
 	
 	"//-optionalDependencies": "I wanted to use this, directly, but the global flag does not pass over",
 	"optionalDependencies": {
-		"@uilicious/cli-linux-32bit": "=3.3.10",
-		"@uilicious/cli-linux-64bit": "=3.3.10",
-		"@uilicious/cli-macos-32bit": "=3.3.10",
-		"@uilicious/cli-macos-64bit": "=3.3.10",
-		"@uilicious/cli-windows-32bit": "=3.3.10",
-		"@uilicious/cli-windows-64bit": "=3.3.10"
+		"@uilicious/cli-linux-32bit": "=3.3.20",
+		"@uilicious/cli-linux-64bit": "=3.3.20",
+		"@uilicious/cli-macos-32bit": "=3.3.20",
+		"@uilicious/cli-macos-64bit": "=3.3.20",
+		"@uilicious/cli-windows-32bit": "=3.3.20",
+		"@uilicious/cli-windows-64bit": "=3.3.20"
 	},
 	"//-scripts-preinstall": "so i use postinstall to copy data out - its binary copy to ensure the files remain soft linked",
 	"scripts": {
