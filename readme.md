@@ -15,7 +15,9 @@ or via NPM.
 
 ### Download binaries directly from our github release page
 
-* [latest](https://github.com/uilicious/uilicious-cli/releases)
+* [v3.3.2 (latest)](https://github.com/uilicious/uilicious-cli/releases)
+
+__Older releases__
 * [v2.2.2](https://github.com/uilicious/uilicious-cli/releases/tag/v2.2.2)
 * [all releases](https://github.com/uilicious/uilicious-cli/releases)
 
