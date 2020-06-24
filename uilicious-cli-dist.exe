@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#
+# This is a bash script that is built into the NPM deployment package
+# to route request on known NPM install issues.
+#
+
 # Derive the working directory
 WORKING_DIR="$( pwd )"
 
