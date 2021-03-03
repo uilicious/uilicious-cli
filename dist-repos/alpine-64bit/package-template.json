@@ -1,7 +1,7 @@
 {
-	"name": "@uilicious/cli-linux-64bit",
+	"name": "@uilicious/cli-alpine-64bit",
 	"version": "$VERSION",
-	"description": "(Alpine 64bit only) Uilicious CLI toolchain",
+	"description": "(Alpine Linux 64bit only) Uilicious CLI toolchain",
 	"main": "uilicious-cli.js",
 	"keywords": [
 		"Uilicious",

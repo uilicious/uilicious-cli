@@ -1,7 +1,7 @@
 {
-	"name": "@uilicious/cli-linux-64bit",
-	"version": "3.3.20",
-	"description": "(Linux 64bit only) Uilicious CLI toolchain",
+	"name": "@uilicious/cli-alpine-64bit",
+	"version": "5.0.2",
+	"description": "(Alpine Linux 64bit only) Uilicious CLI toolchain",
 	"main": "uilicious-cli.js",
 	"keywords": [
 		"Uilicious",
@@ -15,7 +15,7 @@
 		"see : https://medium.com/netscape/a-guide-to-create-a-nodejs-command-line-package-c2166ad0452e"
 	],
 	"bin": {
-		"uilicious-cli": "./uilicious-cli-linux-64bit"
+		"uilicious-cli": "./uilicious-cli-alpine-64bit"
 	},
 	"//-cpu-os": [
 		"Ensuring that package is deployed only on compatible platforms"
