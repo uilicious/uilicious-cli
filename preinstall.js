@@ -22,7 +22,6 @@ const scriptDirectory = __dirname;
 
 // Mapping from Node's `process.arch` to Golang's `$GOARCH`
 const ARCH_MAPPING = {
-	"ia32": "386",
 	"x64": "amd64"
 };
 
@@ -43,26 +42,28 @@ if (!(process.platform in PLATFORM_MAPPING)) {
 	return
 }
 
+// The following help check if the platform is alpine (guessing using apk)
+// to help better differentiate the linux dependency
+function isAlpine() {
+    const output = require('child_process').spawnSync('which',['apk']).stderr.toString('utf8');
+    if(output.indexOf('apk') > -1) {
+        return true;
+    }
+    return false;
+}
+
 // Get the bin executable path
 // Binary name on Windows has .exe suffix
 let binName = null
 if(process.platform === "darwin") {
-	if(process.arch === "x64") {
-		binName = path.join(scriptDirectory, "/node_modules/@uilicious/cli-macos-64bit/uilicious-cli-macos-64bit");
-	} else {
-		binName = path.join(scriptDirectory, "/node_modules/@uilicious/cli-macos-32bit/uilicious-cli-macos-32bit");
-	}
+	binName = path.join(scriptDirectory, "/node_modules/@uilicious/cli-macos-64bit/uilicious-cli-macos-64bit");
 } else if(process.platform === "win32") {
-	if(process.arch === "x64") {
-		binName = path.join(scriptDirectory, "/node_modules/@uilicious/cli-windows-64bit/uilicious-cli-win-64bit.exe");
-	} else {
-		binName = path.join(scriptDirectory, "/node_modules/@uilicious/cli-windows-32bit/uilicious-cli-win-32bit.exe");
-	}
+	binName = path.join(scriptDirectory, "/node_modules/@uilicious/cli-windows-64bit/uilicious-cli-win-64bit.exe");
 } else if(process.platform === "linux") {
-	if(process.arch === "x64") {
-		binName = path.join(scriptDirectory, "/node_modules/@uilicious/cli-linux-64bit/uilicious-cli-linux-64bit");
+	if( isAlpine() ) {
+		binName = path.join(scriptDirectory, "/node_modules/@uilicious/cli-alpine-64bit/uilicious-cli-alpine-64bit");
 	} else {
-		binName = path.join(scriptDirectory, "/node_modules/@uilicious/cli-linux-32bit/uilicious-cli-linux-32bit");
+		binName = path.join(scriptDirectory, "/node_modules/@uilicious/cli-linux-64bit/uilicious-cli-linux-64bit");
 	}
 }
 
@@ -71,7 +72,8 @@ if( !fs.existsSync(binName) ) {
 	throw "!!! FATAL ERROR : Missing expected dependency file: "+binName;
 }
 
-// The final binary file
+// The final binary file to overwrite (which is define by this package.json)
+// its intentionally a .exe file, so that this same path can be supported in windows and linux
 const finalBinaryPath = "./uilicious-cli-dist.exe";
 
 try {

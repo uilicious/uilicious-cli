@@ -12,7 +12,7 @@ WORKING_DIR="$( pwd )"
 echo ">"
 echo "> NOTE: This is using a bash script fallback, with working directory of : $WORKING_DIR"
 echo ">"
-echo "> this happens due to npm/system file permission issues, and is known to have possible issues on relative file path"
+echo "> this happens due to npm/system file permission issues, and is known to have issues with relative file path"
 echo "> it is recommended to download and use the github release binary version instead at : https://github.com/uilicious/uilicious-cli/releases"
 echo ">"
 
@@ -47,7 +47,6 @@ PROJ_DIR="$( cd "$( dirname "$MAIN_SCRIPT" )" >/dev/null 2>&1 && pwd )"
 cd "$PROJ_DIR"
 
 # Alright lets detect OS, and machine type
-CPU_TYPE=$(uname -m)
 OS_TYPE=$(uname)
 
 # Binary file check
@@ -55,17 +54,14 @@ BIN_FILE=""
 
 # Perform OS / CPU based switching logic for the binary file
 if [[ "$OS_TYPE" == "Darwin" ]]; then
-	if [[ "$CPU_TYPE" == "x86_64" ]]; then
-		BIN_FILE="$PROJ_DIR/node_modules/@uilicious/cli-macos-64bit/uilicious-cli-macos-64bit"
-	else
-		BIN_FILE="$PROJ_DIR/node_modules/@uilicious/cli-macos-32bit/uilicious-cli-macos-32bit"
-	fi
-else 
-	if [[ "$CPU_TYPE" == "x86_64" ]]; then
-		BIN_FILE="$PROJ_DIR/node_modules/@uilicious/cli-linux-64bit/uilicious-cli-linux-64bit"
-	else
-		BIN_FILE="$PROJ_DIR/node_modules/@uilicious/cli-linux-32bit/uilicious-cli-linux-32bit"
-	fi
+	# MACOS
+	BIN_FILE="$PROJ_DIR/node_modules/@uilicious/cli-macos-64bit/uilicious-cli-macos-64bit"
+elif [[ `which apk` ]]; then
+	# Alpine
+	BIN_FILE="$PROJ_DIR/node_modules/@uilicious/cli-alpine-64bit/uilicious-cli-alpine-64bit"
+else
+	# Linux
+	BIN_FILE="$PROJ_DIR/node_modules/@uilicious/cli-linux-64bit/uilicious-cli-linux-64bit"
 fi
 
 # Lets check if file exists
