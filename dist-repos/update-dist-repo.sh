@@ -20,12 +20,17 @@ echo ">>> Assuming project version : $VERSION_STR"
 
 # Lets update all the vairous sub repos files
 # > cp  <binary file>  <distribution folder>
-cp ./bin/uilicious-cli-linux-32bit   ./dist-repos/linux-32bit/
+
+# WE DROPPED 32bit support
+# cp ./bin/uilicious-cli-linux-32bit   ./dist-repos/linux-32bit/
+# cp ./bin/uilicious-cli-macos-32bit   ./dist-repos/macos-32bit/
+# cp ./bin/uilicious-cli-win-32bit.exe ./dist-repos/windows-32bit/
+
+# 64 bit support
 cp ./bin/uilicious-cli-linux-64bit   ./dist-repos/linux-64bit/
-cp ./bin/uilicious-cli-macos-32bit   ./dist-repos/macos-32bit/
 cp ./bin/uilicious-cli-macos-64bit   ./dist-repos/macos-64bit/
-cp ./bin/uilicious-cli-win-32bit.exe ./dist-repos/windows-32bit/
 cp ./bin/uilicious-cli-win-64bit.exe ./dist-repos/windows-64bit/
+cp ./bin/uilicious-cli-alpine-64bit.exe ./dist-repos/alpine-64bit/
 
 # Lets do an update of the package versioning
 for DREPO in `find ./dist-repos -type d -mindepth 1 -maxdepth 1`
