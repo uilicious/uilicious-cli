@@ -10,12 +10,11 @@ This command line interface allows you to run and manage your UI-licious tests t
 
 ## Installation
 
-The CLI is written in GoLang, and you may install the CLI by downloading the recommended binary distribution.
-or via NPM.
+You may install the CLI by downloading the recommended binary distribution, or via NPM.
 
-### Download binaries directly from our github release page
+### Download binaries directly from our github release page (recommended)
 
-* [v3.3.2 (latest)](https://github.com/uilicious/uilicious-cli/releases)
+* [v5.0.3 (latest)](https://github.com/uilicious/uilicious-cli/releases)
 
 __Older releases__
 * [v2.2.2](https://github.com/uilicious/uilicious-cli/releases/tag/v2.2.2)
@@ -142,7 +141,7 @@ Plese services such as
 - https://serveo.net/
 - https://ngrok.com/
 
-Native ngrok support is deprecated in v3.0.0 
+Native ngrok support is deprecated from v3.0.0 
 
 ## Upload files to a project
 
