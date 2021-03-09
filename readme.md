@@ -14,7 +14,7 @@ You may install the CLI by downloading the recommended binary distribution, or v
 
 ### Download binaries directly from our github release page (recommended)
 
-* [v5.0.3 (latest)](https://github.com/uilicious/uilicious-cli/releases)
+* [v5.0.4 (latest)](https://github.com/uilicious/uilicious-cli/releases)
 
 __Older releases__
 * [v2.2.2](https://github.com/uilicious/uilicious-cli/releases/tag/v2.2.2)

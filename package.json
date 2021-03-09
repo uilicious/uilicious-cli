@@ -1,6 +1,6 @@
 {
 	"name": "uilicious-cli",
-	"version": "5.0.3",
+	"version": "5.0.4",
 	"description": "Uilicious CLI toolchain",
 	"main": "uilicious-cli.js",
 	"keywords": [
@@ -33,10 +33,10 @@
 	
 	"//-optionalDependencies": "I wanted to use this, directly, but the global flag does not pass over",
 	"optionalDependencies": {
-		"@uilicious/cli-alpine-64bit": "=5.0.3",
-		"@uilicious/cli-linux-64bit": "=5.0.3",
-		"@uilicious/cli-macos-64bit": "=5.0.3",
-		"@uilicious/cli-windows-64bit": "=5.0.3"
+		"@uilicious/cli-alpine-64bit": "=5.0.4",
+		"@uilicious/cli-linux-64bit": "=5.0.4",
+		"@uilicious/cli-macos-64bit": "=5.0.4",
+		"@uilicious/cli-windows-64bit": "=5.0.4"
 	},
 	"//-scripts-preinstall": "so i use postinstall to copy data out - its binary copy to ensure the files remain soft linked",
 	"scripts": {
