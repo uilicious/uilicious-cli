@@ -1,6 +1,6 @@
 {
 	"name": "@uilicious/cli-linux-64bit",
-	"version": "5.0.3",
+	"version": "5.0.4",
 	"description": "(Linux 64bit only) Uilicious CLI toolchain",
 	"main": "uilicious-cli.js",
 	"keywords": [
