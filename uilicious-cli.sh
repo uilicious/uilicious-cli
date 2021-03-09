@@ -76,4 +76,4 @@ fi
 cd "$WORKING_DIR"
 
 # Lets forward the parameters to the actual binary file
-"$BIN_FILE" $@
+"$BIN_FILE" "$@"
