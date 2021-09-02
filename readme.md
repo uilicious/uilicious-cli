@@ -136,7 +136,7 @@ uilicious-cli run Demo demo --dataset "PROD"
 
 ### Test local applications 
 
-Plese services such as 
+Plese use services such as 
 
 - https://serveo.net/
 - https://ngrok.com/
