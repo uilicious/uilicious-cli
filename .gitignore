@@ -1,5 +1,5 @@
 # Ignore the symlink generated uilicious-bin.exe
-bin/uilicious-bin.exe
+bin
 
 # General ignores, and counter ignores
 .*
