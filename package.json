@@ -1,6 +1,6 @@
 {
 	"name": "uilicious-cli",
-	"version": "5.0.4",
+	"version": "5.1.0",
 	"description": "Uilicious CLI toolchain",
 	"main": "uilicious-cli.js",
 	"keywords": [
@@ -14,33 +14,48 @@
 		"see : https://medium.com/netscape/a-guide-to-create-a-nodejs-command-line-package-c2166ad0452e"
 	],
 	"bin": {
-		"uilicious-cli": "./uilicious-cli-dist.exe"
+		"uilicious-cli": "./src/uilicious-cli.js"
 	},
 	"//-cpu-os": [
 		"Ensuring that package is deployed only on compatible platforms"
 	],
-	"cpu": [
-		"x64"
-	],
+	"cpu": [],
 	"os": [
 		"darwin",
 		"linux",
 		"win32"
 	],
-
-	"//-engines" : "Ensure NPM version is atleast 5.6.0 (so that optionalDependencies, with OS/CPU restriction is supported)",
-	"engines" : { "npm" : ">=5.6.0" },
-	
+	"//-engines": "Ensure NPM version is atleast 5.6.0 (so that optionalDependencies, with OS/CPU restriction is supported)",
+	"engines": {
+		"npm": ">=5.6.0"
+	},
 	"//-optionalDependencies": "I wanted to use this, directly, but the global flag does not pass over",
-	"optionalDependencies": {
-		"@uilicious/cli-alpine-64bit": "=5.0.4",
-		"@uilicious/cli-linux-64bit": "=5.0.4",
-		"@uilicious/cli-macos-64bit": "=5.0.4",
-		"@uilicious/cli-windows-64bit": "=5.0.4"
-	},
+	"optionalDependencies": {},
 	"//-scripts-preinstall": "so i use postinstall to copy data out - its binary copy to ensure the files remain soft linked",
-	"scripts": {
-		"preinstall": "node ./preinstall.js"
+	"devDependencies": {
+		"chai": "=4.2.0",
+		"chai-files": "=1.4.0",
+		"mocha": "=6.2.0",
+		"mocha-parallel-tests": "=2.3.0",
+		"uuid": "=3.3.2"
 	},
-	"dependencies": {}
+	"dependencies": {
+		"axios": "=0.21.0",
+		"buffer-from": "=1.1.1",
+		"chalk": "=2.4.2",
+		"form-data": "=2.3.3",
+		"fs-extra": "=8.1.0",
+		"hjson": "^3.2.2",
+		"is-stream": "=2.0.0",
+		"json-stringify-safe": "=5.0.1",
+		"node-fetch": "=2.6.1",
+		"normalize-path": "=3.0.0",
+		"promise-queue": "=2.2.5",
+		"sleep-promise": "=8.0.1",
+		"sywac": "=1.3.0"
+	},
+	"scripts": {
+		"cli": "./src/uilicious-cli.js",
+		"uilicious-cli": "./src/uilicious-cli.js"
+	}
 }
