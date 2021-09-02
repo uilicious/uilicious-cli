@@ -1,9 +1,13 @@
 # Ignore the symlink generated uilicious-bin.exe
 bin
 
+# Node modules ignore
+node_modules
+
 # General ignores, and counter ignores
 .*
 !.gitignore
 !.gitmodules
 !.npmignore
-node_modules
+!.github
+!.github/**/*
