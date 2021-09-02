@@ -1,9 +1,9 @@
 name: Core Binary Build
 on:
   push:
-    branches: [ * ]
+    branches: [ nodejs-release, main, master ]
   pull_request:
-    branches: [ master ]
+    branches: [ main, master ]
 jobs:
   build:
     runs-on: macos-11
