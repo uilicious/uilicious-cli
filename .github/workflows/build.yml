@@ -21,7 +21,7 @@ jobs:
     - name: Setup dependencies
       run: npm install
     - name: Build the packages
-      run: ./pkg-build-macos.sh
+      run: ./pkg-build.sh
     - name: Archive binary files
       uses: actions/upload-artifact@v2
       with:
