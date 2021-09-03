@@ -152,8 +152,8 @@ class TestRunnerSession {
 
 		// Normalize the browser string
 		browser = (browser || "chrome").toLowerCase().trim();
-		browser = browser.replaceAll(" ","");
-		browser = browser.replaceAll("-","");
+		browser = browser.replace(/\s/g,"");
+		browser = browser.replace(/\-/g,"");
 
 		// Validate the browser string
 		let validBrowserList = [
