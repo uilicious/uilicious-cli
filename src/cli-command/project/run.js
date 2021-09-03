@@ -150,6 +150,35 @@ class TestRunnerSession {
 		let dataSet = argv.dataset || argv.dataSet;
 		let disableSystemErrorRetry = !!argv.disableSystemErrorRetry;
 
+		// Normalize the browser string
+		browser = (browser || "chrome").toLowerCase().trim();
+		browser = browser.replaceAll(" ","");
+		browser = browser.replaceAll("-","");
+
+		// Validate the browser string
+		let validBrowserList = [
+			"chrome", 
+			"firefox", 
+			"edgechromium",
+			"edge", 
+			"edgelegacy",
+			"edge2019",
+			"safari", 
+			"ie11"
+		];
+		if( validBrowserList.indexOf(browser) < 0 ) {
+			throw `Invalid Browser : ${browser}`
+		}
+
+		// Browser remapping
+		if( browser.startsWith("edge") ) {
+			if( browser == "edge" || browser == "edgechromium" ) {
+				browser = "edgechromium";
+			} else {
+				browser = "edge";
+			}
+		}
+		
 		// Project start timeout in minutes
 		let startTimeout = Math.max(argv.startTimeout || argv["start-timeout"] || 15, 0);
 
