@@ -736,12 +736,16 @@ module.exports = {
 			let jsonObj = null;
 			if( dataObject ) {
 				try {
+					// Fixing the dataObject / jsonObject formatting
 					jsonObj = Hjson.parse( dataObject );
-					
+					if( jsonObj == null ) {
+						OutputHandler.cliArgumentError( `Invalid format for dataObject (is it a valid JSON?) : ${dataObject}` )
+					}
+
 					// Looks ok, lets normalized it to dataObject
 					argv.dataObject = JSON.stringify( jsonObj );
 				} catch(e) {
-					// console.log(e)
+					console.log(e)
 					OutputHandler.cliArgumentError( `Invalid format for dataObject` )
 				}
 			}
@@ -753,7 +757,7 @@ module.exports = {
 				try {
 					let fileStr = fse.readFileSync(dataFile).toString()
 
-					if( fileStr == null || fileStr.trim().length() <= 0 ) {
+					if( fileStr == null || fileStr.trim().length <= 0 ) {
 						OutputHandler.cliArgumentError( `Empty dataFile : ${dataFile}` )
 					}
 
@@ -765,7 +769,7 @@ module.exports = {
 					// Looks ok, lets normalized it to dataObject
 					argv.dataObject = JSON.stringify( jsonObj );
 				} catch(e) {
-					// console.log(e)
+					console.log(e)
 					OutputHandler.cliArgumentError( `Invalid format for dataFile : ${dataFile}` )
 				}
 			}
