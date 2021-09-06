@@ -42,8 +42,12 @@ module.exports = {
 
 		// Safe download mode handling
 		cmd.boolean("--skipExisting", {
-			description: "Skip existing files instead of overwriting them",,
+			description: "Skip existing files instead of overwriting them",
 			aliases: "--skipExisting, --skip-existing"
+		})
+		cmd.boolean("--skip-existing", {
+			description: "(deprecated command) Skip existing files instead of overwriting them",
+			hidden: true
 		})
 		
 	},
