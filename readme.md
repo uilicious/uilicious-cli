@@ -75,7 +75,7 @@ $ uilicious-cli run "demo" "/login/test 1" -u <username> -p <password>
 ![Run Example](https://github.com/uilicious/uilicious-cli/raw/main/readme-img/uilicious-cli-run-example.png)
 
 ```
-$ uilicious-cli run  <project_name> <script_path> [--browser] [--width] [--height]
+$ uilicious-cli project run  <project_name> <script_path> [--browser] [--width] [--height]
 ```
 * `<project_name>` - Name for the project being tested.
 * `<script_path>` - Name of the test script being executed.
@@ -84,6 +84,8 @@ $ uilicious-cli run  <project_name> <script_path> [--browser] [--width] [--heigh
 + `--browser <browser_name>` options :  e.g. chrome, firefox, edge, safari, ie11 (default "chrome")
 + `--height <browser_height>` height of browser (default "960")
 + `--width <browser_width>` width of browser (default "1280")
+
+> For more additional options, please refer to the `uilicious-cli project run --help` output
 
 ### Setting the `DATA` object
 
