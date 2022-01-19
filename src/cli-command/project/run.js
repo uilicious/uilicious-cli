@@ -650,12 +650,12 @@ class TestRunnerSession {
 		OutputHandler.json( this.jsonOutputObj )
 
 		// Output final command status, and exit
-		if( this.finalTestStatus == "failure" ) {
-			OutputHandler.standardRed( resultMsg.join("\n") )
-			process.exit(14)
-		} else {
+		if( this.finalTestStatus == "success" ) {
 			OutputHandler.standardGreen( resultMsg.join("\n") )
 			process.exit(0)
+		} else {
+			OutputHandler.standardRed( resultMsg.join("\n") )
+			process.exit(14)
 		}
 	}
 }
