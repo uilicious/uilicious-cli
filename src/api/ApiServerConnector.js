@@ -60,18 +60,38 @@ axios.interceptors.response.use(response => {
 		// For each of the cookie in responseCookie
 		// Only store account_ses, account_tok, account_rmb, account_exp
 		for(let index=0; index< responseCookie.length; index++) {
-			if(responseCookie[index].indexOf("account_ses") > -1) {
-				COOKIE_JAR.account_ses = responseCookie[index]
+
+			// Lets get the responseCookie - set cookie segments
+			let cookieSegment = responseCookie[index];
+
+			// and skip if its blank
+			if( cookieSegment == null || cookieSegment.length <= 0 ) {
+				continue;
 			}
-			if(responseCookie[index].indexOf("account_tok") > -1) {
-				COOKIE_JAR.account_tok = responseCookie[index]
+
+			// Lets ensure extra "information" after ";" is removed
+			cookieSegment = cookieSegment.split(";")[0];
+
+			// Lets get the respective segments that needs storing
+			let cookieKeys = [
+				"csrf-token",
+				"account_ses",
+				"account_tok",
+				"account_rmb",
+				"account_exp"
+			];
+
+			// Iterate the cookie keys
+			for(let keyIdx=0; keyIdx<cookieKeys.length; ++keyIdx) {
+				// Get the respective key
+				let key = cookieKeys[keyIdx];
+
+				// Check if the key is relevent
+				if(cookieSegment.indexOf(key) > -1) {
+					COOKIE_JAR[key] = cookieSegment;
+				}
 			}
-			if(responseCookie[index].indexOf("account_rmb") > -1) {
-				COOKIE_JAR.account_rmb = responseCookie[index]
-			}
-			if(responseCookie[index].indexOf("account_exp") > -1) {
-				COOKIE_JAR.account_exp = responseCookie[index]
-			}
+			
 		}
 	}
 	
@@ -253,6 +273,10 @@ function POST_stream(url, data, isMultipart = false) {
 //------------------------------------------------------------------------
 
 function accountAuth(user, pass) {
+	// Get the CSRF token first
+	await POST("/account/issueCSRFToken");
+
+	// Then do the login
 	return POST("/account/login", {
 		loginName: user,
 		password:  pass
@@ -260,6 +284,10 @@ function accountAuth(user, pass) {
 }
 
 function accessKeyAuth(accesskey) {
+	// Get the CSRF token first
+	await POST("/account/issueCSRFToken");
+
+	// Then do the login
 	return POST("/accesskey/auth", {
 		accessKey: accesskey
 	})

@@ -30,9 +30,8 @@
 		"node" : ">=10.0.0",
 		"npm": ">=5.6.0"
 	},
-	"//-optionalDependencies": "I wanted to use this, directly, but the global flag does not pass over",
+	
 	"optionalDependencies": {},
-	"//-scripts-preinstall": "so i use postinstall to copy data out - its binary copy to ensure the files remain soft linked",
 	"devDependencies": {
 		"chai": "=4.2.0",
 		"chai-files": "=1.4.0",
@@ -40,6 +39,7 @@
 		"mocha-parallel-tests": "=2.3.0",
 		"uuid": "=3.3.2"
 	},
+	
 	"dependencies": {
 		"axios": "=0.21.1",
 		"buffer-from": "=1.1.1",
