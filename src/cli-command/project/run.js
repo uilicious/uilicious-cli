@@ -658,6 +658,35 @@ class TestRunnerSession {
 			process.exit(14)
 		}
 	}
+
+	//--------------------------------------------
+	// interruption Handling
+	//--------------------------------------------
+
+	/**
+	 * Custom handler for SIGINT - note that this is not guranteed
+	 */
+	async handle_interrupt() {
+		// Handle repeat interrupt
+		if( this._interrupted ) {
+			OutputHandler.standardRed(' [HALT] Repeated Interrupt detected, exiting now (test termination is not guranteed)');
+			process.exit(2);
+		}
+
+		// Flag the interrupt
+		this._interrupted = true;
+
+		// First time interrupt
+		OutputHandler.standardRed(' [HALT] Interrupt detected, performing process cleanup');
+		OutputHandler.standardRed(`Current Test ID : ${this.testID} - Current Test Status : ${this.finalTestStatus}`);
+		if( this.finalTestStatus == null && this.testID != null ) {
+			OutputHandler.standardRed(`Terminating test ...`);
+			await SpaceAndProjectApi.stopRunningTest(this.testID);
+		} else {
+			OutputHandler.standardRed(`Skipping test termination sequence - missing a valid test ID (test termination is not guranteed)`);
+		}
+		process.exit(2);
+	}
 }
 
 
@@ -805,6 +834,13 @@ module.exports = {
 			
 			// Lets setup the test runner class
 			let testRunner = new TestRunnerSession();
+
+			// Handle system interrupts
+			// catch ctrl+c event and exit normally
+			process.on('SIGINT', function () { testRunner.handle_interrupt(); });
+			process.on('SIGTERM', function () { testRunner.handle_interrupt(); });
+
+			// Perform initial setup
 			await testRunner.S01_initialSetup(argv, context);
 
 			// Run the various test run steps and output

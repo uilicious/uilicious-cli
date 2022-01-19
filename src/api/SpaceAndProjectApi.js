@@ -314,6 +314,21 @@ class SpaceAndProjectApi {
 		} );
 	}
 	
+	/**
+	 * Stop a test that was in operations
+	 * 
+	 * @param {Object} testID of the test
+	 */
+	async stopRunningTest(testID) {
+		// Log the test start
+		OutputHandler.debug(`> Performing test stop for ${testID}`);
+
+		// Lets start the test !
+		return await retryForResult( () => { 
+			return api.POST(`/project/testrun/${testID}/stop`, {})
+		} );
+	}
+
 	/////////////////////////////////////////////////////////////////////
 	//
 	// Processing of test results
