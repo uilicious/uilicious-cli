@@ -272,7 +272,7 @@ function POST_stream(url, data, isMultipart = false) {
 //
 //------------------------------------------------------------------------
 
-function accountAuth(user, pass) {
+async function accountAuth(user, pass) {
 	// Get the CSRF token first
 	await POST("/account/issueCSRFToken");
 
@@ -283,7 +283,7 @@ function accountAuth(user, pass) {
 	})
 }
 
-function accessKeyAuth(accesskey) {
+async function accessKeyAuth(accesskey) {
 	// Get the CSRF token first
 	await POST("/account/issueCSRFToken");
 
