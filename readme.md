@@ -157,10 +157,13 @@ upload   | import                 | none             | Upload files from a local
 
 > Commands with removal schedule of "none" will have atleast 6 months notice warning, when we plan its removal. And will be treated as a major CLI version upgrade.
 
-## Need help?
+## Reporting issues with the CLI / Need help ?
 
-Contact [support@uilicious.com](mailto:support@uilicious.com)!
+Find us on [discord](https://discord.gg/DZCmSRFwq8)
+Or contact us at [hello@uilicious.com](mailto:hello@uilicious.com)
+
+Note: We **do not** actively monitor our github issues - as such its much more reliable to reach out to us on discord / our support email.
 
 ---
 
-Copyright &copy; 2019 Uilicious Private Limited
+Copyright &copy; 2022 Uilicious Private Limited
