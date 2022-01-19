@@ -138,7 +138,8 @@ uilicious-cli download <project_name> <local_directory>
 
 Plese use services such as 
 
-- https://ngrok.com/
+- https://www.cloudflare.com/products/tunnel/
+- https://ngrok.com/ (warning, free tier maybe rate limited)
 
 Native ngrok support is deprecated from v3.0.0 
 
