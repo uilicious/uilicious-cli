@@ -1,6 +1,6 @@
 # UI-licious Command Line Interface
 
-![Example](https://github.com/uilicious/uilicious-cli/raw/master/readme-img/uilicious-cli-run-example.png)
+![Example](https://github.com/uilicious/uilicious-cli/raw/main/readme-img/uilicious-cli-help.png)
 
 [UI-licious](https://uilicious.com) is a tool for development teams to rapidly create and run end-to-end user journey tests for their web applications.
 
@@ -30,12 +30,10 @@ $ npm install uilicious-cli -g
 
 ## Using `--help`
 
-Use the `--help` option to list the available commands:
+Use the `--help` option to list the available top level commands:
 ```
 $ uilicious-cli --help
 ```
-
-![Help](https://github.com/uilicious/uilicious-cli/raw/master/readme-img/uilicious-cli-help.png)
 
 To get more information about a single command, use `--help` after the command:
 
@@ -43,7 +41,7 @@ To get more information about a single command, use `--help` after the command:
 $ uilicious-cli <command> --help
 ```
 
-![Run Help](https://github.com/uilicious/uilicious-cli/raw/master/readme-img/uilicious-cli-run-help.png)
+![Run Help](https://github.com/uilicious/uilicious-cli/raw/main/readme-img/uilicious-cli-run-help.png)
 
 ## Authentication
 
@@ -72,19 +70,10 @@ You can also use the short form `-u` or `-p`, e.g.:
 $ uilicious-cli run "demo" "/login/test 1" -u <username> -p <password>
 ```
 
-## Commands
-
-> **Warning**: Please avoid using deprecated aliases for the commands, as they can be removed in the future.
-
-Name   | **Deprecated** aliases | Purpose
------- | ------- | ------------------
-run    | | Run a test
-download | export | Download a project to a local directory
-upload | import | Upload files from a local directory to a project
-
----
-
 ## Running a test
+
+![Run Example](https://github.com/uilicious/uilicious-cli/raw/main/readme-img/uilicious-cli-run-example.png)
+
 ```
 $ uilicious-cli run  <project_name> <script_path> [--browser] [--width] [--height]
 ```
@@ -130,15 +119,6 @@ E.g.
 uilicious-cli run Demo demo --dataset "PROD"
 ```
 
-### Test local applications 
-
-Plese use services such as 
-
-- https://serveo.net/
-- https://ngrok.com/
-
-Native ngrok support is deprecated from v3.0.0 
-
 ## Upload files to a project
 
 You can upload files from a local directory to an UI-licious project using the `upload` command. If the project does not exists, it will be automatically created:
@@ -153,6 +133,26 @@ You can download files from a UI-licious project to a local directory using the 
 ```bash
 uilicious-cli download <project_name> <local_directory>
 ```
+
+### To test your local web applications 
+
+Plese use services such as 
+
+- https://ngrok.com/
+
+Native ngrok support is deprecated from v3.0.0 
+
+## Deprecated Commands
+
+> **Warning**: Please avoid using deprecated aliases for the commands, as they may be removed in the future.
+
+Command  | **Deprecated** aliases | Removal Schedule | Purpose
+------   | ---------------------- | ---------------- | ------------------
+run      |                        | none             | Run a test
+download | export                 | none             | Download a project to a local directory
+upload   | import                 | none             | Upload files from a local directory to a project
+
+> Commands with removal schedule of "none" will have atleast 6 months notice warning, when we plan its removal. And will be treated as a major CLI version upgrade.
 
 ## Need help?
 
