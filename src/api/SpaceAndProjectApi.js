@@ -287,7 +287,8 @@ class SpaceAndProjectApi {
 		let width      = testParams.width   || 1280;
 		let height     = testParams.height  || 960;
 		let dataSetID  = testParams.dataSetID || testParams.environmentId;
-		let dataObject = testParams.dataObject;
+		let dataObject = testParams.data || testParams.dataObject;
+		let secretData = testParams.secretData;
 
 		// Lets prepare the request object
 		let reqObj = {
@@ -302,6 +303,7 @@ class SpaceAndProjectApi {
 			reqObj["environmentId"] = dataSetID;
 		} else {
 			reqObj["data"] = dataObject;
+			reqObj["secretData"] = secretData;
 		}
 
 		// Log the test start
