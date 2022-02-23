@@ -212,10 +212,8 @@ class TestRunnerSession {
 		}
 
 		// dataObject
-		let dataObject = null;
-		if(argv["dataObject"] != null) {
-			dataObject = argv["dataObject"];
-		}
+		let dataObject = argv["dataObject"];
+		let secretObject = argv["secretObject"];
 
 		// Map all the comptued variables
 		//---------------------------------------------------------------
@@ -235,6 +233,7 @@ class TestRunnerSession {
 		this.startTimeout_ms   = startTimeout_ms;
 		this.dataSetID         = dataSetID;
 		this.dataObject        = dataObject;
+		this.secretObject      = secretObject;
 
 		this.normalizedScriptPath    = normalizedScriptPath;
 		this.uriEncodedScriptPath    = uriEncodedScriptPath;
@@ -328,7 +327,8 @@ class TestRunnerSession {
 					width:      this.width,
 					height:     this.height,
 					dataSetID:  this.dataSetID,
-					dataObject: this.dataObject
+					data:       this.dataObject,
+					secretData: 
 				}
 			);
 
