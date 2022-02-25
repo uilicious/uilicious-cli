@@ -328,7 +328,7 @@ class TestRunnerSession {
 					height:     this.height,
 					dataSetID:  this.dataSetID,
 					data:       this.dataObject,
-					secretData: 
+					secretData: this.secretObject
 				}
 			);
 
@@ -843,7 +843,7 @@ module.exports = {
 					}
 
 					secretJsonObj = Hjson.parse( fileStr );
-					if( dataJsonObj == null ) {
+					if( secretJsonObj == null ) {
 						OutputHandler.cliArgumentError( `Invalid secretFile format (not a proper json object) : ${secretFile}` )
 					}
 
