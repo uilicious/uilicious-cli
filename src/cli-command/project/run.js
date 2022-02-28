@@ -147,38 +147,10 @@ class TestRunnerSession {
 		let browser = argv.browser || "chrome";
 		let width   = argv.width   || 1280;
 		let height  = argv.height  || 960;
+		let region  = argv.region  || "default";
 		let dataSet = argv.dataset || argv.dataSet;
 		let disableSystemErrorRetry = !!argv.disableSystemErrorRetry;
 
-		// Normalize the browser string
-		browser = (browser || "chrome").toLowerCase().trim();
-		browser = browser.replace(/\s/g,"");
-		browser = browser.replace(/\-/g,"");
-
-		// Validate the browser string
-		let validBrowserList = [
-			"chrome", 
-			"firefox", 
-			"edgechromium",
-			"edge", 
-			"edgelegacy",
-			"edge2019",
-			"safari", 
-			"ie11"
-		];
-		if( validBrowserList.indexOf(browser) < 0 ) {
-			throw `Invalid Browser : ${browser}`
-		}
-
-		// Browser remapping
-		if( browser.startsWith("edge") ) {
-			if( browser == "edge" || browser == "edgechromium" ) {
-				browser = "edgechromium";
-			} else {
-				browser = "edge";
-			}
-		}
-		
 		// Project start timeout in minutes
 		let startTimeout = Math.max(argv.startTimeout || argv["start-timeout"] || 15, 0);
 
@@ -229,6 +201,7 @@ class TestRunnerSession {
 		this.browser           = browser;
 		this.width             = width;
 		this.height            = height;
+		this.region            = region;
 		this.dataSet           = dataSet;
 		this.startTimeout      = startTimeout;
 		this.startTimeout_sec  = startTimeout_sec;
@@ -256,6 +229,7 @@ class TestRunnerSession {
 			`> Project Name: ${this.projectObj.name}`,
 			`> Project ID:   ${this.projectObj._oid}`,
 			`> Browser:      ${this.browser}`,
+			`> Region:       ${this.region}`,
 			`> Resolution:   ${this.width}x${this.height}`,
 			`> Script Path:  ${this.normalizedScriptPath}`,
 		].join("\n"))
@@ -327,6 +301,7 @@ class TestRunnerSession {
 					browser:    this.browser,
 					width:      this.width,
 					height:     this.height,
+					region:     this.region,
 					dataSetID:  this.dataSetID,
 					dataObject: this.dataObject
 				}
@@ -440,7 +415,14 @@ class TestRunnerSession {
 				processedTestRunSteps.push(formatAndOutputStepObject(step));
 			} else {
 				// Minor additional delay for "pending" steps
-				await sleep(1000+Math.random()*150)
+				if( index <= 5 ) {
+					// For first 5 steps, lets, reduce the the "wait" between steps
+					// await sleep(100+Math.random()*50)
+					await sleep(10)
+				} else {
+					// 1s awaits min
+					await sleep(1000+Math.random()*150)
+				}
 			}
 
 			// Minimum 10 ms delay between step - makes outputs more readable
@@ -498,6 +480,9 @@ class TestRunnerSession {
 		// Note this is resetted in event of system errors
 		let startTimeMS = Date.now();
 		let startTimeoutTimeMS = startTimeMS + this.startTimeout*this.startTimeout_ms;
+
+		// save the start time
+		this._startTimeMS = startTimeMS;
 
 		// The final test result status
 		let finalTestStatus = null;
@@ -624,6 +609,10 @@ class TestRunnerSession {
 			">"
 		];
 
+		// Get the test time taken (from CLI point of view)
+		let startTimeMS = this._startTimeMS;
+		let timeTakenMS = Date.now() - this._startTimeMS;
+
 		// Inject the various URL links
 		if( !this.assumeOnPremise ) {
 			// Into the result message
@@ -645,6 +634,10 @@ class TestRunnerSession {
 			// Or json
 			this.jsonOutputObj.webstudioURL = `${this.webstudioURL}/project/${this.projectID}/editor/${this.uriEncodedScriptPath}?testRunId=${this.testID}`;
 		}
+
+		// Lets add in the CLI debugging information
+		this.jsonOutputObj._cli = this.jsonOutputObj._cli || {};
+		this.jsonOutputObj._cli.testTimeTaken_ms = timeTakenMS;
 
 		// Handle JSON output
 		OutputHandler.json( this.jsonOutputObj )
@@ -714,6 +707,9 @@ module.exports = {
 		cmd.number("--height  <height>", {
 			description: "[default: 960]       Browser height to use (in px)"
 		});
+		cmd.string("--region  <region-name>", {
+			description: "[default: 'default'] Browser region to use (chrome, firefox, edgechromium only)"
+		});
 		cmd.string("--dataset <set-name>", {
 			hidden: true,
 			description: "Dataset to use, belonging to your account and project"
@@ -734,6 +730,104 @@ module.exports = {
 			description: "Disable CLI automated retries when uilicious SYSTEM_ERROR occurs"
 		});
 		cmd.check((argv,context) => {
+
+			//------------------------------------------------------------------
+			//   Browser Checking
+			//------------------------------------------------------------------
+
+			// Get and normalize the browser
+			let browser = argv.browser || "chrome";
+
+			// Normalize the browser string
+			browser = (browser || "chrome").toLowerCase().trim();
+			browser = browser.replace(/\s/g,"");
+			browser = browser.replace(/\-/g,"");
+
+			// Validate the browser string
+			let validBrowserList = [
+				"chrome", 
+				"firefox", 
+				"edge", 
+				"edgechromium",
+				"edgelegacy",
+				"edge2019",
+				"safari", 
+				"ie11"
+			];
+			if( validBrowserList.indexOf(browser) < 0 ) {
+				OutputHandler.cliArgumentError( `Unknown Browser Selected : ${browser}\nPlease use one of the following browsers: `+validBrowserList.join(", ") )
+			}
+
+			// Browser remapping
+			if( browser.startsWith("edge") ) {
+				if( browser == "edge" || browser == "edgechromium" ) {
+					browser = "edgechromium";
+				} else {
+					browser = "edge";
+				}
+			}
+
+			argv.browser = browser;
+			
+			//------------------------------------------------------------------
+			//   Region Checking
+			//------------------------------------------------------------------
+
+			// Get the current region selected
+			let region = argv.region || argv["region-name"] || "default";
+
+			// Normalize to lower case
+			region = region.toLowerCase();
+
+			// The full region list to check against
+			let regionList = [
+				"default",
+				"unitedkingdom",
+				"hongkong",
+				"singapore",
+				"usa-newyork",
+				"usa-sanfranc",
+				"canada-toronto",
+				"india-bangalore",
+				"netherlands-amsterdam",
+				"germany-frankfurt",
+				"indonesia-jarkata",
+			]
+
+			// Common aliases
+			let regionAlias = {
+				"netherlands": "netherlands-amsterdam",
+				"amsterdam": "netherlands-amsterdam",
+				"india" : "india-bangalore",
+				"bangalore" : "india-bangalore",
+				"canada" : "canada-toronto",
+				"toronto" : "canada-toronto",
+				"germany": "germany-frankfurt",
+				"frankfurt": "germany-frankfurt",
+				"indonesia": "indonesia-jarkata",
+				"jarkata": "indonesia-jarkata",
+				"usa": "usa-newyork",
+				"newyork": "usa-newyork",
+				"sanfranc": "usa-sanfranc"
+			}
+
+			// If region is an alias, remap it
+			if( regionAlias[region] ) {
+				region = regionAlias[region];
+			}
+
+			// Check if the region is in the list
+			if( regionList.indexOf(region) < 0 ) {
+				OutputHandler.cliArgumentError( `Unknown region selected : ${region}\nPlease use one of the following regions: `+regionList.join(", ") )
+			}
+
+			// Save back the region settings
+			argv.region = region;
+			
+			//------------------------------------------------------------------
+			//   DataSet / Object / File Checking
+			//------------------------------------------------------------------
+
 			//
 			// Get the data arguments
 			//
