@@ -131,8 +131,8 @@ class TestRunnerSession {
 
 		// Fetching, after on premise check
 		if( !assumeOnPremise ) {
-			webstudioURL      = await SpaceAndProjectApi.getWebstudioURL();
-			privateSnippetURL = await SpaceAndProjectApi.getPrivateSnippetURLPath();
+			webstudioURL      = await SpaceAndProjectApi.getWebstudioURL(argv.apiHost);
+			privateSnippetURL = await SpaceAndProjectApi.getPrivateSnippetURLPath(argv.apiHost);
 		} else {
 			// Best guess the webstudio URL
 			webstudioURL = argv.apiHost.split("/api/")[0]+"/webstudio"
@@ -212,10 +212,8 @@ class TestRunnerSession {
 		}
 
 		// dataObject
-		let dataObject = null;
-		if(argv["dataObject"] != null) {
-			dataObject = argv["dataObject"];
-		}
+		let dataObject = argv["dataObject"];
+		let secretObject = argv["secretObject"];
 
 		// Map all the comptued variables
 		//---------------------------------------------------------------
@@ -235,6 +233,7 @@ class TestRunnerSession {
 		this.startTimeout_ms   = startTimeout_ms;
 		this.dataSetID         = dataSetID;
 		this.dataObject        = dataObject;
+		this.secretObject      = secretObject;
 
 		this.normalizedScriptPath    = normalizedScriptPath;
 		this.uriEncodedScriptPath    = uriEncodedScriptPath;
@@ -328,7 +327,8 @@ class TestRunnerSession {
 					width:      this.width,
 					height:     this.height,
 					dataSetID:  this.dataSetID,
-					dataObject: this.dataObject
+					data:       this.dataObject,
+					secretData: this.secretObject
 				}
 			);
 
@@ -714,6 +714,7 @@ module.exports = {
 		cmd.number("--height  <height>", {
 			description: "[default: 960]       Browser height to use (in px)"
 		});
+
 		cmd.string("--dataset <set-name>", {
 			hidden: true,
 			description: "Dataset to use, belonging to your account and project"
@@ -721,12 +722,21 @@ module.exports = {
 		cmd.string("--dataSet <set-name>", {
 			description: "Dataset to use, belonging to your account and project"
 		});
+
 		cmd.string("--dataObject <json-string>", {
 			description: "Dataset to use, passed as a JSON object string"
 		});
 		cmd.file("--dataFile <file-path>", {
 			description: "Dataset to use, passed as a JSON file"
 		});
+
+		cmd.string("--secretObject <json-string>", {
+			description: "Dataset to use, passed as a JSON object string"
+		});
+		cmd.file("--secretFile <file-path>", {
+			description: "Dataset to use, passed as a JSON file"
+		});
+		
 		cmd.number("--startTimeout <start-timeout>", {
 			description: "[default: 15]  Max number of minutes to wait, if concurrency is fully used"
 		});
@@ -741,38 +751,38 @@ module.exports = {
 			argv.dataSet = dataSet;
 			let dataObject = argv.dataObject;
 			let dataFile = argv.dataFile;
+			let secretObject = argv.secretObject;
+			let secretFile = argv.secretFile;
 
 			//
-			// Lets count them, and throw if multiples are provided
+			// Lets check for duplicate data sets
 			//
-			let dataCount = 0;
 			if( dataSet ) {
-				dataCount++;
+				if( secretObject || secretFile || dataObject || dataFile ) {
+					throw `Multiple DATA sources detected 'dataSet' cannot be used with 'dataObject/dataFile/secretObject/secretFile'`
+				}
 			}
-			if( dataObject ) {
-				dataCount++;
+			if( dataFile && dataObject ) {
+				throw `Multiple DATA sources detected 'dataFile' cannot be used with 'dataObject'`
 			}
-			if( dataFile ) {
-				dataCount++;
-			}
-			if( dataCount > 1 ) {
-				throw `Multiple data sets provided, use only 1 of dataSet / dataObject / dataFile`
+			if( secretFile && secretObject ) {
+				throw `Multiple DATA sources detected 'secretFile' cannot be used with 'secretObject'`
 			}
 
 			//
-			// Lets validate and normalize dataFile / dataObject
+			// Lets validate and normalize dataFile -> dataObject
 			//
-			let jsonObj = null;
+			let dataJsonObj = null;
 			if( dataObject ) {
 				try {
-					// Fixing the dataObject / jsonObject formatting
-					jsonObj = Hjson.parse( dataObject );
-					if( jsonObj == null ) {
+					// Fixing the dataObject / dataJsonObject formatting
+					dataJsonObj = Hjson.parse( dataObject );
+					if( dataJsonObj == null ) {
 						OutputHandler.cliArgumentError( `Invalid format for dataObject (is it a valid JSON?) : ${dataObject}` )
 					}
 
 					// Looks ok, lets normalized it to dataObject
-					argv.dataObject = JSON.stringify( jsonObj );
+					argv.dataObject = JSON.stringify( dataJsonObj );
 				} catch(e) {
 					console.log(e)
 					OutputHandler.cliArgumentError( `Invalid format for dataObject` )
@@ -785,21 +795,63 @@ module.exports = {
 
 				try {
 					let fileStr = fse.readFileSync(dataFile).toString()
-
 					if( fileStr == null || fileStr.trim().length <= 0 ) {
 						OutputHandler.cliArgumentError( `Empty dataFile : ${dataFile}` )
 					}
 
-					jsonObj = Hjson.parse( fileStr );
-					if( jsonObj == null ) {
+					dataJsonObj = Hjson.parse( fileStr );
+					if( dataJsonObj == null ) {
 						OutputHandler.cliArgumentError( `Invalid dataFile format (not a proper json object) : ${dataFile}` )
 					}
 
 					// Looks ok, lets normalized it to dataObject
-					argv.dataObject = JSON.stringify( jsonObj );
+					argv.dataObject = JSON.stringify( dataJsonObj );
 				} catch(e) {
 					console.log(e)
 					OutputHandler.cliArgumentError( `Invalid format for dataFile : ${dataFile}` )
+				}
+			}
+
+			//
+			// Lets validate and normalize secretFile -> secretObject
+			//
+			let secretJsonObj = null;
+			if( secretObject ) {
+				try {
+					// Fixing the dataObject / dataJsonObject formatting
+					secretJsonObj = Hjson.parse( secretObject );
+					if( secretJsonObj == null ) {
+						OutputHandler.cliArgumentError( `Invalid format for secretObject (is it a valid JSON?) : [redated]` )
+					}
+
+					// Looks ok, lets normalized it to dataObject
+					argv.secretObject = JSON.stringify( secretJsonObj );
+				} catch(e) {
+					console.log(e)
+					OutputHandler.cliArgumentError( `Invalid format for secretObject` )
+				}
+			}
+			if( secretFile ) {
+				if( !fse.existsSync(secretFile) ) {
+					OutputHandler.cliArgumentError( `Missing secretFile : ${secretFile}` )
+				}
+
+				try {
+					let fileStr = fse.readFileSync(secretFile).toString()
+					if( fileStr == null || fileStr.trim().length <= 0 ) {
+						OutputHandler.cliArgumentError( `Empty secretFile : ${secretFile}` )
+					}
+
+					secretJsonObj = Hjson.parse( fileStr );
+					if( secretJsonObj == null ) {
+						OutputHandler.cliArgumentError( `Invalid secretFile format (not a proper json object) : ${secretFile}` )
+					}
+
+					// Looks ok, lets normalized it to secretObject
+					argv.secretObject = JSON.stringify( secretJsonObj );
+				} catch(e) {
+					console.log(e)
+					OutputHandler.cliArgumentError( `Invalid format for secretFile : ${secretFile}` )
 				}
 			}
 

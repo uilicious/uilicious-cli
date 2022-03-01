@@ -166,7 +166,7 @@ class OutputHandler {
 		// 	description: "Output the JSON result into the file seperately, does not disable step by step line output"
 		// })
 		main.boolean("-t, --trace", {
-			description: "Extremely extremely verbose logging of various API calls"
+			description: "Extremely extremly verbose and noisy logging of all API calls [Note: this will log provided secrets]"
 		})
 		main.boolean("-s, --silent", {
 			description: "Surpression of output stream, disables std/json output"
