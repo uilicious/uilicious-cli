@@ -131,8 +131,8 @@ class TestRunnerSession {
 
 		// Fetching, after on premise check
 		if( !assumeOnPremise ) {
-			webstudioURL      = await SpaceAndProjectApi.getWebstudioURL();
-			privateSnippetURL = await SpaceAndProjectApi.getPrivateSnippetURLPath();
+			webstudioURL      = await SpaceAndProjectApi.getWebstudioURL(argv.apiHost);
+			privateSnippetURL = await SpaceAndProjectApi.getPrivateSnippetURLPath(argv.apiHost);
 		} else {
 			// Best guess the webstudio URL
 			webstudioURL = argv.apiHost.split("/api/")[0]+"/webstudio"

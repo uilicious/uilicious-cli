@@ -356,21 +356,34 @@ class SpaceAndProjectApi {
 	/**
 	 * Get and return the current webstudio URL from the account
 	 */
-	async getWebstudioURL() {
+	async getWebstudioURL(apiHost) {
 		// Lets get the current account hostURL
-		let result = await retryForResult( () => api.GET("/account/info/get") ) || {};
+		if( apiHost.indexOf("https://api.uilicious.com/") >= 0 ) {
+			return "https://client.uilicious.com/"; 
+		} else if( apiHost.indexOf("https://api.uilicious-dev.com/") >= 0 ) {
+			return "https://client.uilicious-dev.com/"; 
+		}
 
 		// Got the result - lets get the hostURL
 		// + "/studio"; Remove base path as this will be different for on-premise installations
+		let result = await retryForResult( () => api.GET("/account/info/get") ) || {};
 		return result.hostURL || "https://client.uilicious.com/"; 
 	}
 
 	/**
 	 * Get and return the snippet URL for the deployment
 	 */
-	async getPrivateSnippetURLPath() {
+	async getPrivateSnippetURLPath(apiHost) {
+		// Lets get the current account hostURL
+		if( apiHost.indexOf("https://api.uilicious.com/") >= 0 ) {
+			return "https://snippet.uilicious.com/embed/test/private/"; 
+		} else if( apiHost.indexOf("https://api.uilicious-dev.com/") >= 0 ) {
+			return "https://snippet.uilicious-dev.com/embed/test/private/"; 
+		}
+
 		// @TODO detect and provide the on premise equivalent
-		return "https://snippet.uilicious.com/embed/test/private/";
+		// return "https://snippet.uilicious.com/embed/test/private/";
+		return null;
 	}
 
 }
