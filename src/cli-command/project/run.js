@@ -855,6 +855,13 @@ module.exports = {
 				}
 			}
 
+			// Normalize dataObject, if secretObject is enabled
+			if( argv.secretObject && argv.secretObject.length > 2 ) {
+				if( argv.dataObject == null || argv.dataObject.length <= 2 ) {
+					argv.dataObject = {};
+				}
+			}
+
 			//
 			// Validate the script path
 			//
