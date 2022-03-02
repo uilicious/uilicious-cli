@@ -411,6 +411,12 @@ class TestRunnerSession {
 				step.status === "terminated" || 
 				step.status === "system_error" 
 			) {
+				// Lets log the first step timing
+				if(index >= 0 && this._firstStepTimeMS == null) {
+					this._firstStepTimeMS = Date.now();
+					this._firstStepTimeTakenMS = this._firstStepTimeMS - this._startTimeMS;
+				}
+
 				// Lets log the output, and pushed it into the processed step list
 				processedTestRunSteps.push(formatAndOutputStepObject(step));
 			} else {
@@ -638,6 +644,7 @@ class TestRunnerSession {
 		// Lets add in the CLI debugging information
 		this.jsonOutputObj._cli = this.jsonOutputObj._cli || {};
 		this.jsonOutputObj._cli.testTimeTaken_ms = timeTakenMS;
+		this.jsonOutputObj._cli.firstStepTimeTaken_ms = this._firstStepTimeTakenMS;
 
 		// Handle JSON output
 		OutputHandler.json( this.jsonOutputObj )
