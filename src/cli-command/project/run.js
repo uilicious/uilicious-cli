@@ -118,12 +118,12 @@ class TestRunnerSession {
 		// Lets quickly prepare the zip file concurrently
 		//---------------------------------------------------------------
 
-		let testFileDir = argv.testFileDir || argv["test-dir"];
-		if( testFileDir ) {
-			this.testFileDir = testFileDir;
+		let testCodeDir = argv.testCodeDir || argv["test-dir"];
+		if( testCodeDir ) {
+			this.testCodeDir = testCodeDir;
 
 			// This intentionally do not await, until later (to optimize zip times)
-			this.testFileDir_zipPromise = FileUtil.prepareSrcCodeZipFile( testFileDir );
+			this.testCodeDir_zipPromise = FileUtil.prepareSrcCodeZipFile( testCodeDir );
 		}
 
 		// Get the basic values
@@ -253,9 +253,9 @@ class TestRunnerSession {
 			)
 		}
 		// Log the test dir if present
-		if( this.testFileDir != null ) {
+		if( this.testCodeDir != null ) {
 			OutputHandler.standardGreen(
-				`> Test Dir:     ${this.testFileDir}`
+				`> Test Dir:     ${this.testCodeDir}`
 			)
 		}
 		OutputHandler.standardGreen(">")
@@ -270,8 +270,8 @@ class TestRunnerSession {
 	 */
 	async validateScriptPath() {
 		// Check against the local files
-		if( this.testFileDir != null ) {
-			if( !fse.pathExists( this.testFileDir, this.normalizedScriptPath ) ) {
+		if( this.testCodeDir != null ) {
+			if( !fse.pathExists( this.testCodeDir, this.normalizedScriptPath ) ) {
 				OutputHandler.fatalError(`Invalid Script Path (does not exist?) : ${this.normalizedScriptPath}`);
 				process.exit(15);
 			}
@@ -320,10 +320,10 @@ class TestRunnerSession {
 		}
 
 		// Check the testScript ZIP (if being used)
-		let testFileDir_zipFile = null;
-		if( this.testFileDir ) {
+		let testCodeDir_zipFile = null;
+		if( this.testCodeDir ) {
 			OutputHandler.standard(`> Preparing test script files for upload ... `);
-			testFileDir_zipFile = await this.testFileDir_zipPromise;
+			testCodeDir_zipFile = await this.testCodeDir_zipPromise;
 		}
 
 		// Attempt to start the project - and log the error
@@ -341,7 +341,7 @@ class TestRunnerSession {
 					data:       this.dataObject,
 					secretData: this.secretObject
 				},
-				testFileDir_zipFile
+				testCodeDir_zipFile
 			);
 
 			// Lets get the testRunID if valid
@@ -769,7 +769,7 @@ module.exports = {
 			description: "Dataset to use, passed as a JSON file"
 		});
 
-		cmd.file("--testFileDir <test-dir>", {
+		cmd.file("--testCodeDir <test-dir>", {
 			description: "Test directory to upload and use as test files, this is used instead of the existing files on uilicious platform"
 		});
 		
