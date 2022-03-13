@@ -130,9 +130,11 @@ function transformRequestData(data) {
 	if (typeof data === "undefined" || null) {
 		data = new FormData()
 	}
-	// coerce into form data
-	let formData = new FormData()
+
+	// Prepare the form data (max size 100MB)
+	let formData = new FormData( { maxDataSize: (100 * 1000 * 1000) })
 	if (data instanceof FormData) {
+		// coerce into form data
 		formData = data
 	} else if (typeof data === "object") {
 		Object.keys(data).forEach((prop) => {

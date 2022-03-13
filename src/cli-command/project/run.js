@@ -7,10 +7,12 @@
 const sleep              = require('sleep-promise')
 const Hjson              = require('hjson');
 const fse                = require("fs-extra")
+const path               = require("path")
 
 const OutputHandler      = require("../../OutputHandler")
 const FormatShift        = require("../../util/FormatShift")
 const SpaceAndProjectApi = require("../../api/SpaceAndProjectApi")
+const FileUtil           = require("../../util/FileUtil");
 
 //---------------------------------------------------
 //
@@ -112,6 +114,17 @@ class TestRunnerSession {
 	 * @param {Object} context 
 	 */
 	async S01_initialSetup(argv, context) {
+
+		// Lets quickly prepare the zip file concurrently
+		//---------------------------------------------------------------
+
+		let testFileDir = argv.testFileDir || argv["test-dir"];
+		if( testFileDir ) {
+			this.testFileDir = testFileDir;
+
+			// This intentionally do not await, until later (to optimize zip times)
+			this.testFileDir_zipPromise = FileUtil.prepareSrcCodeZipFile( testFileDir );
+		}
 
 		// Get the basic values
 		//---------------------------------------------------------------
@@ -239,6 +252,12 @@ class TestRunnerSession {
 				`> Data Set:     ${this.dataSet}`
 			)
 		}
+		// Log the test dir if present
+		if( this.testFileDir != null ) {
+			OutputHandler.standardGreen(
+				`> Test Dir:     ${this.testFileDir}`
+			)
+		}
 		OutputHandler.standardGreen(">")
 	}
 
@@ -250,6 +269,16 @@ class TestRunnerSession {
 	 * Validate the current script pathing - throws error on error
 	 */
 	async validateScriptPath() {
+		// Check against the local files
+		if( this.testFileDir != null ) {
+			if( !fse.pathExists( this.testFileDir, this.normalizedScriptPath ) ) {
+				OutputHandler.fatalError(`Invalid Script Path (does not exist?) : ${this.normalizedScriptPath}`);
+				process.exit(15);
+			}
+			return true;
+		}
+
+		// Check against the API
 		let fileList = await SpaceAndProjectApi.getProjectFileList(this.projectObj._oid);
 		if( fileList.indexOf( this.normalizedScriptPath ) < 0 ) {
 			OutputHandler.fatalError(`Invalid Script Path (does not exist?) : ${this.normalizedScriptPath}`);
@@ -290,6 +319,13 @@ class TestRunnerSession {
 			return null;
 		}
 
+		// Check the testScript ZIP (if being used)
+		let testFileDir_zipFile = null;
+		if( this.testFileDir ) {
+			OutputHandler.standard(`> Preparing test script files for upload ... `);
+			testFileDir_zipFile = await this.testFileDir_zipPromise;
+		}
+
 		// Attempt to start the project - and log the error
 		try {
 			// Start the test
@@ -304,7 +340,8 @@ class TestRunnerSession {
 					dataSetID:  this.dataSetID,
 					data:       this.dataObject,
 					secretData: this.secretObject
-				}
+				},
+				testFileDir_zipFile
 			);
 
 			// Lets get the testRunID if valid
@@ -730,6 +767,10 @@ module.exports = {
 		});
 		cmd.file("--secretFile <file-path>", {
 			description: "Dataset to use, passed as a JSON file"
+		});
+
+		cmd.file("--testFileDir <test-dir>", {
+			description: "Test directory to upload and use as test files, this is used instead of the existing files on uilicious platform"
 		});
 		
 		cmd.number("--startTimeout <start-timeout>", {

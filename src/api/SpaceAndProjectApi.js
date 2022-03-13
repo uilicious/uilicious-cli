@@ -10,6 +10,7 @@
 //
 //---------------------------------------------------------------------------------------
 
+const fs = requrie("fs")
 const api = require("./ApiServerConnector");
 const retryForResult = require("./retryForResult");
 const OutputHandler  = require("../OutputHandler")
@@ -280,8 +281,9 @@ class SpaceAndProjectApi {
 	 * 
 	 * @param {String} projectID to run test from
 	 * @param {Object} testParams containing the parameters listed above 
+	 * @param {String} srcCodeZip_filePath to append as byte stream, if provided
 	 */
-	async startProjectTest(projectID, scriptPath, testParams = {}) {
+	async startProjectTest(projectID, scriptPath, testParams = {}, srcCodeZip_filePath = null) {
 		// Normalize the args
 		let browser    = testParams.browser || "chrome";
 		let width      = testParams.width   || 1280;
@@ -312,7 +314,10 @@ class SpaceAndProjectApi {
 
 		// Lets start the test !
 		return await retryForResult( () => { 
-			return api.POST(`/project/testrun/start`, reqObj)
+			if( srcCodeZip_filePath ) {
+				return api.POST(`/project/testrun/start`, Object.assign({ srcCodeZip : fs.createReadStream(srcCodeZip_filePath) }, reqObj) );
+			}
+			return api.POST(`/project/testrun/start`, reqObj);
 		} );
 	}
 	
