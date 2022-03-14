@@ -534,10 +534,11 @@ class TestRunnerSession {
 
 		// Prepare testScript ZIP (if being used)
 		if( this.testCodeDir ) {
-			OutputHandler.standard(`> Preparing test script files for upload ... `);
+			OutputHandler.standardGreen(`> Preparing test script files for upload ... `);
 			await this.validateScriptPath();
 			this.testCodeDir_zipFile = await this.testCodeDir_zipPromise;
-			OutputHandler.standard(`> Preparing test script files for upload ... Ready `);
+			OutputHandler.standardGreen(`> Preparing test script files for upload ... Ready `);
+			OutputHandler.standardGreen(`> `);
 		}
 
 		// ------------------------------
