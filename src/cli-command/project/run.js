@@ -40,7 +40,7 @@ let outputTableWidth = [4, 7, 6, -1];
 let cliOutputIndex = 1;
 
 /**
- * Given the step object, format it for output into LoggerWithLevels
+ * Given the step object, format it for output into OutputHandler
  * 
  * @param {Object} step object to format
  * @return {Object} normalized step object, for final JSON output
@@ -124,6 +124,7 @@ class TestRunnerSession {
 
 			// This intentionally do not await, until later (to optimize zip times)
 			this.testCodeDir_zipPromise = FileUtil.prepareSrcCodeZipFile( testCodeDir );
+			this.testCodeDir_zipFile = null
 		}
 
 		// Get the basic values
@@ -271,7 +272,8 @@ class TestRunnerSession {
 	async validateScriptPath() {
 		// Check against the local files
 		if( this.testCodeDir != null ) {
-			if( !fse.pathExists( this.testCodeDir, this.normalizedScriptPath ) ) {
+			let check = await fse.pathExists( path.resolve(this.testCodeDir, this.normalizedScriptPath) );
+			if( !check ) {
 				OutputHandler.fatalError(`Invalid Script Path (does not exist?) : ${this.normalizedScriptPath}`);
 				process.exit(15);
 			}
@@ -307,7 +309,7 @@ class TestRunnerSession {
 
 		// Safety net, due to the possibility of file renaming race condition: validate script path
 		// also terminate quickly tests, with invalid filepaths
-		await this.validateScriptPath()
+		await this.validateScriptPath();
 
 		// Skip, as concurrency is not sufficent (existing test runs)
 		if( concurrency.avaliable <= 0 ) {
@@ -317,13 +319,6 @@ class TestRunnerSession {
 				this.startTimeoutLoggedFlag = true;
 			}
 			return null;
-		}
-
-		// Check the testScript ZIP (if being used)
-		let testCodeDir_zipFile = null;
-		if( this.testCodeDir ) {
-			OutputHandler.standard(`> Preparing test script files for upload ... `);
-			testCodeDir_zipFile = await this.testCodeDir_zipPromise;
 		}
 
 		// Attempt to start the project - and log the error
@@ -341,7 +336,7 @@ class TestRunnerSession {
 					data:       this.dataObject,
 					secretData: this.secretObject
 				},
-				testCodeDir_zipFile
+				this.testCodeDir_zipFile
 			);
 
 			// Lets get the testRunID if valid
@@ -536,6 +531,14 @@ class TestRunnerSession {
 
 		// Successful test start
 		let successfulTestStarts = 0;
+
+		// Prepare testScript ZIP (if being used)
+		if( this.testCodeDir ) {
+			OutputHandler.standard(`> Preparing test script files for upload ... `);
+			await this.validateScriptPath();
+			this.testCodeDir_zipFile = await this.testCodeDir_zipPromise;
+			OutputHandler.standard(`> Preparing test script files for upload ... Ready `);
+		}
 
 		// ------------------------------
 		// Lets start the core loop !!!
@@ -770,7 +773,7 @@ module.exports = {
 		});
 
 		cmd.file("--testCodeDir <test-dir>", {
-			description: "Test directory to upload and use as test files, this is used instead of the existing files on uilicious platform"
+			description: "Directory to upload and use for code files, this is used instead of the existing files on uilicious platform"
 		});
 		
 		cmd.number("--startTimeout <start-timeout>", {
@@ -1002,8 +1005,6 @@ module.exports = {
 			let scriptPath = argv["script-path"]
 			if( scriptPath == null || scriptPath == "" ) {
 				OutputHandler.cliArgumentError( `Test runs require a valid script-path: ${scriptPath}` )
-				// LoggerWithLevels.error(`ERROR - Test runs require a valid script-path: ${scriptPath}`);
-				// process.exit(12)
 			}
 		});
 	},

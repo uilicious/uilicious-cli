@@ -10,7 +10,7 @@
 //
 //---------------------------------------------------------------------------------------
 
-const fs = requrie("fs")
+const fs  = require("fs")
 const api = require("./ApiServerConnector");
 const retryForResult = require("./retryForResult");
 const OutputHandler  = require("../OutputHandler")
@@ -315,7 +315,7 @@ class SpaceAndProjectApi {
 		// Lets start the test !
 		return await retryForResult( () => { 
 			if( srcCodeZip_filePath ) {
-				return api.POST(`/project/testrun/start`, Object.assign({ srcCodeZip : fs.createReadStream(srcCodeZip_filePath) }, reqObj) );
+				return api.POST(`/project/testrun/start`, Object.assign({ "srcCodeZip" : fs.createReadStream(srcCodeZip_filePath) }, reqObj), true );
 			}
 			return api.POST(`/project/testrun/start`, reqObj);
 		} );

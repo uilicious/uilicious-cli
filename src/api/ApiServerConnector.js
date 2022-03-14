@@ -141,7 +141,9 @@ function transformRequestData(data) {
 			let value = data[prop]
 
 			try {
-				if(value != null && isStream(value)){
+				if(value == null || value == undefined) {
+					// does nothing
+				} else if(isStream(value)){
 					formData.append(prop, value)
 				} else if(value instanceof Buffer) {
 					formData.append(prop, value)
@@ -152,10 +154,10 @@ function transformRequestData(data) {
 				} else if( typeof value === "string" ) {
 					formData.append(prop, value)
 				} else {
-					LoggerWithLevels.warn("WARNING - Skipping unknown data type in form data property name: "+ prop+ " type "+ typeof value)
+					OutputHandler.debug("WARNING - Skipping unknown data type in form data property name: "+ prop+ " type "+ typeof value)
 				}
 			} catch(e) {
-				LoggerWithLevels.warn("WARNING - Skipping parameter due to conversion error: "+ prop+ ", type="+ typeof value+", err="+e)
+				OutputHandler.debug("WARNING - Skipping parameter due to conversion error: "+ prop+ ", type="+ typeof value+", err="+e)
 			}
 		})
 	}
