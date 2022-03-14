@@ -228,18 +228,18 @@ class FileUtil {
 
 		// Zip file path we will use
 		const zipFilePath = path.resolve(tempDir, "uilicious-cli/zip/"+zipID+".zip");
-		const zipOutput   = fs.createWriteStream( zipFilePath );
-		const archive     = archiver('zip', {
+		const archive     = archiver(zipFilePath, {
 			zlib: { level: 3 } // Sets the compression level.
 		});
 
-		// // Lets register the on exit cleanup / removal of tmp zip file
-		// process.on('exit', () => {
-		// 	fse.removeSync( zipFilePath );
-		// });
+		// Lets register the on exit cleanup / removal of tmp zip file
+		process.on('exit', () => {
+			fse.removeSync( zipFilePath );
+		});
 
-		// Pipe the archiver 
-		archive.pipe(zipOutput);
+		// // Pipe the archiver 
+		// const zipOutput   = fs.createWriteStream( zipFilePath );
+		// archive.pipe(zipOutput);
 
 		// Lets generate the file list
 		const fileList = await this.generateFileList( srcCodeDir );
