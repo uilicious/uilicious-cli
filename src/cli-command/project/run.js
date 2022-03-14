@@ -657,7 +657,9 @@ class TestRunnerSession {
 		// Inject the various URL links
 		if( !this.assumeOnPremise ) {
 			// Into the result message
-			resultMsg.push(`> See full results at   : ${this.webstudioURL}/project/${this.projectID}/editor/${this.uriEncodedScriptPath}?testRunId=${this.testID}`)
+			if( this.testCodeDir == null ) {
+				resultMsg.push(`> See full results at   : ${this.webstudioURL}/project/${this.projectID}/editor/${this.uriEncodedScriptPath}?testRunId=${this.testID}`)
+			}
 			resultMsg.push(`> See result snippet at : ${this.privateSnippetURL}${this.testID}`)
 			resultMsg.push(">")
 
@@ -669,7 +671,9 @@ class TestRunnerSession {
 			// This is the on-premise version !!!
 
 			// Into the result message
-			resultMsg.push(`> See full results at   : ${this.webstudioURL}/project/${this.projectID}/editor/${this.uriEncodedScriptPath}?testRunId=${this.testID}`)
+			if( this.testCodeDir == null ) {
+				resultMsg.push(`> See full results at   : ${this.webstudioURL}/project/${this.projectID}/editor/${this.uriEncodedScriptPath}?testRunId=${this.testID}`)
+			}
 			resultMsg.push(">")
 
 			// Or json
