@@ -1,6 +1,6 @@
 {
 	"name": "uilicious-cli",
-	"version": "5.1.4",
+	"version": "5.1.6",
 	"description": "Uilicious CLI toolchain",
 	"main": "uilicious-cli.js",
 	"keywords": [
@@ -39,6 +39,8 @@
 		"uuid": "=3.3.2"
 	},
 	"dependencies": {
+		"archiver": "^5.3.0",
+		"archiver-promise": "^1.0.0",
 		"axios": "=0.21.4",
 		"buffer-from": "=1.1.1",
 		"chalk": "=2.4.2",

@@ -7,10 +7,12 @@
 const sleep              = require('sleep-promise')
 const Hjson              = require('hjson');
 const fse                = require("fs-extra")
+const path               = require("path")
 
 const OutputHandler      = require("../../OutputHandler")
 const FormatShift        = require("../../util/FormatShift")
 const SpaceAndProjectApi = require("../../api/SpaceAndProjectApi")
+const FileUtil           = require("../../util/FileUtil");
 
 //---------------------------------------------------
 //
@@ -38,7 +40,7 @@ let outputTableWidth = [4, 7, 6, -1];
 let cliOutputIndex = 1;
 
 /**
- * Given the step object, format it for output into LoggerWithLevels
+ * Given the step object, format it for output into OutputHandler
  * 
  * @param {Object} step object to format
  * @return {Object} normalized step object, for final JSON output
@@ -112,6 +114,18 @@ class TestRunnerSession {
 	 * @param {Object} context 
 	 */
 	async S01_initialSetup(argv, context) {
+
+		// Lets quickly prepare the zip file concurrently
+		//---------------------------------------------------------------
+
+		let testCodeDir = argv.testCodeDir || argv["test-dir"];
+		if( testCodeDir ) {
+			this.testCodeDir = testCodeDir;
+
+			// This intentionally do not await, until later (to optimize zip times)
+			this.testCodeDir_zipPromise = FileUtil.prepareSrcCodeZipFile( testCodeDir );
+			this.testCodeDir_zipFile = null
+		}
 
 		// Get the basic values
 		//---------------------------------------------------------------
@@ -239,6 +253,12 @@ class TestRunnerSession {
 				`> Data Set:     ${this.dataSet}`
 			)
 		}
+		// Log the test dir if present
+		if( this.testCodeDir != null ) {
+			OutputHandler.standardGreen(
+				`> Test Dir:     ${this.testCodeDir}`
+			)
+		}
 		OutputHandler.standardGreen(">")
 	}
 
@@ -250,6 +270,17 @@ class TestRunnerSession {
 	 * Validate the current script pathing - throws error on error
 	 */
 	async validateScriptPath() {
+		// Check against the local files
+		if( this.testCodeDir != null ) {
+			let check = await fse.pathExists( path.resolve(this.testCodeDir, this.normalizedScriptPath) );
+			if( !check ) {
+				OutputHandler.fatalError(`Invalid Script Path (does not exist?) : ${this.normalizedScriptPath}`);
+				process.exit(15);
+			}
+			return true;
+		}
+
+		// Check against the API
 		let fileList = await SpaceAndProjectApi.getProjectFileList(this.projectObj._oid);
 		if( fileList.indexOf( this.normalizedScriptPath ) < 0 ) {
 			OutputHandler.fatalError(`Invalid Script Path (does not exist?) : ${this.normalizedScriptPath}`);
@@ -278,7 +309,7 @@ class TestRunnerSession {
 
 		// Safety net, due to the possibility of file renaming race condition: validate script path
 		// also terminate quickly tests, with invalid filepaths
-		await this.validateScriptPath()
+		await this.validateScriptPath();
 
 		// Skip, as concurrency is not sufficent (existing test runs)
 		if( concurrency.avaliable <= 0 ) {
@@ -304,7 +335,8 @@ class TestRunnerSession {
 					dataSetID:  this.dataSetID,
 					data:       this.dataObject,
 					secretData: this.secretObject
-				}
+				},
+				this.testCodeDir_zipFile
 			);
 
 			// Lets get the testRunID if valid
@@ -506,6 +538,15 @@ class TestRunnerSession {
 		// Successful test start
 		let successfulTestStarts = 0;
 
+		// Prepare testScript ZIP (if being used)
+		if( this.testCodeDir ) {
+			OutputHandler.standardGreen(`> Preparing test script files for upload ... `);
+			await this.validateScriptPath();
+			this.testCodeDir_zipFile = await this.testCodeDir_zipPromise;
+			OutputHandler.standardGreen(`> Preparing test script files for upload ... Ready `);
+			OutputHandler.standardGreen(`> `);
+		}
+
 		// ------------------------------
 		// Lets start the core loop !!!
 		// ------------------------------
@@ -622,7 +663,9 @@ class TestRunnerSession {
 		// Inject the various URL links
 		if( !this.assumeOnPremise ) {
 			// Into the result message
-			resultMsg.push(`> See full results at   : ${this.webstudioURL}/project/${this.projectID}/editor/${this.uriEncodedScriptPath}?testRunId=${this.testID}`)
+			if( this.testCodeDir == null ) {
+				resultMsg.push(`> See full results at   : ${this.webstudioURL}/project/${this.projectID}/editor/${this.uriEncodedScriptPath}?testRunId=${this.testID}`)
+			}
 			resultMsg.push(`> See result snippet at : ${this.privateSnippetURL}${this.testID}`)
 			resultMsg.push(">")
 
@@ -634,7 +677,9 @@ class TestRunnerSession {
 			// This is the on-premise version !!!
 
 			// Into the result message
-			resultMsg.push(`> See full results at   : ${this.webstudioURL}/project/${this.projectID}/editor/${this.uriEncodedScriptPath}?testRunId=${this.testID}`)
+			if( this.testCodeDir == null ) {
+				resultMsg.push(`> See full results at   : ${this.webstudioURL}/project/${this.projectID}/editor/${this.uriEncodedScriptPath}?testRunId=${this.testID}`)
+			}
 			resultMsg.push(">")
 
 			// Or json
@@ -737,6 +782,10 @@ module.exports = {
 		});
 		cmd.file("--secretFile <file-path>", {
 			description: "Dataset to use, passed as a JSON file"
+		});
+
+		cmd.file("--testCodeDir <test-dir>", {
+			description: "Directory to upload and use for code files, this is used instead of the existing files on uilicious platform"
 		});
 		
 		cmd.number("--startTimeout <start-timeout>", {
@@ -968,8 +1017,6 @@ module.exports = {
 			let scriptPath = argv["script-path"]
 			if( scriptPath == null || scriptPath == "" ) {
 				OutputHandler.cliArgumentError( `Test runs require a valid script-path: ${scriptPath}` )
-				// LoggerWithLevels.error(`ERROR - Test runs require a valid script-path: ${scriptPath}`);
-				// process.exit(12)
 			}
 		});
 	},

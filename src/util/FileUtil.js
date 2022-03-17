@@ -9,9 +9,19 @@ const path = require("path")
 const fs   = require("fs")
 const fse  = require("fs-extra")
 
+const crypto   = require("crypto")
+const process  = require("process")
+const archiver = require("archiver-promise")
+
 // Normalize file path with linux formatting
 const normalizeLinuxPath = require("normalize-path")
 const bufferFrom = require('buffer-from')
+
+// get temp directory
+const tempDir = require("os").tmpdir(); // /tmp
+
+// additional dependencies
+const OutputHandler = require("../OutputHandler")
 
 //---------------------------------------------------
 //
@@ -57,7 +67,7 @@ class FileUtil {
 					good(true);
 				});
 			} catch(e) {
-				// LoggerWithLevels.error(e)
+				// OutputHandler.debug(e)
 				bad(e);
 			}
 		});
@@ -174,34 +184,92 @@ class FileUtil {
 		return resList;
 	}
 
-	// /**
-	//  * Validate a given path is a directory, or die
-	//  * Use this to validate parameters given 
-	//  * 
-	//  * @return {Promise<Boolean>} true, only if all checks passes
-	//  */
-	// async validateLocalDirectory_orDie(path, pathType = "path") {
-	// 	LoggerWithLevels.trace(`Validating for writable directory : ${path}`)
+	/**
+	 * Validate a given path is a directory, or die
+	 * Use this to validate parameters given 
+	 * 
+	 * @return {Promise<Boolean>} true, only if all checks passes
+	 */
+	async validateLocalDirectory_orDie(path, pathType = "path") {
+		OutputHandler.debug(`Validating for directory : ${path}`)
 
-	// 	try {
-	// 		let checks = await fs.pathExists(path)
-	// 		if( !checks ) {
-	// 			LoggerWithLevels.exitError(`${pathType} does not exists : ${path}`);
-	// 			return false;
-	// 		}
+		try {
+			let checks = await fse.pathExists(path)
+			if( !checks ) {
+				OutputHandler.fatalError(`${pathType} does not exists : ${path}`);
+				return false;
+			}
 	
-	// 		// Checks for a valid directory, else throw an error
-	// 		await fs.ensureDir(path)
-	// 	} catch(e) {
-	// 		LoggerWithLevels.error(`ERROR - Invalid directory ${pathType} : ${path}`);
-	// 		LoggerWithLevels.error(e);
-	// 		LoggerWithLevels.exitError(`Invalid directory ${pathType} : ${path}`);
-	// 		return false;
-	// 	}
+			// Checks for a valid directory, else throw an error
+			await fse.ensureDir(path)
+		} catch(e) {
+			OutputHandler.fatalError(`Invalid directory ${pathType} : ${path}`, e);
+			return false;
+		}
 
-	// 	// All passes, yay
-	// 	return true;
-	// }
+		// All passes, yay
+		return true;
+	}
+
+	/**
+	 * Given the project dir path, prepare a zip file, for uploading
+	 * @param {Path} srcCodeDir 
+	 */
+	async prepareSrcCodeZipFile( srcCodeDir ) {
+		// Lets normalize the provided srcCodeDir, and validate it
+		srcCodeDir = path.resolve( srcCodeDir );
+		await this.validateLocalDirectory_orDie( srcCodeDir );
+
+		// The zip file ID to use (randomly generated)
+		const zipID = crypto.randomBytes(16).toString("hex");
+
+		// Prepare tmp dir
+		await fse.ensureDir( path.resolve(tempDir, "uilicious-cli/zip/") );
+
+		// Zip file path we will use
+		const zipFilePath = path.resolve(tempDir, "uilicious-cli/zip/"+zipID+".zip");
+		const archive     = archiver(zipFilePath, {
+			zlib: { level: 3 } // Sets the compression level.
+		});
+
+		// Lets register the on exit cleanup / removal of tmp zip file
+		process.on('exit', () => {
+			fse.removeSync( zipFilePath );
+		});
+
+		// // Pipe the archiver 
+		// const zipOutput   = fs.createWriteStream( zipFilePath );
+		// archive.pipe(zipOutput);
+
+		// Lets generate the file list
+		const fileList = await this.generateFileList( srcCodeDir );
+
+		// the current total file sizes
+		let totalFileSizes = 0;
+
+		// Lets prepare the zip file, and compute the total size
+		for( const filePath of fileList ) {
+			const fullFilePath = path.resolve( srcCodeDir, filePath );
+			archive.file(fullFilePath, { name: filePath });
+
+			// Get the file stat, assume a minimum of 5kb 
+			// (work around some known limitations in FS)
+			const fileStat = await fs.promises.stat( fullFilePath );
+			totalFileSizes += Math.min(fileStat.size, 5 * 1000);
+		}
+
+		// Check if the total file sizes is >= 100MB
+		if( totalFileSizes >= (100 * 1000 * 1000)  ) {
+			OutputHandler.fatalError(`Test code directory is larger then 100MB - aborting`);
+			return;
+		}
+
+		// Lets finalize and await
+		await archive.finalize();
+
+		// Return the zip file path
+		return zipFilePath;
+	}
 
 }
 
