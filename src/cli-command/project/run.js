@@ -371,9 +371,14 @@ class TestRunnerSession {
 			// Unwrap any error message / code
 			let errOut = errObj.message || errObj.code || errObj;
 
-			// Get the error code
+			// Get the error code, and check against the known fatal error list
+			let fatalErrorCodeList = [
+				"ERR_ACCOUNT_SUSPENDED", 
+				"SPACE_NOT_FOUND", "PROJECT_NOT_FOUND", "BILLING_ACCOUNT_NOT_FOUND", 
+				"PLAN_NOT_FOUND", "FEATURE_DISABLED", "SPACE_DISABLED"
+			]
 			let errCode = errObj.code;
-			if( errCode == "FEATURE_DISABLED" ) {
+			if( fatalErrorCodeList.indexOf(errCode) >= 0 ) {
 				OutputHandler.fatalError(`${errOut}`);
 				process.exit(16);
 			}
