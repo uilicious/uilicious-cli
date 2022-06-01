@@ -323,21 +323,27 @@ class TestRunnerSession {
 
 		// Attempt to start the project - and log the error
 		try {
+			// The starting request param
+			let startRequestParams = {  
+				browser:    this.browser,
+				width:      this.width,
+				height:     this.height,
+				region:     this.region,
+				dataSetID:  this.dataSetID,
+				data:       this.dataObject,
+				secretData: this.secretObject
+			};
+			
+			// User agent support
+			if( this.userAgent !== null && this.userAgent.length > 0 ) {
+				startRequestParams.userAgent = this.userAgent;
+			}
+
 			// Start the test
-			let result = await SpaceAndProjectApi.startProjectTest(
-				this.projectID, 
-				this.normalizedScriptPath, 
-				{  
-					browser:    this.browser,
-					width:      this.width,
-					height:     this.height,
-					region:     this.region,
-					dataSetID:  this.dataSetID,
-					data:       this.dataObject,
-					secretData: this.secretObject
-				},
-				this.testCodeDir_zipFile
-			);
+			let result = await SpaceAndProjectApi.startProjectTest( //
+				this.projectID, this.normalizedScriptPath, //
+				startRequestParams, this.testCodeDir_zipFile //
+			); //
 
 			// Lets get the testRunID if valid
 			let testRunIDs = result.testRunIDs;
@@ -794,6 +800,10 @@ module.exports = {
 		cmd.boolean("--disableSystemErrorRetry", {
 			description: "Disable CLI automated retries when uilicious SYSTEM_ERROR occurs"
 		});
+		cmd.string("--userAgent <userAgent>", {
+			description: "Custom user agent if set, works only with chrome (ignored by other browsers)"
+		});
+
 		cmd.check((argv,context) => {
 
 			//------------------------------------------------------------------
