@@ -36,7 +36,7 @@ class ArgumentValidator {
 			description: "Login password [Note: please use --key instead]"
 		})
 		main.string("-k, --key  <access-key>", {
-			description: "Access key for CLI / API login, you can find this from your `Profile` -> `Access Keys`. This can alternatively be provided using the `UI_ACCESSKEY` environment variable"
+			description: "Access key for CLI / API login, you can find this from your `Profile` -> `Access Keys`. This can alternatively be provided using the `UILICIOUS_ACCESSKEY` environment variable"
 		})
 
 		// Alias remapping
@@ -57,8 +57,8 @@ class ArgumentValidator {
 			// There is a key provided, use it
 			if( argv.key && argv.key.length > 2 ) {
 				return;
-			} else if ( process.env.UI_ACCESSKEY && process.env.UI_ACCESSKEY.length > 2 ) {
-				arv.key = process.env.UI_ACCESSKEY;
+			} else if ( process.env.UILICIOUS_ACCESSKEY && process.env.UILICIOUS_ACCESSKEY.length > 2 ) {
+				arv.key = process.env.UILICIOUS_ACCESSKEY;
 				return;
 			}
 
