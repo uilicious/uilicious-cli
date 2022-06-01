@@ -38,7 +38,7 @@ module.exports = {
 			// Lets output the JSON formatting
 			OutputHandler.json(retList);
 		} catch(err) {
-			OutputHandler.fatalError(err);
+			OutputHandler.fatalError(err, 51);
 		}
 	}
 }

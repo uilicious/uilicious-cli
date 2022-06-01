@@ -317,12 +317,12 @@ function argsSetup_processApiHostAndAuth(main) {
 				isLogin = await retryForResult( async () => { return await accessKeyAuth(argv.key); } );
 			} catch(err) {
 				// Ok at this point multiple authenticaiton attemps was tried - fail it hard
-				OutputHandler.fatalError( ["Unknown error while attempting to authentication using access key", err] );
+				OutputHandler.fatalError("Unknown error while attempting to authentication using access key", err, 3);
 			}
 
 			// Fail if login failed
 			if(isLogin == false) {
-				OutputHandler.fatalError("Invalid access key");
+				OutputHandler.fatalError("Invalid access key", null, 2);
 			}
 		}
 
@@ -333,12 +333,12 @@ function argsSetup_processApiHostAndAuth(main) {
 				isLogin = await retryForResult( async () => { return await accountAuth(argv.user, argv.pass); } );
 			} catch(err) {
 				// Ok at this point multiple authenticaiton attemps was tried - fail it hard
-				OutputHandler.fatalError( "Unknown error while attempting to authentication using username and password", err );
+				OutputHandler.fatalError( "Unknown error while attempting to authentication using username and password", err, 3);
 			}
 
 			// Fail if login failed
 			if(isLogin == false) {
-				OutputHandler.fatalError( "Invalid username / password" );
+				OutputHandler.fatalError( "Invalid username / password", null, 2);
 			}
 		}
 
@@ -391,14 +391,14 @@ function argsSetup_processApiHostAndAuth(main) {
 
 				// Does a validation that loginAs is properlly matched
 				if( AS_ACCOUNT_ID == null ) {
-					OutputHandler.fatalError( "Failed loginAs support for (are you an admin?) : "+loginAs );
+					OutputHandler.fatalError( "Failed loginAs support for (are you an admin?) : "+loginAs, null, 2);
 				}
 			}
 		}
 
 		// Handles login rejections
 		if( !isLogin ) {
-			OutputHandler.fatalError( "No valid authentication information provided" );
+			OutputHandler.fatalError( "No valid authentication information provided", null, 1);
 		}
 
 		// Return at the end

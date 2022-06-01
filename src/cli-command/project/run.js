@@ -274,8 +274,8 @@ class TestRunnerSession {
 		if( this.testCodeDir != null ) {
 			let check = await fse.pathExists( path.resolve(this.testCodeDir, this.normalizedScriptPath) );
 			if( !check ) {
-				OutputHandler.fatalError(`Invalid Script Path (does not exist?) : ${this.normalizedScriptPath}`);
-				process.exit(15);
+				OutputHandler.fatalError(`Invalid Script Path (does not exist?) : ${this.normalizedScriptPath}`, null, 15);
+				// process.exit(15);
 			}
 			return true;
 		}
@@ -283,8 +283,8 @@ class TestRunnerSession {
 		// Check against the API
 		let fileList = await SpaceAndProjectApi.getProjectFileList(this.projectObj._oid);
 		if( fileList.indexOf( this.normalizedScriptPath ) < 0 ) {
-			OutputHandler.fatalError(`Invalid Script Path (does not exist?) : ${this.normalizedScriptPath}`);
-			process.exit(15);
+			OutputHandler.fatalError(`Invalid Script Path (does not exist?) : ${this.normalizedScriptPath}`, null, 15);
+			// process.exit(15);
 		}
 		return true;
 	}
@@ -302,9 +302,9 @@ class TestRunnerSession {
 		let concurrency = await SpaceAndProjectApi.getProjectConcurrency( this.projectID );
 
 		// Plan is not allowed to run test : Fail now - HARD !
-		if( concurrency.total === 0 ) {
-			OutputHandler.fatalError(`No concurrency avaliable (total=0) - please update your settings / concurrency plan`);
-			process.exit(16)
+		if( concurrency.total <= 0 ) {
+			OutputHandler.fatalError(`No concurrency avaliable (total=0) - please update your settings / concurrency plan`, null, 16);
+			// process.exit(16)
 		}
 
 		// Safety net, due to the possibility of file renaming race condition: validate script path
@@ -379,8 +379,8 @@ class TestRunnerSession {
 			]
 			let errCode = errObj.code;
 			if( fatalErrorCodeList.indexOf(errCode) >= 0 ) {
-				OutputHandler.fatalError(`${errOut}`);
-				process.exit(16);
+				OutputHandler.fatalError(`${errOut}`, null, 16);
+				// process.exit(16);
 			}
 
 			// Output the error
@@ -566,15 +566,15 @@ class TestRunnerSession {
 			// Check for test start timeout
 			// if reached - performs a hard exit
 			if( t > 0 && Date.now() >= startTimeoutTimeMS ) {
-				OutputHandler.fatalError(`Failed to start test - Exceeded Start Timeout : ${startTimeout} minutes`);
-				process.exit(18);
+				OutputHandler.fatalError(`Failed to start test - Exceeded Start Timeout : ${startTimeout} minutes`, null, 18);
+				// process.exit(18);
 			}
 
 			// Check for too many test starts
 			// abort accordingly
 			if( successfulTestStarts > 5 ) {
-				OutputHandler.fatalError(`Aborting - ${successfulTestStarts} tests were executed with system errors, please contact uilicious support`);
-				process.exit(18);
+				OutputHandler.fatalError(`Aborting - ${successfulTestStarts} tests were executed with system errors, please contact uilicious support`, null, 18);
+				// process.exit(18);
 			}
 
 			// Lets try to start, and get the test ID
@@ -607,8 +607,8 @@ class TestRunnerSession {
 						// Check if SYSTEM_ERROR retries are disabled
 						// if so performs a hard abort
 						if( this.disableSystemErrorRetry ) {
-							OutputHandler.fatalError(`Aborting - ${successfulTestStarts} tests were executed with system errors, with --disableSystemErrorRetry`);
-							process.exit(18);
+							OutputHandler.fatalError(`Aborting - ${successfulTestStarts} tests were executed with system errors, with --disableSystemErrorRetry`, null, 18);
+							// process.exit(18);
 						}
 
 						// Handle the SYSTEM_ERROR, and restarts
@@ -1072,7 +1072,7 @@ module.exports = {
 			await testRunner.S91_finalTestResultOutput();
 
 		} catch(err) {
-			OutputHandler.fatalError(err);
+			OutputHandler.fatalError(err, 49);
 		}
 	}
 }

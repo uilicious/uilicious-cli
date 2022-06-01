@@ -58,7 +58,7 @@ module.exports = {
 				"result": fileList 
 			});
 		} catch(err) {
-			OutputHandler.fatalError(err);
+			OutputHandler.fatalError(err, 47);
 		}
 	}
 }

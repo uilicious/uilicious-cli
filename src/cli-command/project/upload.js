@@ -241,7 +241,7 @@ module.exports = {
 				"result": jsonResultMap 
 			});
 		} catch(err) {
-			OutputHandler.fatalError(err);
+			OutputHandler.fatalError(err, 50);
 		}
 	}
 }

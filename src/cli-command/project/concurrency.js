@@ -59,7 +59,7 @@ module.exports = {
 				"result": resJson 
 			});
 		} catch(err) {
-			OutputHandler.fatalError(err);
+			OutputHandler.fatalError(err, 45);
 		}
 	}
 }

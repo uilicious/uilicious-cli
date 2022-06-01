@@ -196,14 +196,14 @@ class FileUtil {
 		try {
 			let checks = await fse.pathExists(path)
 			if( !checks ) {
-				OutputHandler.fatalError(`${pathType} does not exists : ${path}`);
+				OutputHandler.fatalError(`${pathType} does not exists : ${path}`, null, 3);
 				return false;
 			}
 	
 			// Checks for a valid directory, else throw an error
 			await fse.ensureDir(path)
 		} catch(e) {
-			OutputHandler.fatalError(`Invalid directory ${pathType} : ${path}`, e);
+			OutputHandler.fatalError(`Invalid directory ${pathType} : ${path}`, e, 3);
 			return false;
 		}
 
@@ -260,7 +260,7 @@ class FileUtil {
 
 		// Check if the total file sizes is >= 100MB
 		if( totalFileSizes >= (100 * 1000 * 1000)  ) {
-			OutputHandler.fatalError(`Test code directory is larger then 100MB - aborting`);
+			OutputHandler.fatalError(`Test code directory is larger then 100MB - aborting`, null, 3);
 			return;
 		}
 

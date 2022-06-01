@@ -225,6 +225,12 @@ class OutputHandler {
 	 * @param {int} errCode to optionally define
 	 */
 	fatalError(mainError, errObj = null, errCode = 42) {
+		// Handle if errCode is passed directly (instead of object)
+		if( !isNaN(errObj) ) {
+			errCode = errObj;
+			errObj = null;
+		}
+
 		// This is a JS Exception passed directly (probably?)
 		// lets change the format accordingly
 		if ( isJavascriptError(mainError) ) {
