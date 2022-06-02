@@ -948,7 +948,7 @@ module.exports = {
 					// Looks ok, lets normalized it to dataObject
 					argv.dataObject = JSON.stringify( dataJsonObj );
 				} catch(e) {
-					OutputHandler.outputErrorMessage(e);
+					OutputHandler.errorMessage(e);
 					OutputHandler.cliArgumentError( `Invalid format for dataObject` )
 				}
 			}
@@ -1014,7 +1014,7 @@ module.exports = {
 					// Looks ok, lets normalized it to secretObject
 					argv.secretObject = JSON.stringify( secretJsonObj );
 				} catch(e) {
-					console.log(e)
+					OutputHandler.errorMessage(e)
 					OutputHandler.cliArgumentError( `Invalid format for secretFile : ${secretFile}` )
 				}
 			}

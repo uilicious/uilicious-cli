@@ -208,8 +208,12 @@ class OutputHandler {
 	 * 
 	 * @param {String} mainError message to send
 	 */
-	outputErrorMessage(mainError) {
-		console.error( chalk.red(JSON.stringify(mainError)) );
+	errorMessage(mainError) {
+		let errStr = ""+mainError;
+		if(errStr == "[object Object]") {
+			errStr = JSON.stringify(mainError);
+		}
+		console.error( chalk.red(errStr) );
 	}
 
 	/**
