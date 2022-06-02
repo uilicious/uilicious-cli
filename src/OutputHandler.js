@@ -204,6 +204,15 @@ class OutputHandler {
 	//---------------------------------------
 
 	/**
+	 * Output an error message, without exiting
+	 * 
+	 * @param {String} mainError message to send
+	 */
+	outputErrorMessage(mainError) {
+		console.error( chalk.red(JSON.stringify(mainError)) );
+	}
+
+	/**
 	 * argument handling error,
 	 * This is used for exceptions thrown while processing and validating command line arguments
 	 * 
@@ -246,7 +255,7 @@ class OutputHandler {
 
 			if (typeof mainError === 'string' || mainError instanceof String) {
 				// Output of Err string
-				console.error( chalk.red("[FATAL ERROR] "+mainError) );
+				console.error( chalk.red("[FATAL ERROR] "+JSON.stringify(mainError)) );
 				if( errObj ) {
 					console.error(errObj);
 				}

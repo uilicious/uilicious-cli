@@ -335,7 +335,7 @@ class TestRunnerSession {
 			};
 			
 			// User agent support
-			if( this.userAgent !== null && this.userAgent.length > 0 ) {
+			if( this.userAgent != null && this.userAgent != "" && this.userAgent.length > 2 ) {
 				startRequestParams.userAgent = this.userAgent;
 			}
 
@@ -377,7 +377,7 @@ class TestRunnerSession {
 				"SPACE_NOT_FOUND", "PROJECT_NOT_FOUND", "BILLING_ACCOUNT_NOT_FOUND", 
 				"PLAN_NOT_FOUND", "FEATURE_DISABLED", "SPACE_DISABLED"
 			]
-			let errCode = errObj.code;
+			let errCode = errObj.code || "";
 			if( fatalErrorCodeList.indexOf(errCode) >= 0 ) {
 				OutputHandler.fatalError(`${errOut}`, null, 16);
 				process.exit(16);
@@ -948,7 +948,7 @@ module.exports = {
 					// Looks ok, lets normalized it to dataObject
 					argv.dataObject = JSON.stringify( dataJsonObj );
 				} catch(e) {
-					console.log(e)
+					OutputHandler.outputErrorMessage(e);
 					OutputHandler.cliArgumentError( `Invalid format for dataObject` )
 				}
 			}
@@ -971,7 +971,7 @@ module.exports = {
 					// Looks ok, lets normalized it to dataObject
 					argv.dataObject = JSON.stringify( dataJsonObj );
 				} catch(e) {
-					console.log(e)
+					console.error(e)
 					OutputHandler.cliArgumentError( `Invalid format for dataFile : ${dataFile}` )
 				}
 			}
@@ -991,7 +991,7 @@ module.exports = {
 					// Looks ok, lets normalized it to dataObject
 					argv.secretObject = JSON.stringify( secretJsonObj );
 				} catch(e) {
-					console.log(e)
+					console.error(e)
 					OutputHandler.cliArgumentError( `Invalid format for secretObject` )
 				}
 			}
