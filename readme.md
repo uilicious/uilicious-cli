@@ -58,6 +58,8 @@ You can set your access key with the `--key` option when using the cli, e.g.:
 $ uilicious-cli run "demo" "/login/test 1" --key <acccess_key>
 ```
 
+Alternatively, you can set the environment variable `UILICIOUS_ACCESSKEY`
+
 ### Authentication with username and password
 
 Alternative you can authenticate with your username and password, using the `--user` and `--pass` options e.g.
@@ -84,6 +86,7 @@ $ uilicious-cli project run  <project_name> <script_path> [--browser] [--width] 
 + `--browser <browser_name>` options :  e.g. chrome, firefox, edge, safari, ie11 (default "chrome")
 + `--height <browser_height>` height of browser (default "960")
 + `--width <browser_width>` width of browser (default "1280")
++ `--testCodeDir <browser_dir>` Directory to use for test code, this is used instead of the existing uilicious project code.
 
 > For more additional options, please refer to the `uilicious-cli project run --help` output
 
