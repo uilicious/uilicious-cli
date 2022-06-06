@@ -58,7 +58,7 @@ class ArgumentValidator {
 			if( argv.key && argv.key.length > 2 ) {
 				return;
 			} else if ( process.env.UILICIOUS_ACCESSKEY && process.env.UILICIOUS_ACCESSKEY.length > 2 ) {
-				arv.key = process.env.UILICIOUS_ACCESSKEY;
+				argv.key = process.env.UILICIOUS_ACCESSKEY;
 				return;
 			}
 
