@@ -301,6 +301,9 @@ class SpaceAndProjectApi {
 			height: height,
 			cli: 1
 		};
+		if( testParams.userAgent != null && testParams.userAgent.length >= 1 ) {
+			reqObj.userAgent = testParams.userAgent;
+		}
 		if( dataSetID != null ) {
 			reqObj["environmentId"] = dataSetID;
 		} else {

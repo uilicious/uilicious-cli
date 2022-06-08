@@ -158,6 +158,7 @@ class TestRunnerSession {
 
 		// Script path and browser settings
 		let scriptPath = argv["script-path"];
+		let userAgent  = argv.userAgent || null;
 		let browser = argv.browser || "chrome";
 		let width   = argv.width   || 1280;
 		let height  = argv.height  || 960;
@@ -215,6 +216,7 @@ class TestRunnerSession {
 		this.height            = height;
 		this.region            = region;
 		this.dataSet           = dataSet;
+		this.userAgent         = userAgent;
 		this.startTimeout      = startTimeout;
 		this.startTimeout_sec  = startTimeout_sec;
 		this.startTimeout_ms   = startTimeout_ms;
@@ -257,6 +259,12 @@ class TestRunnerSession {
 		if( this.testCodeDir != null ) {
 			OutputHandler.standardGreen(
 				`> Test Dir:     ${this.testCodeDir}`
+			)
+		}
+		// Custom UA
+		if( this.userAgent != null ) {
+			OutputHandler.standardGreen(
+				`> User Agent:   ${this.userAgent}`
 			)
 		}
 		OutputHandler.standardGreen(">")
@@ -331,13 +339,9 @@ class TestRunnerSession {
 				region:     this.region,
 				dataSetID:  this.dataSetID,
 				data:       this.dataObject,
-				secretData: this.secretObject
+				secretData: this.secretObject,
+				userAgent:  this.userAgent
 			};
-			
-			// User agent support
-			if( this.userAgent != null && this.userAgent != "" && this.userAgent.length > 2 ) {
-				startRequestParams.userAgent = this.userAgent;
-			}
 
 			// Start the test
 			let result = await SpaceAndProjectApi.startProjectTest( //
