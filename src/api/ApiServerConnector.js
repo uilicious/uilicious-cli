@@ -225,6 +225,9 @@ function POST(url, data, isMultipart = false) {
 		return axios
 			.post(BASE_URL + url, data, config)
 			.then((res) => {
+				if(res == null) {
+					return Promise.reject("Unexpected NULL response");
+				}
 				if(res.data == null) {
 					return Promise.reject(res.ERROR || res.error || "Missing response data : \n"+res);
 				}

@@ -209,7 +209,7 @@ class OutputHandler {
 	 * @param {String} mainError message to send
 	 */
 	errorMessage(mainError) {
-		let errStr = ""+mainError;
+		let errStr = "[ERROR] "+mainError;
 		if(errStr == "[object Object]") {
 			errStr = JSON.stringify(mainError);
 		}
