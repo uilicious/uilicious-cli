@@ -206,18 +206,23 @@ module.exports = {
 
 			// Iterate the remote file list, and await its result sequentially
 			for( let i=0; i<fileListResult.length; ++i ) {
-				// Get the respective outcome
-				let [fileOutcome, localRelativePath] = await fileListResult[i];
+				try {
+					// Get the respective outcome
+					let [fileOutcome, localRelativePath] = await fileListResult[i];
 
-				// Skip irrelevant outcomes
-				if( fileOutcome == false ) {
-					continue;
+					// Skip irrelevant outcomes
+					if( fileOutcome == false ) {
+						continue;
+					}
+
+					// Lets prepare the result output (according to the respective settings)
+					OutputHandler.standard(`[${fileOutcome}] ${localRelativePath}`)
+					OutputHandler.tableRow([fileOutcome, localRelativePath], tableWidth);
+					jsonResultMap[localRelativePath] = fileOutcome;
+				} catch(e) {
+					OutputHandler.errorMessage("Unexpected error happened when uploading: "+dirScanList[i]);
+					OutputHandler.fatalError(e, 52);
 				}
-
-				// Lets prepare the result output (according to the respective settings)
-				OutputHandler.standard(`[${fileOutcome}] ${localRelativePath}`)
-				OutputHandler.tableRow([fileOutcome, localRelativePath], tableWidth);
-				jsonResultMap[localRelativePath] = fileOutcome;
 			}
 
 			// Complete Handler
