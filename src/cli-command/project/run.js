@@ -152,6 +152,14 @@ class TestRunnerSession {
 			webstudioURL = argv.apiHost.split("/api/")[0]+"/webstudio"
 		}
 
+		// Normalize ending slash
+		if( webstudioURL.endsWith("/") ) {
+			webstudioURL.slice(0, webstudioURL.length - 1)
+		}
+		if( privateSnippetURL != null && privateSnippetURL.endsWith("/") ) {
+			privateSnippetURL.slice(0, privateSnippetURL.length - 1)
+		}
+
 		// Get the full project listing (after login)
 		let projectObj = await SpaceAndProjectApi.findProject(argv.project);
 		let projectID = projectObj._oid;
@@ -681,12 +689,12 @@ class TestRunnerSession {
 			if( this.testCodeDir == null ) {
 				resultMsg.push(`> See full results at   : ${this.webstudioURL}/project/${this.projectID}/editor/${this.uriEncodedScriptPath}?testRunId=${this.testID}`)
 			}
-			resultMsg.push(`> See result snippet at : ${this.privateSnippetURL}${this.testID}`)
+			resultMsg.push(`> See result snippet at : ${this.privateSnippetURL}/${this.testID}`)
 			resultMsg.push(">")
 
 			// Or json
 			this.jsonOutputObj.webstudioURL = `${this.webstudioURL}/project/${this.projectID}/editor/${this.uriEncodedScriptPath}?testRunId=${this.testID}`;
-			this.jsonOutputObj.snippetURL = `${this.privateSnippetURL}${this.testID}`;
+			this.jsonOutputObj.snippetURL = `${this.privateSnippetURL}/${this.testID}`;
 		} else {
 			
 			// This is the on-premise version !!!
