@@ -154,10 +154,10 @@ class TestRunnerSession {
 
 		// Normalize ending slash
 		if( webstudioURL.endsWith("/") ) {
-			webstudioURL.slice(0, webstudioURL.length - 1)
+			webstudioURL = webstudioURL.slice(0, webstudioURL.length - 1)
 		}
 		if( privateSnippetURL != null && privateSnippetURL.endsWith("/") ) {
-			privateSnippetURL.slice(0, privateSnippetURL.length - 1)
+			privateSnippetURL = privateSnippetURL.slice(0, privateSnippetURL.length - 1)
 		}
 
 		// Get the full project listing (after login)
