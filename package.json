@@ -1,6 +1,6 @@
 {
 	"name": "uilicious-cli",
-	"version": "5.1.9",
+	"version": "5.1.10",
 	"description": "Uilicious CLI toolchain",
 	"main": "uilicious-cli.js",
 	"keywords": [
@@ -8,7 +8,7 @@
 		"CLI"
 	],
 	"author": "Uilicious Private Limited",
-	"license": "UNLICENSED",
+	"license": "MIT",
 	"//-bin": [
 		"bin maps the command line name to the respective script file",
 		"see : https://medium.com/netscape/a-guide-to-create-a-nodejs-command-line-package-c2166ad0452e"
