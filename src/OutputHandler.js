@@ -35,18 +35,27 @@ function isJavascriptError(mainError) {
  * Ensure a string output, and if the input is a function, execute it expecting a string output
  */
 function normalizeString(input) {
+	// Null handling
+	if( input == null ) {
+		return "null"
+	}
+
+	if (typeof input === 'string' || input instanceof String) {
+		return input;
+	}
+
 	// Unwrap the functions
-	if( input && isFunction(input) ) {
+	if( isFunction(input) ) {
 		return normalizeString( input() );
 	}
 
 	// If its an array, join it
-	if( input && Array.isArray(input) ) {
+	if( Array.isArray(input) ) {
 		return input.join("\n")
 	}
 
 	// To string objects
-	return ""+input;
+	return JSON.stringify(input);
 }
 
 /**
