@@ -68,6 +68,18 @@ MainSywac.command("project <subcommand> <args>", {
 	}
 });
 
+// Job commands
+MainSywac.command("job <subcommand> <args>", {
+	desc: "job specific commands, such as : run, list, status, waitFor",
+	ignore: ['<subcommand>', '<args>'],
+	setup: (sywac) => {
+		// Job listing command
+		sywac.command( require("./cli-command/job/list.js") );
+
+		
+	}
+});
+
 
 function setupAliasDescription(commandObj, alias) {
 	// Clone the original object
