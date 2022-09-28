@@ -353,7 +353,21 @@ class SpaceAndProjectApi {
 	async getTestRunResult(testRunID) {
 		return await retryForResult( () => { return api.GET(`/project/testrun/get`, { id:testRunID } ); } );
 	}
+	
+	/////////////////////////////////////////////////////////////////////
+	//
+	// JOB's handling
+	//
+	/////////////////////////////////////////////////////////////////////
 
+	/**
+	 * Get and return the job list
+	 * 
+	 * @param {String} projectID
+	 */
+	 async getJobList(projectID) {
+		return await retryForResult( () => { return api.GET(`/project/job/list`, { projectID:projectID } ); } );
+	}
 	
 	/////////////////////////////////////////////////////////////////////
 	//
