@@ -92,7 +92,15 @@ class ArgumentValidator {
 		main.layeredCheck((argv, context) => {
 			// Lets normalize the apiHost
 			// use "https://httpbin.org/status/500" to simulate failure
-			argv.apiHost = argv.apiHost || "https://api.uilicious.com/v3.0/" 
+			if( argv.apiHost && argv.apiHost.length > 2 ) {
+				return;
+			} else if ( process.env.UILICIOUS_API_HOST ) {
+				argv.apiHost = process.env.UILICIOUS_API_HOST;
+				return;
+			}
+
+			// Fallback to prod api
+			argv.apiHost = "https://api.uilicious.com/v3.0/" ;
 		})
 	}
 	
