@@ -513,7 +513,7 @@ class OutputHandler {
 
 					// NULL handling
 					if( value == null ) {
-						valule = "";
+						value = "";
 					}
 
 					// Non string value handling

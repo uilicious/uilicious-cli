@@ -51,7 +51,7 @@ module.exports = {
 			retList = FormatShift.remapUnixTime( retList, ["createdAt","requestTime","runTime","updatedAt"]);
 			
 			// Lets output the standard table (if configured)
-			OutputHandler.standardTable(retList, ["status", "runTime", "testRunIDs"]);
+			OutputHandler.standardTable(retList, ["status", "requestTime", "runTime", "testRunIDs"]);
 
 			// Lets output the JSON formatting
 			OutputHandler.json(retList);
