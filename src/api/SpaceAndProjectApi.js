@@ -13,7 +13,8 @@
 const fs  = require("fs")
 const api = require("./ApiServerConnector");
 const retryForResult = require("./retryForResult");
-const OutputHandler  = require("../OutputHandler")
+const OutputHandler  = require("../OutputHandler");
+const { start } = require("repl");
 
 //---------------------------------------------------------------------------------------
 //
@@ -353,8 +354,108 @@ class SpaceAndProjectApi {
 	async getTestRunResult(testRunID) {
 		return await retryForResult( () => { return api.GET(`/project/testrun/get`, { id:testRunID } ); } );
 	}
-
 	
+	/////////////////////////////////////////////////////////////////////
+	//
+	// JOB's handling
+	//
+	/////////////////////////////////////////////////////////////////////
+
+	/**
+	 * Get and return the job list
+	 * 
+	 * @param {String} projectID
+	 */
+	async getJobList(projectID) {
+		return await retryForResult( () => { return api.GET(`/project/job/list`, { projectID:projectID } ); } );
+	}
+	
+	/////////////////////////////////////////////////////////////////////
+	//
+	// Find jobs
+	//
+	/////////////////////////////////////////////////////////////////////
+
+	/**
+	 * Given the project ID, and jobs name/ID in its partial form
+	 * Find and return the full job ID
+	 * 
+	 * @param {String} projectID search string to use for projectID
+	 * @param {String} searchHint search string to use for jobID and/or name
+	 * @return {Promise<Object>} project object if found
+	 */
+	async findJobID(projectID, searchHint) {
+		// First lets trim the search hint
+		searchHint = searchHint.trim();
+		let searchHintLC = searchHint.toLowerCase();
+
+		// Throw on short search hint
+		if( searchHintLC.length <= 3 ) {
+			throw "Project search string is too short, consider using a longer jobID instead";
+		}
+
+		// Get the job list
+		let jobList = await this.getJobList(projectID);
+		let candidateList = [];
+
+		// Scan through the project list
+		for(let i=0; i<jobList.length; ++i) {
+			let jobObj = jobList[i];
+
+			// Exact match - lets go with it
+			// no furhter searchign is requried
+			if( jobObj._oid == searchHint) {
+				return jobObj;
+			}
+
+			// Partial ID prefix matching
+			if( jobObj._oid.toLowerCase().startsWith( searchHintLC ) ) {
+				candidateList.push( jobObj );
+				continue;
+			}
+
+			// Partial Name Prefix matching
+			if( jobObj.name != null && jobObj.name.toString().toLowerCase().trim().startsWith( searchHintLC ) ) {
+				candidateList.push( jobObj );
+				continue;
+			}
+		}
+
+		// Failure condition - no match found
+		if( candidateList.length <= 0 ) {
+			throw "No valid job's found matching : "+searchHint;
+		}
+		
+		// Lets check the candidate list for a single valid response
+		if( candidateList.length == 1 ) {
+			return candidateList[0];
+		}
+
+		// Final failure condition, too many matches found
+		throw "Multiple jobs found, use a more unique identifier instead (like jobID)";
+	}
+
+	/**
+	 * Given the project ID, and jobs ID
+	 * Find and return the full job history
+	 * 
+	 * @param {String} projectID used
+	 * @param {String} jobID used
+	 * @param {int} offset
+	 * @param {int} length
+	 **/
+	async getJobHistory(projectID, jobID, offset, length) {
+		// Get the job history
+		return await retryForResult( () => { 
+			return api.GET(`/project/job/testrunset/list`, { 
+				projectID:projectID,
+				jobID:jobID,
+				start:offset,
+				length:length
+			} ); 
+		} );
+	}
+
 	/////////////////////////////////////////////////////////////////////
 	//
 	// Project pathing handling
