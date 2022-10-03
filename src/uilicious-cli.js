@@ -75,6 +75,7 @@ MainSywac.command("job <subcommand> <args>", {
 	setup: (sywac) => {
 		// Job listing command
 		sywac.command( require("./cli-command/job/list.js") );
+		sywac.command( require("./cli-command/job/history.js") );
 
 		
 	}

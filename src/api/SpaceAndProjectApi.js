@@ -13,7 +13,8 @@
 const fs  = require("fs")
 const api = require("./ApiServerConnector");
 const retryForResult = require("./retryForResult");
-const OutputHandler  = require("../OutputHandler")
+const OutputHandler  = require("../OutputHandler");
+const { start } = require("repl");
 
 //---------------------------------------------------------------------------------------
 //
@@ -365,7 +366,7 @@ class SpaceAndProjectApi {
 	 * 
 	 * @param {String} projectID
 	 */
-	 async getJobList(projectID) {
+	async getJobList(projectID) {
 		return await retryForResult( () => { return api.GET(`/project/job/list`, { projectID:projectID } ); } );
 	}
 	
@@ -383,7 +384,7 @@ class SpaceAndProjectApi {
 	 * @param {String} searchHint search string to use for jobID and/or name
 	 * @return {Promise<Object>} project object if found
 	 */
-	 async findJobID(projectID, searchHint) {
+	async findJobID(projectID, searchHint) {
 		// First lets trim the search hint
 		searchHint = searchHint.trim();
 		let searchHintLC = searchHint.toLowerCase();
@@ -432,6 +433,27 @@ class SpaceAndProjectApi {
 
 		// Final failure condition, too many matches found
 		throw "Multiple jobs found, use a more unique identifier instead (like jobID)";
+	}
+
+	/**
+	 * Given the project ID, and jobs ID
+	 * Find and return the full job history
+	 * 
+	 * @param {String} projectID used
+	 * @param {String} jobID used
+	 * @param {int} offset
+	 * @param {int} length
+	 **/
+	async getJobHistory(projectID, jobID, offset, length) {
+		// Get the job history
+		return await retryForResult( () => { 
+			return api.GET(`/project/job/testrunset/list`, { 
+				projectID:projectID,
+				jobID:jobID,
+				start:offset,
+				length:length
+			} ); 
+		} );
 	}
 
 	/////////////////////////////////////////////////////////////////////

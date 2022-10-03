@@ -509,7 +509,17 @@ class OutputHandler {
 					// Extract line value 
 					// with the relevent key
 					let tableItem = table[t];
-					let value = tableItem[key] || "";
+					let value = tableItem[key];
+
+					// NULL handling
+					if( value == null ) {
+						valule = "";
+					}
+
+					// Non string value handling
+					if( !(typeof value === 'string' || value instanceof String) ) {
+						value = JSON.stringify(value);
+					}
 
 					// Normalize the length
 					// unless its the last key

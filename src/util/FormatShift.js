@@ -57,6 +57,30 @@ class FormatShift {
 		// Return the result
 		return retCollection;
 	}
+
+	/**
+	 * Given the source array, remap the unixtimestamp values
+	 * Note that this will modify the source object in place !!!
+	 * 
+	 * @param {Array<Object>}      sourceCollection source collection to scan and filter
+	 * @param {Array<String>}      unixTimeNames      [optional] properties to filter for
+	 */
+	remapUnixTime( sourceCollection, unixTimeNames ) {
+		// Lets iterate through every source object
+		for(let i=0; i<sourceCollection.length; ++i) {
+			for(let n=0; n<unixTimeNames.length; ++n) {
+				let fieldName = unixTimeNames[n];
+				let timestamp = sourceCollection[i][ fieldName ];
+				if( timestamp != null && timestamp > 0 ) {
+					let dateObj = new Date( timestamp * 1000 );
+					sourceCollection[i][ fieldName ] = dateObj.toLocaleString();
+				}
+			}
+		}
+
+		// Return the sourceCollection
+		return sourceCollection;
+	}
 }
 
 // Module export as a singleton
