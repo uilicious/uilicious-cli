@@ -76,8 +76,7 @@ MainSywac.command("job <subcommand> <args>", {
 		// Job listing command
 		sywac.command( require("./cli-command/job/list.js") );
 		sywac.command( require("./cli-command/job/history.js") );
-
-		
+		sywac.command( require("./cli-command/job/start.js") );
 	}
 });
 
