@@ -41,7 +41,7 @@ module.exports = {
 
 			// Get the offset and count
 			let offset = argv.offset || 0;
-			let count  = argv.count  || 100;
+			let count  = argv.count  || 10;
 
 			// Get the job history
 			let jobHistory = await SpaceAndProjectApi.getJobHistory(projectObj._oid, jobObj._oid, offset, count);
