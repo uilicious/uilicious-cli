@@ -366,7 +366,7 @@ class SpaceAndProjectApi {
 	 * 
 	 * @param {String} projectID
 	 */
-	 async getJobList(projectID) {
+	async getJobList(projectID) {
 		return await retryForResult( () => { return api.GET(`/project/job/list`, { projectID:projectID } ); } );
 	}
 	
@@ -376,7 +376,7 @@ class SpaceAndProjectApi {
 	 * @param {String} projectID
 	 * @param {String} jobID
 	 */
-	 async triggerJobRun(projectID, jobID) {
+	async triggerJobRun(projectID, jobID) {
 		return await retryForResult( () => { return api.POST(`/project/job/${jobID}/run` ); } );
 	}
 	
