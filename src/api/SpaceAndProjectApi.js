@@ -465,9 +465,8 @@ class SpaceAndProjectApi {
 	 **/
 	async triggerJobRun(projectID, jobID) {
 		return await retryForResult( () => { 
-			return api.GET(`/project/job/run`, { 
-				projectID:projectID,
-				jobID:jobID
+			return api.POST(`/project/job/${jobID}/run`, { 
+					projectID:projectID
 			} ); 
 		} );
 	}
