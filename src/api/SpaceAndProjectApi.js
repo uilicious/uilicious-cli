@@ -465,7 +465,21 @@ class SpaceAndProjectApi {
 			} ); 
 		} );
 	}
-
+	
+		/**
+	 * Given the project ID, and jobs ID
+	 * Start job run
+	 * 
+	 * @param {String} projectID used
+	 * @param {String} jobID used
+	 **/
+	async triggerJobRun(projectID, jobID) {
+		return await retryForResult( () => { 
+			return api.POST(`/project/job/${jobID}/run`, { 
+					projectID:projectID
+			} ); 
+		} );
+	}
 	/////////////////////////////////////////////////////////////////////
 	//
 	// Project pathing handling
