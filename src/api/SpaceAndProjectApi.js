@@ -279,6 +279,7 @@ class SpaceAndProjectApi {
 	 * - height
 	 * - dataSetID
 	 * - dataObject
+	 * - region
 	 * 
 	 * @param {String} projectID to run test from
 	 * @param {Object} testParams containing the parameters listed above 
@@ -292,6 +293,7 @@ class SpaceAndProjectApi {
 		let dataSetID  = testParams.dataSetID || testParams.environmentId;
 		let dataObject = testParams.data || testParams.dataObject;
 		let secretData = testParams.secretData;
+		let region     = testParams.region || null;
 
 		// Lets prepare the request object
 		let reqObj = {
@@ -304,6 +306,9 @@ class SpaceAndProjectApi {
 		};
 		if( testParams.userAgent != null && testParams.userAgent.length >= 1 ) {
 			reqObj.userAgent = testParams.userAgent;
+		}
+		if( region != null ) {
+			reqObj.region = region;
 		}
 		if( dataSetID != null ) {
 			reqObj["environmentId"] = dataSetID;

@@ -344,9 +344,8 @@ class TestRunnerSession {
 				browser:    this.browser,
 				width:      this.width,
 				height:     this.height,
-				// We set both region, and serverRegion for backwards compatibility reasons
+				// We ensure region is forwarded
 				region:     this.region,
-				serverRegion: this.region,
 				// Rest is as per normal
 				dataSetID:  this.dataSetID,
 				data:       this.dataObject,
