@@ -137,7 +137,7 @@ class FileUtil {
 		}
 
 		// System file list to skip
-		let systemFileSkipList = [".git", ".ds_store"]
+		let systemFileSkipList = ["node_modules"]
 
 		// Recursion function to use internally
 		async function scanDir(filePath, pathPrefix) {
@@ -149,7 +149,10 @@ class FileUtil {
 				// Get the file/folder name
 				let name = ent.name;
 
-				// Known skip list
+				// Skip hidden files which start with "."
+				if( includeSystemFiles == false && name.toLowerCase().startsWith(".") ) {
+					continue;
+				}
 				if( systemFileSkipList.indexOf(name.toLowerCase()) >= 0 ) {
 					continue;
 				}
