@@ -153,7 +153,7 @@ class FileUtil {
 				if( includeSystemFiles == false && name.toLowerCase().startsWith(".") ) {
 					continue;
 				}
-				if( systemFileSkipList.indexOf(name.toLowerCase()) >= 0 ) {
+				if( includeSystemFiles == false && systemFileSkipList.indexOf(name.toLowerCase()) >= 0 ) {
 					continue;
 				}
 
