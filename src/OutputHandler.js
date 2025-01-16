@@ -178,7 +178,7 @@ class OutputHandler {
 			description: "Extremely extremely verbose and noisy logging of all API calls [Note: this will log provided secrets]"
 		})
 		main.boolean("-s, --silent", {
-			description: "Surpression of output stream, disables std/json output"
+			description: "Supression of output stream, disables std/json output"
 		})
 
 		// Processing the various configuration settings

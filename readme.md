@@ -148,6 +148,22 @@ Plese use services such as
 
 Native ngrok support is deprecated from v3.0.0 
 
+## For use within self-hosted environments
+
+If you are using a self-hosted installation of UI-licious, instead of [UI-licious Cloud](https://uilicious.com), you will need to run all CLI commands with an additional `--apiHost` parameter that points to the API base URL of your installation, which will be `https://<host>/api/v3.0`.
+
+For example, if your UI-licious instance is hosted at `https://uilicious.acmecorp.net/`, then you will need to set the `--apiHost 'https://uilicious.acmecorp.net/api/v3.0'`.
+```
+# Example to run a test
+uilicious-cli run <project> <test_file> --key <key> --apiHost 'https://uilicious.acmecorp.net/api/v3.0'
+```
+
+Additionally, the UI-licious instance is hosted behind a secure proxy, you will need to set the `https_proxy` environment variable, as such
+```
+http_proxy=https://proxy:port  uilicious-cli run <project> <test_file> --key <key> --apiHost 'https://uilicious.acmecorp.net/api/v3.0'
+```
+
+
 ## Deprecated Commands
 
 > **Warning**: Please avoid using deprecated aliases for the commands, as they may be removed in the future.
