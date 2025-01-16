@@ -11,6 +11,8 @@
 //
 //------------------------------------------------------------------------
 
+const yargs = require("yargs")
+const url = require("url")
 const axios = require("axios")
 const FormData = require("form-data")
 const isStream = require("is-stream")
@@ -19,6 +21,81 @@ const httpAdapter = require('axios/lib/adapters/http');
 const retryForResult = require("./retryForResult");
 const OutputHandler = require("../OutputHandler")
 const PromiseQueue = require("promise-queue")
+
+//------------------------------------------------------------------------
+//
+// Parse command line arguments
+//
+//------------------------------------------------------------------------
+
+const argv = yargs.option('trace', {
+	alias: 't',
+	type: 'boolean',
+	description: 'Run with trace logging'
+  }).argv;
+
+const verbose = !!argv.trace;
+
+//------------------------------------------------------------------------
+//
+// Proxy settings
+//
+//------------------------------------------------------------------------
+
+// create an axios instance
+let _axios = axios.create({})
+
+// if "no_proxy" environment variable is set, disable proxy
+if(process.env.no_proxy) {
+	// do nothing
+	if(verbose){
+		console.log("env.no_proxy set, disabling proxy.")
+	}
+}
+
+// Get proxy settings from "https_proxy" or "http_proxy" environment variable
+else if(process.env.https_proxy || process.env.http_proxy) {
+
+	// Parse the proxy URL
+	let proxyUrl = null
+	try{
+		if(process.env.https_proxy) {
+			proxyUrl = new url.URL(process.env.https_proxy)
+			if(verbose){
+				console.log("env.https_proxy=", proxyUrl)
+			}
+		}else{
+			proxyUrl = new url.URL(process.env.http_proxy)
+			if(verbose){
+				console.log("env.http_proxy=", proxyUrl)
+			}
+		}
+	}catch(e){
+		throw new Error("Invalid proxy URL: " + process.env.https_proxy)
+	}
+
+	// create a proxy config object
+	let proxyConfig = {}
+	proxyConfig.protocol = proxyUrl.protocol
+	proxyConfig.host = proxyUrl.hostname
+	proxyConfig.port = proxyUrl.port || 443
+	if(proxyUrl.username && proxyUrl.password) {	
+		proxyConfig.auth = {
+			username: proxyUrl.username,
+			password: proxyUrl.password
+		}
+	}
+
+	// create an axios instance with proxy settings
+	_axios = axios.create({
+		proxy: proxyConfig
+	})
+
+	if(verbose){
+		console.log("Proxy configured.")
+	}
+
+}
 
 //------------------------------------------------------------------------
 //
@@ -39,7 +116,8 @@ let BASE_URL = null
 let AS_ACCOUNT_ID = null
 
 // Inject cookie values into a request
-axios.interceptors.request.use(config => {
+_axios.interceptors.request.use(config => {
+
 	let sizeOfCookieJar = Object.keys(COOKIE_JAR).length;
 	if(sizeOfCookieJar > 0) {
 		let cookies = []
@@ -54,7 +132,8 @@ axios.interceptors.request.use(config => {
 })
 
 // Extract cookie settings from response, used for login process
-axios.interceptors.response.use(response => {
+_axios.interceptors.response.use(response => {
+
 	let responseCookie = response.headers["set-cookie"]
 	if(responseCookie!= null){
 		// For each of the cookie in responseCookie
@@ -186,7 +265,7 @@ function GET(url, params) {
 	// Ensure requests go through the global queue system
 	return REQ_QUEUE.add(async function() {
 		// todo: handle user being online or offline
-		return axios
+		return _axios
 			.get(BASE_URL + url, {params: transformParams(params), withCredentials: true})
 			.then((res) => {
 				if(res.data == null) {
@@ -222,7 +301,7 @@ function POST(url, data, isMultipart = false) {
 	// Ensure requests go through the global queue system
 	return REQ_QUEUE.add(async function() {
 		// todo: handle user being online or offline
-		return axios
+		return _axios
 			.post(BASE_URL + url, data, config)
 			.then((res) => {
 				if(res == null) {
@@ -252,7 +331,7 @@ function POST_stream(url, data, isMultipart = false) {
 	
 	// Ensure requests go through the global queue system
 	return REQ_QUEUE.add(async function() {
-		return axios
+		return _axios
 			.post(BASE_URL + url, data, {responseType: 'stream', adapter: httpAdapter, withCredentials: true})
 			.then((res) => {
 				if(res.data == null) {
