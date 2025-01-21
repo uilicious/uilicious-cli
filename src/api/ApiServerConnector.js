@@ -45,57 +45,116 @@ const verbose = !!argv.trace;
 // create an axios instance
 let _axios = axios.create({})
 
-// if "no_proxy" environment variable is set, disable proxy
-if(process.env.no_proxy) {
-	// do nothing
+// check if 'https_proxy' or 'http_proxy' is set
+let HTTPS_PROXY_URL = null;
+let HTTP_PROXY_URL = null;
+let NO_PROXY_LIST = [];
+
+// check if 'https_proxy' is set
+if(process.env.https_proxy) {
 	if(verbose){
-		console.log("env.no_proxy set, disabling proxy.")
+		console.log("env.https_proxy is set: ", process.env.https_proxy)
 	}
-}
-
-// Get proxy settings from "https_proxy" or "http_proxy" environment variable
-else if(process.env.https_proxy || process.env.http_proxy) {
-
-	// Parse the proxy URL
-	let proxyUrl = null
 	try{
-		if(process.env.https_proxy) {
-			proxyUrl = new url.URL(process.env.https_proxy)
-			if(verbose){
-				console.log("env.https_proxy=", proxyUrl)
-			}
-		}else{
-			proxyUrl = new url.URL(process.env.http_proxy)
-			if(verbose){
-				console.log("env.http_proxy=", proxyUrl)
-			}
-		}
+		// parse to a URL object
+		HTTPS_PROXY_URL = new url.URL(process.env.https_proxy.trim())
 	}catch(e){
 		throw new Error("Invalid proxy URL: " + process.env.https_proxy)
 	}
+}
 
-	// create a proxy config object
-	let proxyConfig = {}
-	proxyConfig.protocol = proxyUrl.protocol
-	proxyConfig.host = proxyUrl.hostname
-	proxyConfig.port = proxyUrl.port || 443
-	if(proxyUrl.username && proxyUrl.password) {	
-		proxyConfig.auth = {
-			username: proxyUrl.username,
-			password: proxyUrl.password
-		}
+// check if 'http_proxy' is set
+if(process.env.http_proxy) {
+	if(verbose){
+		console.log("env.http_proxy is set: ", process.env.http_proxy)
 	}
+	try{
+		// parse to a URL object
+		HTTP_PROXY_URL = new url.URL(process.env.http_proxy.trim())
+		console.log("HTTP_PROXY_URL=", HTTP_PROXY_URL)
+	}catch(e){
+		throw new Error("Invalid proxy URL: " + process.env.http_proxy)
+	}
+}
 
-	// create an axios instance with proxy settings
-	_axios = axios.create({
-		proxy: proxyConfig
-	})
+// 'no_proxy' is typically a list of domain names, separated by commas
+
+// check if 'no_proxy' is set
+if(process.env.no_proxy && process.env.no_proxy !== "0") {
 
 	if(verbose){
-		console.log("Proxy configured.")
+		console.log("env.no_proxy is set: ", NO_PROXY_LIST)
+	}
+
+	// split the domain names
+	NO_PROXY_LIST = process.env.no_proxy.split(",");
+
+	// trim the domain names
+	NO_PROXY_LIST = NO_PROXY_LIST.map((domain) => {
+		return domain.trim();
+	});
+
+	if(verbose){
+		console.log("NO_PROXY_LIST=", NO_PROXY_LIST)
 	}
 
 }
+
+// configure request interceptor to check if the request is go through proxy or not
+_axios.interceptors.request.use(config => {
+
+	// is https_proxy or http_proxy is set?
+	if(!HTTPS_PROXY_URL && !HTTP_PROXY_URL) {
+		return config;
+	}
+
+	//
+	// Proxy / proxy bypass logic
+	//
+
+	let requestUrl = new url.URL(config.url);
+
+	// should bypass proxy?
+	let shouldBypassProxy = false;
+	if(NO_PROXY_LIST.length > 0) {
+		NO_PROXY_LIST.forEach((domain) => {
+			if(requestUrl.hostname.endsWith(domain)) {
+				shouldBypassProxy = true;
+			}
+		});
+	}
+
+	// bypass proxy
+	if(shouldBypassProxy) {
+		config.proxy = false;
+		if(verbose){
+			console.log("Bypassing proxy for: " + requestUrl.href);
+		}
+		return config;
+	}
+
+	// go through proxy
+	let requestProtocol = requestUrl.protocol;
+	let proxyUrl = requestProtocol === "https:" ? HTTPS_PROXY_URL : HTTP_PROXY_URL;
+	config.proxy = {
+		protocol: proxyUrl.protocol,
+		host: proxyUrl.hostname,
+		port: proxyUrl.port || (proxyUrl.protocol === "https:" ? 443 : 80)
+	};
+	if(proxyUrl.username && proxyUrl.password) {
+		config.proxy.auth = {
+			username: proxyUrl.username,
+			password: proxyUrl.password
+		};
+	}
+
+	if(verbose){
+		console.log("Using proxy for: " + requestUrl.href);
+	}
+
+	return config
+
+})
 
 //------------------------------------------------------------------------
 //
