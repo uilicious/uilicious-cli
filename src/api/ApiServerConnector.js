@@ -11,7 +11,6 @@
 //
 //------------------------------------------------------------------------
 
-const yargs = require("yargs")
 const url = require("url")
 const axios = require("axios")
 const FormData = require("form-data")
@@ -21,20 +20,6 @@ const httpAdapter = require('axios/lib/adapters/http');
 const retryForResult = require("./retryForResult");
 const OutputHandler = require("../OutputHandler")
 const PromiseQueue = require("promise-queue")
-
-//------------------------------------------------------------------------
-//
-// Parse command line arguments
-//
-//------------------------------------------------------------------------
-
-const argv = yargs.option('trace', {
-	alias: 't',
-	type: 'boolean',
-	description: 'Run with trace logging'
-  }).argv;
-
-const verbose = !!argv.trace;
 
 //------------------------------------------------------------------------
 //
@@ -52,9 +37,6 @@ let NO_PROXY_LIST = [];
 
 // check if 'https_proxy' is set
 if(process.env.https_proxy) {
-	if(verbose){
-		console.log("env.https_proxy is set: ", process.env.https_proxy)
-	}
 	try{
 		// parse to a URL object
 		HTTPS_PROXY_URL = new url.URL(process.env.https_proxy.trim())
@@ -65,13 +47,9 @@ if(process.env.https_proxy) {
 
 // check if 'http_proxy' is set
 if(process.env.http_proxy) {
-	if(verbose){
-		console.log("env.http_proxy is set: ", process.env.http_proxy)
-	}
 	try{
 		// parse to a URL object
 		HTTP_PROXY_URL = new url.URL(process.env.http_proxy.trim())
-		console.log("HTTP_PROXY_URL=", HTTP_PROXY_URL)
 	}catch(e){
 		throw new Error("Invalid proxy URL: " + process.env.http_proxy)
 	}
@@ -82,10 +60,6 @@ if(process.env.http_proxy) {
 // check if 'no_proxy' is set
 if(process.env.no_proxy && process.env.no_proxy !== "0") {
 
-	if(verbose){
-		console.log("env.no_proxy is set: ", NO_PROXY_LIST)
-	}
-
 	// split the domain names
 	NO_PROXY_LIST = process.env.no_proxy.split(",");
 
@@ -94,11 +68,9 @@ if(process.env.no_proxy && process.env.no_proxy !== "0") {
 		return domain.trim();
 	});
 
-	if(verbose){
-		console.log("NO_PROXY_LIST=", NO_PROXY_LIST)
-	}
-
 }
+
+let logEnvProxySettingsOnce = false;
 
 // configure request interceptor to check if the request is go through proxy or not
 _axios.interceptors.request.use(config => {
@@ -106,6 +78,24 @@ _axios.interceptors.request.use(config => {
 	// is https_proxy or http_proxy is set?
 	if(!HTTPS_PROXY_URL && !HTTP_PROXY_URL) {
 		return config;
+	}
+
+	// Note that OutputHandler.debug will not output anything if it is triggereed before the OutputHandler is setup
+	// That's why this is done here. But we only want to log this once.
+	if(!logEnvProxySettingsOnce) {
+		if(process.env.https_proxy) {
+			OutputHandler.debug("env.https_proxy is set: " + process.env.https_proxy)
+			OutputHandler.debug("HTTPS_PROXY_URL=", HTTPS_PROXY_URL)
+		}
+		if(process.env.http_proxy) {
+			OutputHandler.debug("env.http_proxy is set: " + process.env.http_proxy)
+			OutputHandler.debug("HTTP_PROXY_URL=", HTTP_PROXY_URL)
+		}
+		if(process.env.no_proxy && process.env.no_proxy !== "0") {
+			OutputHandler.debug("env.no_proxy is set: " + process.env.no_proxy)
+			OutputHandler.debug("NO_PROXY_LIST=", NO_PROXY_LIST)
+		}
+		logEnvProxySettingsOnce = true;
 	}
 
 	//
@@ -127,9 +117,7 @@ _axios.interceptors.request.use(config => {
 	// bypass proxy
 	if(shouldBypassProxy) {
 		config.proxy = false;
-		if(verbose){
-			console.log("Bypassing proxy for: " + requestUrl.href);
-		}
+		OutputHandler.debug("Bypassing proxy for: " + requestUrl.href);
 		return config;
 	}
 
@@ -148,9 +136,7 @@ _axios.interceptors.request.use(config => {
 		};
 	}
 
-	if(verbose){
-		console.log("Using proxy for: " + requestUrl.href);
-	}
+	OutputHandler.debug("Using proxy for: " + requestUrl.href);
 
 	return config
 
@@ -235,12 +221,29 @@ _axios.interceptors.response.use(response => {
 	
 	return response
 }, error => {
+	
 	// https://github.com/axios/axios#handling-errors
 	// https://github.com/axios/axios/issues/960#issuecomment-320659373
 	// When error 500 occurs
 	// Need to have a way to safely ensure that the error returned is not
 	// messed up
-	return (error.response);
+
+	if (error.response) {
+		// The request was made and the server responded with a status code
+		// that falls out of the range of 2xx
+		return error.response;
+	} else if (error.request) {
+		// The request was made but no response was received
+		// `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+		// http.ClientRequest in node.js
+		OutputHandler.debug(`Request error: [${error.code}] - ${error.message}`, error);
+	} else {
+		// Something happened in setting up the request that triggered an Error
+		OutputHandler.debug(`Unknown request error: [${error.code}] - ${error.message}`, error);
+	}
+
+	return Promise.reject(error)
+
 })
 
 //------------------------------------------------------------------------
