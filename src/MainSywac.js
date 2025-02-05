@@ -26,7 +26,8 @@ const OutputHandler  = require("./OutputHandler")
 // Lets do the basic setup
 let main = sywac
 	.help("-h, --help")
-	.version("-v, --version", {
+	// note that we should not use sywac and yargs together, because it breaks 'version' command
+	.version("-v, --version", { 
 		version: version
 	})
 	.showHelpByDefault()

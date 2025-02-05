@@ -11,7 +11,6 @@
 //
 //------------------------------------------------------------------------
 
-const yargs = require("yargs")
 const url = require("url")
 const axios = require("axios")
 const FormData = require("form-data")
@@ -24,20 +23,6 @@ const PromiseQueue = require("promise-queue")
 
 //------------------------------------------------------------------------
 //
-// Parse command line arguments
-//
-//------------------------------------------------------------------------
-
-const argv = yargs.option('trace', {
-	alias: 't',
-	type: 'boolean',
-	description: 'Run with trace logging'
-  }).argv;
-
-const verbose = !!argv.trace;
-
-//------------------------------------------------------------------------
-//
 // Proxy settings
 //
 //------------------------------------------------------------------------
@@ -45,57 +30,117 @@ const verbose = !!argv.trace;
 // create an axios instance
 let _axios = axios.create({})
 
-// if "no_proxy" environment variable is set, disable proxy
-if(process.env.no_proxy) {
-	// do nothing
-	if(verbose){
-		console.log("env.no_proxy set, disabling proxy.")
-	}
-}
+// check if 'https_proxy' or 'http_proxy' is set
+let HTTPS_PROXY_URL = null;
+let HTTP_PROXY_URL = null;
+let NO_PROXY_LIST = [];
 
-// Get proxy settings from "https_proxy" or "http_proxy" environment variable
-else if(process.env.https_proxy || process.env.http_proxy) {
-
-	// Parse the proxy URL
-	let proxyUrl = null
+// check if 'https_proxy' is set
+if(process.env.https_proxy) {
 	try{
-		if(process.env.https_proxy) {
-			proxyUrl = new url.URL(process.env.https_proxy)
-			if(verbose){
-				console.log("env.https_proxy=", proxyUrl)
-			}
-		}else{
-			proxyUrl = new url.URL(process.env.http_proxy)
-			if(verbose){
-				console.log("env.http_proxy=", proxyUrl)
-			}
-		}
+		// parse to a URL object
+		HTTPS_PROXY_URL = new url.URL(process.env.https_proxy.trim())
 	}catch(e){
 		throw new Error("Invalid proxy URL: " + process.env.https_proxy)
 	}
+}
 
-	// create a proxy config object
-	let proxyConfig = {}
-	proxyConfig.protocol = proxyUrl.protocol
-	proxyConfig.host = proxyUrl.hostname
-	proxyConfig.port = proxyUrl.port || 443
-	if(proxyUrl.username && proxyUrl.password) {	
-		proxyConfig.auth = {
-			username: proxyUrl.username,
-			password: proxyUrl.password
-		}
+// check if 'http_proxy' is set
+if(process.env.http_proxy) {
+	try{
+		// parse to a URL object
+		HTTP_PROXY_URL = new url.URL(process.env.http_proxy.trim())
+	}catch(e){
+		throw new Error("Invalid proxy URL: " + process.env.http_proxy)
 	}
+}
 
-	// create an axios instance with proxy settings
-	_axios = axios.create({
-		proxy: proxyConfig
-	})
+// 'no_proxy' is typically a list of domain names, separated by commas
 
-	if(verbose){
-		console.log("Proxy configured.")
-	}
+// check if 'no_proxy' is set
+if(process.env.no_proxy && process.env.no_proxy !== "0") {
+
+	// split the domain names
+	NO_PROXY_LIST = process.env.no_proxy.split(",");
+
+	// trim the domain names
+	NO_PROXY_LIST = NO_PROXY_LIST.map((domain) => {
+		return domain.trim();
+	});
 
 }
+
+let logEnvProxySettingsOnce = false;
+
+// configure request interceptor to check if the request is go through proxy or not
+_axios.interceptors.request.use(config => {
+
+	// is https_proxy or http_proxy is set?
+	if(!HTTPS_PROXY_URL && !HTTP_PROXY_URL) {
+		return config;
+	}
+
+	// Note that OutputHandler.debug will not output anything if it is triggereed before the OutputHandler is setup
+	// That's why this is done here. But we only want to log this once.
+	if(!logEnvProxySettingsOnce) {
+		if(process.env.https_proxy) {
+			OutputHandler.debug("env.https_proxy is set: " + process.env.https_proxy)
+			OutputHandler.debug("HTTPS_PROXY_URL=", HTTPS_PROXY_URL)
+		}
+		if(process.env.http_proxy) {
+			OutputHandler.debug("env.http_proxy is set: " + process.env.http_proxy)
+			OutputHandler.debug("HTTP_PROXY_URL=", HTTP_PROXY_URL)
+		}
+		if(process.env.no_proxy && process.env.no_proxy !== "0") {
+			OutputHandler.debug("env.no_proxy is set: " + process.env.no_proxy)
+			OutputHandler.debug("NO_PROXY_LIST=", NO_PROXY_LIST)
+		}
+		logEnvProxySettingsOnce = true;
+	}
+
+	//
+	// Proxy / proxy bypass logic
+	//
+
+	let requestUrl = new url.URL(config.url);
+
+	// should bypass proxy?
+	let shouldBypassProxy = false;
+	if(NO_PROXY_LIST.length > 0) {
+		NO_PROXY_LIST.forEach((domain) => {
+			if(requestUrl.hostname.endsWith(domain)) {
+				shouldBypassProxy = true;
+			}
+		});
+	}
+
+	// bypass proxy
+	if(shouldBypassProxy) {
+		config.proxy = false;
+		OutputHandler.debug("Bypassing proxy for: " + requestUrl.href);
+		return config;
+	}
+
+	// go through proxy
+	let requestProtocol = requestUrl.protocol;
+	let proxyUrl = requestProtocol === "https:" ? HTTPS_PROXY_URL : HTTP_PROXY_URL;
+	config.proxy = {
+		protocol: proxyUrl.protocol,
+		host: proxyUrl.hostname,
+		port: proxyUrl.port || (proxyUrl.protocol === "https:" ? 443 : 80)
+	};
+	if(proxyUrl.username && proxyUrl.password) {
+		config.proxy.auth = {
+			username: proxyUrl.username,
+			password: proxyUrl.password
+		};
+	}
+
+	OutputHandler.debug("Using proxy for: " + requestUrl.href);
+
+	return config
+
+})
 
 //------------------------------------------------------------------------
 //
@@ -176,12 +221,29 @@ _axios.interceptors.response.use(response => {
 	
 	return response
 }, error => {
+	
 	// https://github.com/axios/axios#handling-errors
 	// https://github.com/axios/axios/issues/960#issuecomment-320659373
 	// When error 500 occurs
 	// Need to have a way to safely ensure that the error returned is not
 	// messed up
-	return (error.response);
+
+	if (error.response) {
+		// The request was made and the server responded with a status code
+		// that falls out of the range of 2xx
+		return error.response;
+	} else if (error.request) {
+		// The request was made but no response was received
+		// `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+		// http.ClientRequest in node.js
+		OutputHandler.debug(`Request error: [${error.code}] - ${error.message}`, error);
+	} else {
+		// Something happened in setting up the request that triggered an Error
+		OutputHandler.debug(`Unknown request error: [${error.code}] - ${error.message}`, error);
+	}
+
+	return Promise.reject(error)
+
 })
 
 //------------------------------------------------------------------------

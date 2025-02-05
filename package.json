@@ -1,6 +1,6 @@
 {
 	"name": "uilicious-cli",
-	"version": "5.1.14",
+	"version": "5.1.15",
 	"description": "Uilicious CLI toolchain",
 	"main": "uilicious-cli.js",
 	"keywords": [
@@ -53,8 +53,7 @@
 		"normalize-path": "=3.0.0",
 		"promise-queue": "=2.2.5",
 		"sleep-promise": "=8.0.1",
-		"sywac": "=1.3.0",
-		"yargs": "=17.7.2"
+		"sywac": "=1.3.0"
 	},
 	"scripts": {
 		"cli": "./src/uilicious-cli.js",
