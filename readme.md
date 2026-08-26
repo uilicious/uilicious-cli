@@ -85,8 +85,9 @@ $ uilicious-cli project run  <project_name> <script_path> [--browser] [--width] 
 **Additional Options**
 + `--browser <browser_name>` options :  e.g. chrome, firefox, edge, safari, ie11 (default "chrome")
 + `--height <browser_height>` height of browser (default "960")
-+ `--width <browser_width>` width of browser (default "1280")
 + `--testCodeDir <browser_dir>` Directory to use for test code, this is used instead of the existing uilicious project code.
++ `--retryWhen <mode>` Retry policy: `always` (default), `never`, or `onSystemError`.
++ `--no-retry` Shorthand for `--retryWhen never`.
 
 > For more additional options, please refer to the `uilicious-cli project run --help` output
 
