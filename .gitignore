@@ -9,5 +9,6 @@ node_modules
 !.gitignore
 !.gitmodules
 !.npmignore
+!.gitlab-ci.yml
 !.github
 !.github/**/*

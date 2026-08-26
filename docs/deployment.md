@@ -187,44 +187,25 @@ gh release create vX.Y.Z \
 
 ---
 
-## 6. Continuous Integration & Automated Builds
+## 6. Continuous Integration & Automated Pipelines
 
-The repository includes a GitHub Actions workflow at [`.github/workflows/build.yml`](../.github/workflows/build.yml) that builds binaries on every push to main branches:
+Automated binary compilation, packaging, and multi-channel publishing are managed via the GitLab CI pipeline defined in [`.gitlab-ci.yml`](../.gitlab-ci.yml). All pipeline jobs are restricted to execute exclusively on the `main` branch.
 
-```yaml
-name: Core Binary Build
-on:
-  push:
-    branches: [ nodejs-release, main, master ]
-  pull_request:
-    branches: [ main, master ]
-jobs:
-  build:
-    runs-on: macos-11
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2
-      with:
-        node-version: '14'
-    - name: Cache Node packages
-      uses: actions/cache@v2
-      with:
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('package-lock.json') }}
-        path: |
-          ./node_modules
-    - name: Setup dependencies
-      run: npm install
-    - name: Build the packages
-      run: ./pkg-build.sh
-    - name: Archive binary files
-      uses: actions/upload-artifact@v2
-      with:
-        name: binary-files
-        path: |
-          bin/*
-```
+### Pipeline Stages & Workflow
 
-Workflow artifacts named `binary-files` can be downloaded directly from GitHub Actions build runs for testing or release staging.
+| Stage | Trigger | Description & Purpose | Output / Artifacts |
+|---|---|---|---|
+| **1. `build`** | Automatic on `main` | Compiles multi-platform standalone binaries via `./pkg-build.sh`, parses [`CHANGELOG.md`](../CHANGELOG.md) to extract version notes, and archives build artifacts. | `bin/*` binaries, `release_notes.md` |
+| **2. `tag`** | Manual | Reads the version number from [`package.json`](../package.json), creates an annotated git release tag (e.g. `v5.2.0`), and pushes it to GitLab (`origin`). | Annotated Git tag on GitLab |
+| **3. `publish`** | Manual | Authenticates to the public NPM registry using `$NPM_TOKEN` and executes `npm publish`. | Package published to NPM registry |
+| **4. `push-github`** | Manual | Synchronizes the latest `main` branch commit and release tag (`vX.Y.Z`) to the GitHub mirror repository (`https://github.com/uilicious/uilicious-cli.git`). | Synced `main` branch & release tag on GitHub |
+| **5. `release-github`** | Manual | Uses the GitHub CLI (`gh`) and `$GITHUB_TOKEN` to create an official GitHub Release using `release_notes.md` and upload all multi-platform binary assets from `bin/`. | Official GitHub Release with binary assets |
+
+### Required CI/CD Environment Variables
+The following variables must be configured in GitLab CI/CD settings (**Settings > CI/CD > Variables**):
+- `NPM_TOKEN`: NPM access token with publish permissions for the package.
+- `GITHUB_TOKEN`: GitHub Personal Access Token or Deploy Token with `repo` write permissions for `uilicious/uilicious-cli`.
+- `GITLAB_TOKEN` *(Optional)*: Project Access Token or Personal Access Token with write permissions to push release tags to GitLab.
 
 ---
 
