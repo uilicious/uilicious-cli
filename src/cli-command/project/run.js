@@ -13,6 +13,7 @@ const OutputHandler      = require("../../OutputHandler")
 const FormatShift        = require("../../util/FormatShift")
 const SpaceAndProjectApi = require("../../api/SpaceAndProjectApi")
 const FileUtil           = require("../../util/FileUtil");
+const ErrorUtil          = require("../../util/ErrorUtil");
 
 //---------------------------------------------------
 //
@@ -172,7 +173,28 @@ class TestRunnerSession {
 		let height  = argv.height  || 960;
 		let region  = argv.region  || "default";
 		let dataSet = argv.dataset || argv.dataSet;
-		let disableSystemErrorRetry = !!argv.disableSystemErrorRetry;
+
+		// Process retryWhen option
+		//---------------------------------------------------------------
+		let rawRetryWhen = argv.retryWhen || argv["retry-when"];
+		let retryWhenMode = "always";
+
+		if( rawRetryWhen ) {
+			let normalized = ("" + rawRetryWhen).trim().toLowerCase().replace(/-/g, "");
+			if( normalized === "never" ) {
+				retryWhenMode = "never";
+			} else if( normalized === "onsystemerror" ) {
+				retryWhenMode = "onSystemError";
+			} else {
+				retryWhenMode = "always";
+			}
+		} else if( argv["no-retry"] || argv.noRetry ) {
+			retryWhenMode = "never";
+		} else if( argv.disableSystemErrorRetry || argv["disable-system-error-retry"] ) {
+			retryWhenMode = "onSystemError";
+		}
+
+		let disableSystemErrorRetry = (retryWhenMode !== "always" && retryWhenMode !== "onSystemError");
 
 		// Project start timeout in minutes
 		let startTimeout = Math.max(argv.startTimeout || argv["start-timeout"] || 15, 0);
@@ -234,6 +256,9 @@ class TestRunnerSession {
 
 		this.normalizedScriptPath    = normalizedScriptPath;
 		this.uriEncodedScriptPath    = uriEncodedScriptPath;
+		this.retryWhen               = retryWhenMode;
+		this.canRetryOnStart         = (retryWhenMode === "always");
+		this.canRetryOnSystemError   = (retryWhenMode === "always" || retryWhenMode === "onSystemError");
 		this.disableSystemErrorRetry = disableSystemErrorRetry;
 
 		// Initialize the internal startTimeoutLoggedFlag 
@@ -273,6 +298,12 @@ class TestRunnerSession {
 		if( this.userAgent != null ) {
 			OutputHandler.standardGreen(
 				`> User Agent:   ${this.userAgent}`
+			)
+		}
+		// Log retry policy if non-default
+		if( this.retryWhen !== "always" ) {
+			OutputHandler.standardGreen(
+				`> Retry Policy: ${this.retryWhen}`
 			)
 		}
 		OutputHandler.standardGreen(">")
@@ -329,6 +360,10 @@ class TestRunnerSession {
 
 		// Skip, as concurrency is not sufficent (existing test runs)
 		if( concurrency.avaliable <= 0 ) {
+			if( !this.canRetryOnStart ) {
+				OutputHandler.fatalError(`Maximum test concurrency exceeded (${concurrency.running}/${concurrency.total}) - aborting immediately due to --retryWhen ${this.retryWhen}`, null, 16);
+				process.exit(16);
+			}
 			OutputHandler.standard(`> Maximum test concurrency exceeded (${concurrency.running}/${concurrency.total}) ... `)
 			if( this.startTimeoutLoggedFlag != true ) {
 				OutputHandler.standard(`> Start Timeout : ${this.startTimeout} minutes - CLI will automatically retry till timeout`)
@@ -341,16 +376,17 @@ class TestRunnerSession {
 		try {
 			// The starting request param
 			let startRequestParams = {  
-				browser:    this.browser,
-				width:      this.width,
-				height:     this.height,
+				browser:      this.browser,
+				width:        this.width,
+				height:       this.height,
 				// We ensure region is forwarded
-				region:     this.region,
+				region:       this.region,
 				// Rest is as per normal
-				dataSetID:  this.dataSetID,
-				data:       this.dataObject,
-				secretData: this.secretObject,
-				userAgent:  this.userAgent
+				dataSetID:    this.dataSetID,
+				data:         this.dataObject,
+				secretData:   this.secretObject,
+				userAgent:    this.userAgent,
+				disableRetry: !this.canRetryOnStart
 			};
 
 			// Start the test
@@ -380,10 +416,8 @@ class TestRunnerSession {
 			// Return the testID
 			return testRunIDs[0];
 		} catch(err) {
-			// Get the error object where applicable
-			let errObj = err.ERROR || err.error || err;
-			// Unwrap any error message / code
-			let errOut = errObj.message || errObj.code || errObj;
+			let errMsg = ErrorUtil.extractErrorMessage(err);
+			let errCode = (err && (err.code || (err.ERROR && err.ERROR.code) || (err.error && err.error.code))) || "";
 
 			// Get the error code, and check against the known fatal error list
 			let fatalErrorCodeList = [
@@ -391,14 +425,18 @@ class TestRunnerSession {
 				"SPACE_NOT_FOUND", "PROJECT_NOT_FOUND", "BILLING_ACCOUNT_NOT_FOUND", 
 				"PLAN_NOT_FOUND", "FEATURE_DISABLED", "SPACE_DISABLED"
 			]
-			let errCode = errObj.code || "";
 			if( fatalErrorCodeList.indexOf(errCode) >= 0 ) {
-				OutputHandler.fatalError(`${errOut}`, null, 16);
+				OutputHandler.fatalError(`${errMsg}`, null, 16);
 				process.exit(16);
 			}
 
+			if( !this.canRetryOnStart ) {
+				OutputHandler.fatalError(`Failed to start test: ${errMsg} (aborting immediately due to --retryWhen ${this.retryWhen})`, err, 18);
+				process.exit(18);
+			}
+
 			// Output the error
-			OutputHandler.standard(`> Error starting test - CLI will retry due to start error : ${errOut}`)
+			OutputHandler.standard(`> Error starting test - CLI will retry due to start error : ${errMsg}`)
 			if( !this.startTimeoutLoggedFlag ) {
 				OutputHandler.standard(`> Start Timeout : ${this.startTimeout} minutes - CLI will automatically retry till timeout`)
 				this.startTimeoutLoggedFlag = true;
@@ -542,7 +580,7 @@ class TestRunnerSession {
 		// Get the initial start time / timeout time
 		// Note this is resetted in event of system errors
 		let startTimeMS = Date.now();
-		let startTimeoutTimeMS = startTimeMS + this.startTimeout*this.startTimeout_ms;
+		let startTimeoutTimeMS = startTimeMS + this.startTimeout_ms;
 
 		// save the start time
 		this._startTimeMS = startTimeMS;
@@ -580,7 +618,7 @@ class TestRunnerSession {
 			// Check for test start timeout
 			// if reached - performs a hard exit
 			if( t > 0 && Date.now() >= startTimeoutTimeMS ) {
-				OutputHandler.fatalError(`Failed to start test - Exceeded Start Timeout : ${startTimeout} minutes`, null, 18);
+				OutputHandler.fatalError(`Failed to start test - Exceeded Start Timeout : ${this.startTimeout} minutes`, null, 18);
 				process.exit(18);
 			}
 
@@ -593,6 +631,12 @@ class TestRunnerSession {
 
 			// Lets try to start, and get the test ID
 			testID = await this.attemptTestRunStart();
+
+			// If start failed and retries are disabled, abort immediately
+			if( testID == null && !this.canRetryOnStart ) {
+				OutputHandler.fatalError(`Failed to start test - aborting immediately due to --retryWhen ${this.retryWhen}`, null, 18);
+				process.exit(18);
+			}
 
 			// Great test started? - lets process it
 			//---------------------------------------------------------------
@@ -620,8 +664,8 @@ class TestRunnerSession {
 
 						// Check if SYSTEM_ERROR retries are disabled
 						// if so performs a hard abort
-						if( this.disableSystemErrorRetry ) {
-							OutputHandler.fatalError(`Aborting - ${successfulTestStarts} tests were executed with system errors, with --disableSystemErrorRetry`, null, 18);
+						if( !this.canRetryOnSystemError ) {
+							OutputHandler.fatalError(`Aborting - ${successfulTestStarts} tests were executed with system errors, with --retryWhen ${this.retryWhen}`, null, 18);
 							process.exit(18);
 						}
 
@@ -816,14 +860,38 @@ module.exports = {
 		cmd.number("--startTimeout <start-timeout>", {
 			description: "[default: 15]  Max number of minutes to wait, if concurrency is fully used"
 		});
+		cmd.string("--retryWhen <mode>", {
+			aliases: ["--retryWhen", "--retry-when"],
+			description: "[default: always]  Retry policy: 'always', 'never', or 'onSystemError'"
+		});
+		cmd.boolean("--no-retry", {
+			aliases: ["--no-retry", "--noRetry"],
+			description: "Shorthand for --retryWhen never",
+			hidden: true
+		});
 		cmd.boolean("--disableSystemErrorRetry", {
-			description: "Disable CLI automated retries when uilicious SYSTEM_ERROR occurs"
+			aliases: ["--disableSystemErrorRetry", "--disable-system-error-retry"],
+			description: "(deprecated command) Disable CLI automated retries when uilicious SYSTEM_ERROR occurs",
+			hidden: true
 		});
 		cmd.string("--userAgent <userAgent>", {
 			description: "Custom user agent if set, works only with chrome (ignored by other browsers)"
 		});
 
 		cmd.check((argv,context) => {
+
+			//------------------------------------------------------------------
+			//   RetryWhen Checking
+			//------------------------------------------------------------------
+
+			let retryWhen = (argv.retryWhen || argv["retry-when"] || "").trim();
+			if( retryWhen ) {
+				let normalized = retryWhen.toLowerCase().replace(/-/g, "");
+				let validModes = ["always", "never", "onsystemerror"];
+				if( validModes.indexOf(normalized) < 0 ) {
+					OutputHandler.cliArgumentError( `Unknown --retryWhen mode: '${retryWhen}'\nPlease use one of the following: always, never, onSystemError` );
+				}
+			}
 
 			//------------------------------------------------------------------
 			//   Browser Checking

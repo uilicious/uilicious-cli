@@ -46,6 +46,7 @@ cli-code/
 │   │   └── space/                       # Workspace operations
 │   │       └── list.js                  # 'space list'
 │   ├── util/                            # Shared utilities
+│   │   ├── ErrorUtil.js                 # Error object parsing and human-readable message extraction
 │   │   ├── FileUtil.js                  # Recursive file scanner, path normalization, ZIP archiver
 │   │   └── FormatShift.js               # Terminal table and data restructuring helpers
 │   ├── ArgumentValidator.js             # Authentication, apiHost, and deprecated argument rules
@@ -53,6 +54,9 @@ cli-code/
 │   ├── OutputHandler.js                 # Centralized output stream manager (Std, Table, JSON, Trace)
 │   ├── uilicious-cli.js                 # Main CLI binary entry point and route setup
 │   └── version.js                       # Single source of version truth
+├── docs/                                # Developer and operational documentation
+│   ├── deployment.md                    # Release and binary packaging guide (NPM & GitHub Releases)
+│   └── overview.md                      # Architecture and codebase onboarding guide
 ├── AGENTS.md                            # Development workflow and AI agent instructions
 ├── CHANGELOG.md                         # Semantic version change tracking (functional code only)
 ├── package.json                         # NPM package metadata and dependencies
@@ -117,7 +121,7 @@ To compile single-executable binary packages for distribution without requiring 
 ```bash
 ./pkg-build.sh
 ```
-Compiled standalone binaries are emitted into the `bin/` directory for macOS, Linux, Alpine, and Windows.
+Compiled standalone binaries are emitted into the `bin/` directory for macOS, Linux, Alpine, and Windows. See the complete [Deployment & Packaging Guide](./deployment.md) for full release and distribution procedures.
 
 ---
 
@@ -172,7 +176,8 @@ uilicious-cli run <project-name-or-id> <script-path> [options]
 - `--dataFile <path-to-json-or-hjson>`: Path to a local JSON/Hjson data file.
 - `--testCodeDir <local-dir>`: Runs tests using a local test code directory instead of remote project files (bundled as a temporary ZIP archive).
 - `--startTimeout <minutes>`: Test startup timeout in minutes (default: `15`).
-- `--disableSystemErrorRetry`: Disables automatic retries on backend system errors.
+- `--retryWhen <mode>`: Retry policy (`always` [default], `never`, or `onSystemError`).
+- `--no-retry`: Shorthand for `--retryWhen never` (fails fast on all errors).
 
 **Examples:**
 ```bash

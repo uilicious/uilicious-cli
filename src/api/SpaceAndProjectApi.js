@@ -321,13 +321,15 @@ class SpaceAndProjectApi {
 		OutputHandler.debug(`> Performing test start with the following settings`);
 		OutputHandler.debug(JSON.stringify(reqObj));
 
+		let maxRetry = testParams.disableRetry ? 1 : 3;
+
 		// Lets start the test !
 		return await retryForResult( () => { 
 			if( srcCodeZip_filePath ) {
 				return api.POST(`/project/testrun/start`, Object.assign({ "srcCodeZip" : fs.createReadStream(srcCodeZip_filePath) }, reqObj), true );
 			}
 			return api.POST(`/project/testrun/start`, reqObj);
-		} );
+		}, maxRetry );
 	}
 	
 	/**
