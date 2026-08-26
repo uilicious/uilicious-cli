@@ -10,10 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Added `--retryWhen <mode>` option supporting `always` (default), `never`, and `onSystemError` to configure CLI retry behavior upon start errors, concurrency exhaustion, and runtime system errors.
-- Added `--no-retry` shorthand flag as an alias for `--retryWhen never`.
 
 ### Changed
+
+### Fixed
+
+### Deprecated
+
+### Removed
+
+---
+
+## [5.2.0] - 2026-08-26
+
+### Added
+- Added `--retryWhen <mode>` option supporting `always` (default), `never`, and `onSystemError` to configure CLI retry behavior upon start errors, concurrency exhaustion, and runtime system errors.
+- Added `--no-retry` shorthand flag as an alias for `--retryWhen never`.
 
 ### Fixed
 - Fixed error extraction on test start failure so error messages and API responses are formatted clearly without stringifying as `[object Object]`.
@@ -21,8 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 - Deprecated `--disableSystemErrorRetry` flag in favor of `--retryWhen onSystemError` (flag is now hidden from help documentation).
-
-### Removed
 
 ---
 
