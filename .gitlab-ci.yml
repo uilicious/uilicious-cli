@@ -1,0 +1,202 @@
+stages:
+  - build
+  - tag
+  - publish
+  - push-github
+  - release-github
+
+# Global runner configuration & caching strategy
+default:
+  image: node:16-bullseye
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+      - node_modules/
+
+# Pre-job setup: restore dependencies using offline cache if available
+before_script:
+  - npm ci --cache .npm --prefer-offline || npm install --cache .npm --prefer-offline
+
+# ==============================================================================
+# Stage 1: Build
+# - Runs automatically on every push to the main branch.
+# - Compiles standalone binary packages for macOS, Linux, Alpine, and Windows.
+# - Extracts the matching version release notes from CHANGELOG.md.
+# - Saves bin/ binaries and release_notes.md as pipeline artifacts.
+# ==============================================================================
+build:
+  stage: build
+  script:
+    # Ensure build script is executable
+    - chmod +x ./pkg-build.sh
+    # Compile multi-platform binaries using pkg (outputs to bin/)
+    - ./pkg-build.sh
+    # Parse CHANGELOG.md for the current package version and write to release_notes.md
+    - |
+      node -e '
+        // Read version from package.json and full changelog content
+        const fs = require("fs");
+        const version = require("./package.json").version;
+        const changelog = fs.readFileSync("CHANGELOG.md", "utf8");
+
+        // Match the section under "## [X.Y.Z]" up to the next release header or EOF
+        const regex = new RegExp(`## \\\[${version.replace(/\\./g, "\\.")}\\\][^\n]*\n([\\s\\S]*?)(?=\n## \\\[|$)`);
+        const match = changelog.match(regex);
+
+        // Strip trailing horizontal rule if present, or fallback to default title
+        const notes = match ? match[1].replace(/---\s*$/, "").trim() : `Release v${version}`;
+
+        // Save extracted notes to artifact file for downstream GitHub Release stage
+        fs.writeFileSync("release_notes.md", notes);
+        console.log("Generated release_notes.md for v" + version + ":\n" + notes);
+      '
+  artifacts:
+    name: "uilicious-cli-binaries-$CI_COMMIT_REF_SLUG"
+    paths:
+      - bin/
+      - release_notes.md
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# ==============================================================================
+# Stage 2: Tag
+# - Manual trigger on the main branch.
+# - Reads current semantic version from package.json (e.g. 5.2.0 -> v5.2.0).
+# - Creates an annotated Git tag on the commit and pushes it to GitLab.
+# ==============================================================================
+tag-version:
+  stage: tag
+  script:
+    # 1. Extract version from package.json and format tag name (vX.Y.Z)
+    - VERSION=$(node -p "require('./package.json').version")
+    - TAG="v${VERSION}"
+    - echo "Preparing tag $TAG for commit $CI_COMMIT_SHA..."
+
+    # 2. Configure Git author identity for the CI job
+    - git config user.name "${GITLAB_USER_NAME:-GitLab CI}"
+    - git config user.email "${GITLAB_USER_EMAIL:-ci@uilicious.com}"
+
+    # 3. Authenticate with GitLab remote if a Project/Personal Access Token is provided
+    - |
+      if [ -n "${GITLAB_TOKEN:-}" ]; then
+        git remote set-url origin "https://oauth2:${GITLAB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+      fi
+
+    # 4. Check if tag already exists locally or on remote; create and push if missing
+    - |
+      if git rev-parse "$TAG" >/dev/null 2>&1 || git ls-remote --tags origin | grep -q "refs/tags/$TAG"; then
+        echo "Tag $TAG already exists on GitLab."
+      else
+        echo "Creating annotated tag $TAG..."
+        git tag -a "$TAG" -m "Release $TAG"
+        git push origin "$TAG"
+      fi
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
+
+# ==============================================================================
+# Stage 3: Publish to NPM
+# - Manual trigger on the main branch.
+# - Configures NPM authentication token.
+# - Publishes the package to the official NPM registry.
+# ==============================================================================
+publish-npm:
+  stage: publish
+  script:
+    # 1. Validate that NPM_TOKEN CI variable is configured
+    - |
+      if [ -z "${NPM_TOKEN:-}" ]; then
+        echo "Error: NPM_TOKEN CI/CD variable is required to publish to NPM."
+        exit 1
+      fi
+
+    # 2. Configure .npmrc authentication token for registry.npmjs.org
+    - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+
+    # 3. Publish package to the public NPM registry
+    - npm publish
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
+
+# ==============================================================================
+# Stage 4: Push to GitHub
+# - Manual trigger on the main branch.
+# - Synchronizes the main branch and release tag to the GitHub mirror repository.
+# ==============================================================================
+push-github:
+  stage: push-github
+  script:
+    # 1. Extract version from package.json and construct tag name
+    - VERSION=$(node -p "require('./package.json').version")
+    - TAG="v${VERSION}"
+
+    # 2. Validate that GITHUB_TOKEN CI variable is configured
+    - |
+      if [ -z "${GITHUB_TOKEN:-}" ]; then
+        echo "Error: GITHUB_TOKEN CI/CD variable is required to push to GitHub."
+        exit 1
+      fi
+
+    # 3. Add or update the authenticated GitHub remote URL using token
+    - GITHUB_REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/uilicious/uilicious-cli.git"
+    - git remote add github "$GITHUB_REPO_URL" 2>/dev/null || git remote set-url github "$GITHUB_REPO_URL"
+
+    # 4. Push main branch HEAD to GitHub main branch
+    - echo "Pushing main branch to GitHub repository (https://github.com/uilicious/uilicious-cli.git)..."
+    - git push github HEAD:main
+
+    # 5. Push release tag to GitHub repository
+    - echo "Pushing tag $TAG to GitHub repository..."
+    - git push github "$TAG" || git push github --tags
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
+
+# ==============================================================================
+# Stage 5: Release on GitHub
+# - Manual trigger on the main branch.
+# - Downloads build artifacts (bin/* and release_notes.md).
+# - Uses the GitHub CLI (gh) to create an official GitHub Release with binary assets.
+# ==============================================================================
+release-github:
+  stage: release-github
+  dependencies:
+    - build
+  before_script: [] # Skip npm dependency installation for standalone release step
+  script:
+    # 1. Extract version from package.json and construct tag name
+    - VERSION=$(node -p "require('./package.json').version")
+    - TAG="v${VERSION}"
+
+    # 2. Validate that GITHUB_TOKEN CI variable is configured
+    - |
+      if [ -z "${GITHUB_TOKEN:-}" ]; then
+        echo "Error: GITHUB_TOKEN CI/CD variable is required to create GitHub release."
+        exit 1
+      fi
+
+    # 3. Download and unpack standalone GitHub CLI (gh) binary
+    - echo "Installing standalone GitHub CLI..."
+    - GH_VERSION="2.40.1"
+    - curl -sSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_amd64.tar.gz" | tar -xz -C /tmp
+    - export PATH="/tmp/gh_${GH_VERSION}_linux_amd64/bin:$PATH"
+    - export GH_TOKEN="$GITHUB_TOKEN"
+
+    # 4. Create GitHub Release using release_notes.md and upload all binary files from bin/
+    # If release already exists, upload/clobber binary assets to update them
+    - echo "Creating GitHub Release for $TAG with binaries and release_notes.md..."
+    - |
+      gh release create "$TAG" ./bin/* \
+        --repo "uilicious/uilicious-cli" \
+        --title "$TAG" \
+        --notes-file release_notes.md \
+        || gh release upload "$TAG" ./bin/* --repo "uilicious/uilicious-cli" --clobber
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
